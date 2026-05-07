@@ -2,7 +2,10 @@ package com.ninjapp;
 
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.View;
+import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -12,13 +15,10 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.termux.view.TerminalView;
 import com.termux.terminal.TerminalSession;
-import com.termux.terminal.TerminalView;
-import com.termux.terminal.TerminalEmulator;
-
-import java.io.File;
-import java.util.Map;
-import java.util.HashMap;
+import com.termux.terminal.TerminalSessionClient;
+import com.termux.view.TerminalViewClient;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -28,12 +28,69 @@ public class MainActivity extends AppCompatActivity {
     private View divider;
     private boolean dividerDragging = false;
 
+    // ── TerminalSessionClient ──────────────────────────────────────────────
+
+    private final TerminalSessionClient terminalSessionClient = new TerminalSessionClient() {
+        @Override public void onTextChanged(TerminalSession changedSession) {}
+        @Override public void onTitleChanged(TerminalSession changedSession) {}
+        @Override public void onSessionFinished(TerminalSession finishedSession) {}
+        @Override public void onCopyTextToClipboard(TerminalSession session, String text) {}
+        @Override public void onPasteTextFromClipboard(TerminalSession session) {}
+        @Override public void onBell(TerminalSession session) {}
+        @Override public void onColorsChanged(TerminalSession session) {}
+        @Override public void onTerminalCursorStateChange(boolean state) {}
+        @Override public Integer getTerminalCursorStyle() { return null; }
+        @Override public void logError(String tag, String message) {}
+        @Override public void logWarn(String tag, String message) {}
+        @Override public void logInfo(String tag, String message) {}
+        @Override public void logDebug(String tag, String message) {}
+        @Override public void logVerbose(String tag, String message) {}
+        @Override public void logStackTraceWithMessage(String tag, String message, Exception e) {}
+        @Override public void logStackTrace(String tag, Exception e) {}
+    };
+
+    // ── TerminalViewClient ─────────────────────────────────────────────────
+
+    private final TerminalViewClient terminalViewClient = new TerminalViewClient() {
+        @Override public float onScale(float scale) { return scale; }
+        @Override public void onSingleTapUp(MotionEvent e) {}
+        @Override public boolean shouldBackButtonBeMappedToEscape() { return false; }
+        @Override public boolean shouldEnforceCharBasedInput() { return false; }
+        @Override public boolean shouldUseCtrlSpaceWorkaround() { return false; }
+        @Override public boolean isTerminalViewSelected() { return true; }
+        @Override public void copyModeChanged(boolean copyMode) {}
+        @Override public boolean onKeyDown(int keyCode, KeyEvent e, TerminalSession session) { return false; }
+        @Override public boolean onKeyUp(int keyCode, KeyEvent e) { return false; }
+        @Override public boolean onLongPress(MotionEvent event) { return false; }
+        @Override public boolean readControlKey() { return false; }
+        @Override public boolean readAltKey() { return false; }
+        @Override public boolean readShiftKey() { return false; }
+        @Override public boolean readFnKey() { return false; }
+        @Override public boolean onCodePoint(int codePoint, boolean ctrlDown, TerminalSession session) { return false; }
+        @Override public void onEmulatorSet() {
+            terminalSession.write(
+                "echo '>_ Terminal NINJApp listo'\n" +
+                "echo 'Ejecuta los comandos que el asistente te indique.'\n" +
+                "echo ''\n" +
+                "PS1='└──╼ '\n"
+            );
+        }
+        @Override public void logError(String tag, String message) {}
+        @Override public void logWarn(String tag, String message) {}
+        @Override public void logInfo(String tag, String message) {}
+        @Override public void logDebug(String tag, String message) {}
+        @Override public void logVerbose(String tag, String message) {}
+        @Override public void logStackTraceWithMessage(String tag, String message, Exception e) {}
+        @Override public void logStackTrace(String tag, Exception e) {}
+    };
+
+    // ── Lifecycle ──────────────────────────────────────────────────────────
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Force landscape
         if (getResources().getConfiguration().orientation != Configuration.ORIENTATION_LANDSCAPE) {
             Toast.makeText(this, "Pon el dispositivo en horizontal (landscape)", Toast.LENGTH_LONG).show();
         }
@@ -43,37 +100,34 @@ public class MainActivity extends AppCompatActivity {
         setupDivider();
     }
 
+    // ── Terminal setup ─────────────────────────────────────────────────────
+
     private void setupTerminal() {
         terminalView = findViewById(R.id.terminal_view);
 
-        // Create a terminal session with a shell
         String[] env = new String[]{
             "TERM=xterm-256color",
             "HOME=" + getFilesDir().getAbsolutePath(),
-            "PATH=" + System.getenv("PATH") + ":/system/bin:/system/xbin"
+            "PATH=/system/bin:/system/xbin:/sbin:/vendor/bin"
         };
-
-        File workingDir = getFilesDir();
 
         terminalSession = new TerminalSession(
             "/system/bin/sh",
+            getFilesDir().getAbsolutePath(),
             new String[]{"--login"},
             env,
-            workingDir,
-            null
+            null,
+            terminalSessionClient
         );
 
         terminalView.attachSession(terminalSession);
-
-        // Initialize shell with welcome message
-        terminalSession.write("echo '>_ Terminal NINJApp listo'\n");
-        terminalSession.write("echo 'Ejecuta los comandos que el asistente te indique.'\n");
-        terminalSession.write("echo ''\n");
-        terminalSession.write("PS1='└──╼ '\n");
-
-        // Set terminal text size
+        terminalSession.updateTerminalSessionClient(terminalSessionClient);
+        terminalView.setTerminalViewClient(terminalViewClient);
         terminalView.setTextSize(12);
+        terminalView.requestFocus();
     }
+
+    // ── WebView / JavaScript bridge ────────────────────────────────────────
 
     private void setupGuideWebView() {
         guideWebView = findViewById(R.id.guide_webview);
@@ -97,7 +151,6 @@ public class MainActivity extends AppCompatActivity {
 
         guideWebView.setWebChromeClient(new WebChromeClient());
 
-        // JavaScript bridge to send commands to terminal
         guideWebView.addJavascriptInterface(new Object() {
             @android.webkit.JavascriptInterface
             public void runCommand(String command) {
@@ -116,16 +169,15 @@ public class MainActivity extends AppCompatActivity {
             }
         }, "TermuxBridge");
 
-        // Load the NINJApp guide from GitHub Pages
-        // The guide loads the main page which shows a simplified version for the right pane
         guideWebView.loadUrl("https://illuminatiadmin.github.io/NINJApp/");
     }
+
+    // ── Draggable divider ──────────────────────────────────────────────────
 
     private void setupDivider() {
         divider = findViewById(R.id.divider);
         final View terminalPanel = findViewById(R.id.terminal_panel);
         final View guidePanel = findViewById(R.id.guide_panel);
-        final LinearLayout rootLayout = findViewById(R.id.root_layout);
 
         divider.setOnTouchListener((v, event) -> {
             switch (event.getAction()) {
@@ -138,12 +190,10 @@ public class MainActivity extends AppCompatActivity {
                         int screenWidth = getWindow().getDecorView().getWidth();
                         float touchX = event.getRawX();
 
-                        // Clamp between 30% and 70%
                         float minX = screenWidth * 0.3f;
                         float maxX = screenWidth * 0.7f;
                         touchX = Math.max(minX, Math.min(maxX, touchX));
 
-                        // Convert to weight (0-10 scale)
                         float weight = (touchX / screenWidth) * 10f;
                         float termWeight = weight;
                         float guideWeight = 10f - weight;
@@ -170,6 +220,8 @@ public class MainActivity extends AppCompatActivity {
             return false;
         });
     }
+
+    // ── Cleanup ────────────────────────────────────────────────────────────
 
     @Override
     protected void onDestroy() {

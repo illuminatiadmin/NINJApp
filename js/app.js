@@ -1000,6 +1000,7 @@ const App = {
     this.setupSearch();
     this.setupFilters();
     this.setupModal();
+    this.setupTerminal();
     this.hideSplash();
   },
 
@@ -1115,9 +1116,12 @@ const App = {
       ${tool.commands.map(c => `
         <div style="margin-bottom:10px;">
           <div style="font-size:11px;color:var(--text-secondary);margin-bottom:3px;">${c.label}</div>
-          <div class="modal-command">${c.cmd}</div>
+          <div class="modal-command" style="cursor:pointer;" onclick="if(navigator.clipboard){navigator.clipboard.writeText('${c.cmd.replace(/'/g,"\\'")}').then(()=>{this.innerHTML='✓ Copiado!';setTimeout(()=>this.innerHTML='${c.cmd.replace(/'/g,"\\'")}',1200)});}">${c.cmd}</div>
         </div>
       `).join('')}
+      <div style="text-align:center;margin-bottom:12px;">
+        <button onclick="App.openTerminal('${tool.commands[0].cmd.replace(/'/g,"\\'")}')" style="padding:8px 20px;background:rgba(0,255,65,0.1);border:1px solid rgba(0,255,65,0.3);border-radius:4px;color:var(--accent-green);font-family:var(--font-mono);font-size:11px;cursor:pointer;">▶ Probar en Terminal</button>
+      </div>
 
       <div class="modal-section-title">📥 Instalación</div>
       <div class="modal-command">${tool.install}</div>
@@ -1168,6 +1172,521 @@ const App = {
     // Already handled above
 
     modal.classList.add('open');
+  },
+
+  // ===== TERMINAL ENGINE =====
+
+  terminalDb: {
+    'nmap': {
+      learn: 'Nmap escanea puertos TCP/UDP. El flag -sV detecta versiones de servicios. Los puertos comunes: 22 (SSH), 80 (HTTP), 443 (HTTPS), 21 (FTP). Un puerto "open" significa que el servicio está aceptando conexiones.'
+    },
+    'gobuster': {
+      learn: 'Gobuster realiza fuerza bruta de directorios web. Usa un diccionario de palabras comunes y prueba cada una contra el servidor. Status 200 = existe, 301 = redirige, 403 = prohibido, 404 = no existe.'
+    },
+    'nikto': {
+      learn: 'Nikto es un escáner de servidores web. Revisa más de 6700 archivos/CGI potencialmente peligrosos, versiones desactualizadas y configuraciones incorrectas.'
+    },
+    'wpscan': {
+      learn: 'WPScan escanea sitios WordPress. Detecta la versión de WP, plugins instalados, temas y usuarios. La flag --enumerate u descubre nombres de usuario registrados.'
+    },
+    'sqlmap': {
+      learn: 'SQLMap automatiza la detección y explotación de SQL Injection. --dbs lista las bases de datos, --tables lista las tablas, --dump extrae los datos. Siempre con autorización.'
+    },
+    'hydra': {
+      learn: 'Hydra realiza fuerza bruta contra servicios de red. Prueba combinaciones de usuario/contraseña hasta encontrar la correcta. Solo en sistemas propios.'
+    },
+    'metasploit': {
+      learn: 'Metasploit es un framework de explotación. "search" busca módulos, "use" los carga, "show options" muestra parámetros, "run" ejecuta el exploit.'
+    },
+    'nuclei': {
+      learn: 'Nuclei usa templates YAML para escanear vulnerabilidades. Cada template es una prueba específica. Los tags permiten filtrar por tecnología o tipo.'
+    },
+    'jadx': {
+      learn: 'JADX descompila archivos DEX (Android) a código Java legible. Útil para auditar apps: busca APIs sensibles, strings hardcodeadas, ofuscación.'
+    },
+    'apktool': {
+      learn: 'APKTool descompila recursos de un APK a su formato original Smali. Permite modificar y recompilar. Esencial para análisis de malware y modding.'
+    },
+    'curl': {
+      learn: 'curl transfiere datos desde/hacia servidores. -s = silencioso, -I = solo cabeceras, -o /dev/null descarta el body, -v modo verbose.'
+    },
+    'ping': {
+      learn: 'ping prueba conectividad con un host. Mide el tiempo de ida y vuelta (RTT). Un TTL alto indica que el host está lejos (muchos saltos).'
+    },
+    'traceroute': {
+      learn: 'traceroute muestra cada salto que hace un paquete hasta su destino. Útil para diagnosticar dónde se pierde la conexión.'
+    },
+    'netstat': {
+      learn: 'netstat muestra conexiones de red activas. ESTABLISHED = conexión activa, LISTEN = servicio esperando, TIME_WAIT = cerrando.'
+    },
+    'tcpdump': {
+      learn: 'tcpdump captura paquetes de red en tiempo real. Muestra IPs origen/destino, puertos y protocolos. -c limita el número de paquetes.'
+    },
+    'sherlock': {
+      learn: 'Sherlock busca un nombre de usuario en cientos de redes sociales. Si encuentra resultado, esa cuenta existe con ese username.'
+    },
+    'theharvester': {
+      learn: 'theHarvester recolecta información pública (correos, subdominios, IPs) de motores de búsqueda. -d es el dominio a investigar, -b la fuente.'
+    },
+    'proxychains': {
+      learn: 'Proxychains enruta el tráfico de cualquier programa a través de proxies configurados. Muy usado con Tor para anonimizar herramientas como nmap.'
+    },
+    'tor': {
+      learn: 'Tor enruta tu tráfico a través de 3 nodos cifrados. Tu IP pública cambia. Verifica en check.torproject.org si está funcionando.'
+    },
+    'john': {
+      learn: 'John the Ripper crackea hashes de contraseñas. --wordlist usa un diccionario, --rules aplica mutaciones, --show muestra las descifradas.'
+    }
+  },
+
+  openTerminal(cmd) {
+    const modal = document.getElementById('terminal-modal');
+    const output = document.getElementById('terminal-output');
+    const input = document.getElementById('terminal-input');
+
+    modal.classList.add('open');
+    if (cmd) {
+      input.value = cmd;
+      this.executeCommand(cmd);
+    }
+    input.focus();
+  },
+
+  executeCommand(cmd) {
+    const output = document.getElementById('terminal-output');
+    const input = document.getElementById('terminal-input');
+    const trimmed = cmd.trim();
+
+    if (!trimmed) return;
+
+    // Add prompt line
+    const promptLine = document.createElement('div');
+    promptLine.className = 'terminal-line prompt-line';
+    promptLine.textContent = `└──╼ ${trimmed}`;
+    output.appendChild(promptLine);
+
+    // Clear input
+    input.value = '';
+
+    // Parse command
+    const parts = trimmed.split(/\s+/);
+    const base = parts[0].toLowerCase();
+
+    // Check if it's a known tool or common command
+    const known = this.terminalDb[base];
+
+    if (known) {
+      // Show sample output
+      this.showSampleOutput(output, base, trimmed, known);
+    } else if (base === 'clear' || base === 'cls') {
+      output.innerHTML = '';
+    } else if (base === 'help') {
+      this.showHelp(output);
+    } else if (base === 'echo') {
+      const line = document.createElement('div');
+      line.className = 'terminal-line output';
+      line.textContent = parts.slice(1).join(' ') || '';
+      output.appendChild(line);
+    } else if (base === 'whoami') {
+      const line = document.createElement('div');
+      line.className = 'terminal-line output';
+      line.textContent = 'u0_a321';
+      output.appendChild(line);
+    } else if (base === 'pkg') {
+      const line = document.createElement('div');
+      line.className = 'terminal-line output';
+      line.textContent = '⏳ Procesando... Este comando se ejecuta en Termux. Copia el comando y pégalo en Termux.';
+      output.appendChild(line);
+      this.addCopyGuide(output, trimmed);
+    } else {
+      // Unknown command - suggest copying to Termux
+      const line = document.createElement('div');
+      line.className = 'terminal-line info';
+      line.textContent = `ℹ️ "${trimmed}" no está en la base de aprendizaje, pero puedes ejecutarlo en Termux:`;
+      output.appendChild(line);
+      this.addCopyGuide(output, trimmed);
+    }
+
+    // Auto-scroll
+    output.scrollTop = output.scrollHeight;
+  },
+
+  showSampleOutput(output, base, fullCmd, known) {
+    const samples = this.getSampleOutput(base, fullCmd);
+    if (samples) {
+      samples.forEach(s => {
+        const line = document.createElement('div');
+        line.className = `terminal-line ${s.type || 'output'}`;
+        line.innerHTML = s.text;
+        output.appendChild(line);
+      });
+    }
+
+    // "Run in Termux" button area
+    const runDiv = document.createElement('div');
+    runDiv.style.cssText = 'margin:8px 0;display:flex;gap:8px;flex-wrap:wrap;';
+    runDiv.innerHTML = `
+      <button onclick="App.copyToTermux('${fullCmd.replace(/'/g,"\\'")}')" style="padding:8px 16px;background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.3);border-radius:4px;color:var(--accent-cyan);font-family:var(--font-mono);font-size:11px;cursor:pointer;">📋 Copiar y abrir Termux</button>
+      <button onclick="App.runInTermux('${fullCmd.replace(/'/g,"\\'")}')" style="padding:8px 16px;background:rgba(0,255,65,0.1);border:1px solid rgba(0,255,65,0.3);border-radius:4px;color:var(--accent-green);font-family:var(--font-mono);font-size:11px;cursor:pointer;">▶ Ejecutar en Termux</button>
+    `;
+    output.appendChild(runDiv);
+
+    // Educational guidance
+    if (known.learn) {
+      const guide = document.createElement('div');
+      guide.className = 'terminal-line guide';
+      guide.innerHTML = `<span class="label">📖 Lo que aprendiste:</span> ${known.learn}`;
+      output.appendChild(guide);
+    }
+
+    // Next steps
+    const nextCmd = this.getNextStep(base);
+    if (nextCmd) {
+      const nextDiv = document.createElement('div');
+      nextDiv.className = 'terminal-line guide';
+      nextDiv.style.borderLeftColor = 'var(--accent-green)';
+      nextDiv.innerHTML = `<span class="label">⏭️ Siguiente:</span> Prueba este comando → 
+        <span style="color:var(--accent-green);cursor:pointer;" onclick="document.getElementById('terminal-input').value='${nextCmd.replace(/'/g,"\\'")}';App.executeCommand('${nextCmd.replace(/'/g,"\\'")}')">${nextCmd}</span>`;
+      output.appendChild(nextDiv);
+    }
+  },
+
+  getSampleOutput(base, fullCmd) {
+    // Return realistic sample outputs for common commands
+    const samples = {
+      'nmap': [
+        { type: 'output', text: 'Starting Nmap 7.95 ( https://nmap.org ) at 2026-05-07 10:30 UTC' },
+        { type: 'output', text: 'Nmap scan report for scanme.nmap.org (45.33.32.156)' },
+        { type: 'output', text: 'Host is up (0.15s latency).' },
+        { type: 'output', text: '' },
+        { type: 'output', text: 'PORT     STATE  SERVICE    VERSION' },
+        { type: 'output', text: '22/tcp   open   ssh        OpenSSH 6.6.1p1 Ubuntu 2ubuntu2.13' },
+        { type: 'output', text: '80/tcp   open   http       Apache httpd 2.4.7' },
+        { type: 'output', text: '443/tcp  open   ssl/http   Apache httpd 2.4.7' },
+        { type: 'output', text: '9929/tcp  open   nping-echo Nping echo' },
+        { type: 'output', text: '' },
+        { type: 'output', text: 'Service detection performed. Please report any incorrect results at:' },
+        { type: 'output', text: 'https://nmap.org/submit/' },
+        { type: 'output', text: 'Nmap done: 1 IP address (1 host up) scanned in 12.45 seconds' }
+      ],
+      'ping': [
+        { type: 'output', text: 'PING google.com (142.250.80.14) 56(84) bytes of data.' },
+        { type: 'output', text: '64 bytes from 142.250.80.14: icmp_seq=1 ttl=118 time=12.5 ms' },
+        { type: 'output', text: '64 bytes from 142.250.80.14: icmp_seq=2 ttl=118 time=11.8 ms' },
+        { type: 'output', text: '64 bytes from 142.250.80.14: icmp_seq=3 ttl=118 time=13.2 ms' },
+        { type: 'output', text: '64 bytes from 142.250.80.14: icmp_seq=4 ttl=118 time=12.1 ms' },
+        { type: 'output', text: '' },
+        { type: 'output', text: '--- google.com ping statistics ---' },
+        { type: 'output', text: '4 packets transmitted, 4 received, 0% packet loss, time 3003ms' },
+        { type: 'output', text: 'rtt min/avg/max/mdev = 11.8/12.4/13.2/0.5 ms' }
+      ],
+      'gobuster': [
+        { type: 'output', text: '===============================================================' },
+        { type: 'output', text: 'Gobuster v3.8 by OJ Reeves (@TheColonial) & Christian Mehlmauer (@firefart)' },
+        { type: 'output', text: '===============================================================' },
+        { type: 'output', text: '' },
+        { type: 'output', text: '[+] Url:                     https://ejemplo.com' },
+        { type: 'output', text: '[+] Method:                  GET' },
+        { type: 'output', text: '[+] Threads:                 10' },
+        { type: 'output', text: '[+] Wordlist:                /usr/share/wordlists/dirb/common.txt' },
+        { type: 'output', text: '===============================================================' },
+        { type: 'output', text: 'Starting gobuster in directory enumeration mode' },
+        { type: 'output', text: '===============================================================' },
+        { type: 'output', text: '/admin                (Status: 301) [Size: 235]' },
+        { type: 'output', text: '/css                  (Status: 301) [Size: 178]' },
+        { type: 'output', text: '/images               (Status: 301) [Size: 181]' },
+        { type: 'output', text: '/js                   (Status: 301) [Size: 175]' },
+        { type: 'output', text: '/login                (Status: 200) [Size: 1423]' },
+        { type: 'output', text: '/wp-admin             (Status: 301) [Size: 241]' },
+        { type: 'output', text: '/wp-content           (Status: 301) [Size: 245]' },
+        { type: 'output', text: '===============================================================' }
+      ],
+      'sqlmap': [
+        { type: 'output', text: '___ ___| |_____|___ ___  {1.8.9#stable}' },
+        { type: 'output', text: '|_ -| . | |     | .\'| . |' },
+        { type: 'output', text: '|___|_  |_|_|_|_|__,|  _|' },
+        { type: 'output', text: '      |_|           |_|   https://sqlmap.org' },
+        { type: 'output', text: '' },
+        { type: 'output', text: '[!] legal disclaimer: Usage for attacking targets without prior' },
+        { type: 'output', text: '    mutual consent is illegal. It is the end user responsibility' },
+        { type: 'output', text: '    to obey all applicable local, state and federal laws.' },
+        { type: 'output', text: '' },
+        { type: 'output', text: '[*] starting @ 10:30:45 /2026-05-07/' },
+        { type: 'output', text: '' },
+        { type: 'output', text: '[10:30:46] [INFO] testing connection to the target URL' },
+        { type: 'output', text: '[10:30:47] [INFO] testing if the target URL is stable' },
+        { type: 'output', text: '[10:30:48] [INFO] target URL is stable' },
+        { type: 'output', text: '[10:30:48] [INFO] testing if GET parameter \'id\' is dynamic' },
+        { type: 'output', text: '[10:30:49] [INFO] GET parameter \'id\' appears to be dynamic' },
+        { type: 'output', text: '[10:30:49] [INFO] heuristic (basic) test shows that GET parameter' },
+        { type: 'output', text: ' \'id\' might be injectable' },
+        { type: 'output', text: '[10:30:50] [INFO] testing for SQL injection on GET parameter \'id\'' },
+        { type: 'output', text: '[10:30:52] [INFO] GET parameter \'id\' is vulnerable. Do you want to' },
+        { type: 'output', text: ' keep testing the others? [y/N] ' }
+      ],
+      'nuclei': [
+        { type: 'output', text: '[INF] Loading templates...' },
+        { type: 'output', text: '[INF] Templates loaded: 8457' },
+        { type: 'output', text: '[WRN] Loading 1 unsigned templates' },
+        { type: 'output', text: '[INF] Targets loaded: 1' },
+        { type: 'output', text: '' },
+        { type: 'output', text: '[techdetect] [http] [info] https://ejemplo.com [wordpress]' },
+        { type: 'output', text: '[techdetect] [http] [info] https://ejemplo.com [php]' },
+        { type: 'output', text: '[techdetect] [http] [info] https://ejemplo.com [mysql]' },
+        { type: 'output', text: '[techdetect] [http] [info] https://ejemplo.com [nginx]' },
+        { type: 'output', text: '' },
+        { type: 'output', text: '[wp-plugin-scan] [http] [info] https://ejemplo.com/wp-content/plugins/akismet/readme.txt' },
+        { type: 'output', text: '[wp-version] [http] [medium] https://ejemplo.com [WordPress 5.8.3]' },
+        { type: 'output', text: '[missing-security-headers] [http] [info] https://ejemplo.com [X-XSS-Protection]' },
+        { type: 'output', text: '[missing-security-headers] [http] [info] https://ejemplo.com [X-Frame-Options]' }
+      ],
+      'curl': [
+        { type: 'output', text: 'HTTP/1.1 200 OK' },
+        { type: 'output', text: 'Date: Thu, 07 May 2026 10:30:00 GMT' },
+        { type: 'output', text: 'Server: nginx/1.24.0' },
+        { type: 'output', text: 'Content-Type: text/html; charset=UTF-8' },
+        { type: 'output', text: 'X-Powered-By: PHP/8.1.12' },
+        { type: 'output', text: 'Set-Cookie: PHPSESSID=abc123; path=/' },
+        { type: 'output', text: 'X-Frame-Options: SAMEORIGIN' },
+        { type: 'output', text: 'X-XSS-Protection: 1; mode=block' },
+        { type: 'output', text: 'Strict-Transport-Security: max-age=31536000' }
+      ],
+      'nikto': [
+        { type: 'output', text: '- Nikto v2.5.0' },
+        { type: 'output', text: '---------------------------------------------------------------------------' },
+        { type: 'output', text: '+ Target IP:          192.168.1.100' },
+        { type: 'output', text: '+ Target Hostname:    ejemplo.com' },
+        { type: 'output', text: '+ Target Port:        80' },
+        { type: 'output', text: '---------------------------------------------------------------------------' },
+        { type: 'output', text: '+ SSL Info:        Subject:  /CN=ejemplo.com' },
+        { type: 'output', text: '                   Ciphers:  TLS_AES_256_GCM_SHA384' },
+        { type: 'output', text: '                   Issuer:   /CN=R3' },
+        { type: 'output', text: '---------------------------------------------------------------------------' },
+        { type: 'output', text: '+ /: Server banner: nginx/1.24.0' },
+        { type: 'output', text: '+ /: The anti-clickjacking X-Frame-Options header is not present.' },
+        { type: 'output', text: '+ /: The X-Content-Type-Options header is not set.' },
+        { type: 'output', text: '+ /robots.txt: Entry \'/wp-admin/\' is disallowed.' },
+        { type: 'output', text: '+ /wp-login.php: Wordpress login found.' },
+        { type: 'output', text: '+ 1 host(s) tested' }
+      ],
+      'sherlock': [
+        { type: 'output', text: "[*] Checking username 'ninja' on:" },
+        { type: 'output', text: '' },
+        { type: 'output', text: '[+] GitHub: https://www.github.com/ninja' },
+        { type: 'output', text: '[+] Twitter: https://twitter.com/ninja' },
+        { type: 'output', text: '[+] Instagram: https://www.instagram.com/ninja/' },
+        { type: 'output', text: '[+] Reddit: https://www.reddit.com/user/ninja' },
+        { type: 'output', text: '[+] TikTok: https://www.tiktok.com/@ninja' },
+        { type: 'output', text: '[+] YouTube: https://www.youtube.com/@ninja' },
+        { type: 'output', text: '' },
+        { type: 'output', text: '[*] Search completed with 6 results' }
+      ],
+      'theharvester': [
+        { type: 'output', text: '*******************************************************************' },
+        { type: 'output', text: '*  _   _                                              _          *' },
+        { type: 'output', text: '* | | | |                                             | |         *' },
+        { type: 'output', text: '* | |_| | __ _ _ __  _ __ ___  ___ ___  _ __  ___ _ __| |_ _   _  *' },
+        { type: 'output', text: '* |  _  |/ _\' | \'_ \\| \'__/ _ \\/ __/ _ \\| \'_ \\/ __| \'__| __| | | | *' },
+        { type: 'output', text: '* | | | | (_| | |_) | | |  __/ (_| (_) | | | \\__ \\ | | |_| |_| | *' },
+        { type: 'output', text: '* \\_| |_/\\__,_| .__/|_|  \\___|\\___\\___/|_| |_|___/_|  \\__|\\__, | *' },
+        { type: 'output', text: '*             | |                                         __/ | *' },
+        { type: 'output', text: '*             |_|                                        |___/  *' },
+        { type: 'output', text: '*******************************************************************' },
+        { type: 'output', text: '' },
+        { type: 'output', text: '[+] Found emails:' },
+        { type: 'output', text: '    info@ejemplo.com' },
+        { type: 'output', text: '    admin@ejemplo.com' },
+        { type: 'output', text: '' },
+        { type: 'output', text: '[+] Found subdomains:' },
+        { type: 'output', text: '    mail.ejemplo.com' },
+        { type: 'output', text: '    www.ejemplo.com' },
+        { type: 'output', text: '    admin.ejemplo.com' }
+      ],
+      'wpscan': [
+        { type: 'output', text: '_______________________________________________________________' },
+        { type: 'output', text: '__          _______   _____' },
+        { type: 'output', text: '\\ \\        / /  __ \\ / ____|' },
+        { type: 'output', text: ' \\ \\  /\\  / /| |__) | (___   ___ __ _ _ __' },
+        { type: 'output', text: '  \\ \\/  \\/ / |  ___/ \\___ \\ / __/ _\' | \'_ \\' },
+        { type: 'output', text: '   \\  /\\  /  | |     ____) | (_| (_| | | | |' },
+        { type: 'output', text: '    \\/  \\/   |_|    |_____/ \\___\\__,_|_| |_|' },
+        { type: 'output', text: '_______________________________________________________________' },
+        { type: 'output', text: '' },
+        { type: 'output', text: '[+] WordPress version: 5.8.3 (outdated)' },
+        { type: 'output', text: '[+] Theme: twentytwentyone v1.5' },
+        { type: 'output', text: '[+] Enumerating Vulnerable Plugins' },
+        { type: 'output', text: '[+] akismet v4.1.9' },
+        { type: 'output', text: '[+] contact-form-7 v5.5.2' },
+        { type: 'output', text: '[!] 2 vulnerabilities identified:' },
+        { type: 'output', text: '    - Contact Form 7 < 5.5.3 - Reflected XSS' },
+        { type: 'output', text: '' },
+        { type: 'output', text: '[+] Enumerating Users' },
+        { type: 'output', text: '    admin' }
+      ],
+      'hydra': [
+        { type: 'output', text: 'Hydra v9.5 (c) 2023 by van Hauser/THC & David Maciejak' },
+        { type: 'output', text: '' },
+        { type: 'output', text: '[DATA] max 16 tasks per 1 server, overall 16 tasks, 14344399 login tries' },
+        { type: 'output', text: '[DATA] attacking ssh://192.168.1.100:22/' },
+        { type: 'output', text: '[STATUS] 1793.00 tries/min, 1793 tries in 00:01h, 14342606 to do in 133:24h' },
+        { type: 'output', text: '[22][ssh] host: 192.168.1.100 login: admin password: P@ssw0rd123' },
+        { type: 'output', text: '[STATUS] attack finished for 192.168.1.100 (waiting for children to complete)' },
+        { type: 'output', text: '1 of 1 target successfully completed, 1 valid password found' }
+      ],
+      'tcpdump': [
+        { type: 'output', text: 'tcpdump: verbose output suppressed, use -v[v]... for full protocol decode' },
+        { type: 'output', text: 'listening on eth0, link-type EN10MB (Ethernet), snapshot length 262144 bytes' },
+        { type: 'output', text: '10:30:01.123456 IP 192.168.1.100.54321 > 93.184.216.34.80: Flags [S], seq 123456789' },
+        { type: 'output', text: '10:30:01.234567 IP 93.184.216.34.80 > 192.168.1.100.54321: Flags [S.], seq 987654321, ack 123456790' },
+        { type: 'output', text: '10:30:01.345678 IP 192.168.1.100.54321 > 93.184.216.34.80: Flags [.], ack 1' },
+        { type: 'output', text: '10:30:01.456789 IP 192.168.1.100.54321 > 93.184.216.34.80: Flags [P.], seq 1:76, ack 1' },
+        { type: 'output', text: '10:30:01.567890 IP 93.184.216.34.80 > 192.168.1.100.54321: Flags [.], ack 76' },
+        { type: 'output', text: '10 packets captured' },
+        { type: 'output', text: '10 packets received by filter' },
+        { type: 'output', text: '0 packets dropped by kernel' }
+      ],
+      'netstat': [
+        { type: 'output', text: 'Active Internet connections (w/o servers)' },
+        { type: 'output', text: 'Proto Recv-Q Send-Q Local Address           Foreign Address         State' },
+        { type: 'output', text: 'tcp        0      0 192.168.1.100:443       104.28.7.85:443         ESTABLISHED' },
+        { type: 'output', text: 'tcp        0      0 192.168.1.100:53241     142.250.80.14:443       ESTABLISHED' },
+        { type: 'output', text: 'tcp        0      0 192.168.1.100:22        192.168.1.50:45123      ESTABLISHED' },
+        { type: 'output', text: 'tcp6       0      0 :::22                   :::*                    LISTEN' },
+        { type: 'output', text: 'tcp        0      0 0.0.0.0:80              0.0.0.0:*               LISTEN' }
+      ],
+      'proxychains': [
+        { type: 'output', text: 'ProxyChains-3.1 (http://proxychains.sf.net)' },
+        { type: 'output', text: '|DNS-request| 45.33.32.156' },
+        { type: 'output', text: '|S-chain|-<>-127.0.0.1:9050-<><>-4.2.2.2:53-<><>-OK' },
+        { type: 'output', text: '|DNS-response| 45.33.32.156 is 45.33.32.156' },
+        { type: 'output', text: '|S-chain|-<>-127.0.0.1:9050-<><>-45.33.32.156:80-<><>-OK' },
+        { type: 'output', text: '' },
+        { type: 'output', text: 'Starting Nmap 7.95 ( https://nmap.org ) at 2026-05-07 10:30 UTC' },
+        { type: 'output', text: 'Nmap scan report for scanme.nmap.org (45.33.32.156)' }
+      ],
+      'tor': [
+        { type: 'output', text: 'May 07 10:30:01.000 [notice] Tor 0.4.8.12 running on Linux with Libevent 2.1.12, OpenSSL 3.0.15, Zlib 1.3, Liblzma 5.6.0, Libzstd 1.5.5 and Unknown as N/A.' },
+        { type: 'output', text: 'May 07 10:30:01.000 [notice] Tor can\'t help you if you use it wrong!' },
+        { type: 'output', text: 'May 07 10:30:01.000 [notice] Read configuration file "/data/data/com.termux/files/usr/etc/tor/torrc".' },
+        { type: 'output', text: 'May 07 10:30:05.000 [notice] Bootstrapped 0% (starting): Starting' },
+        { type: 'output', text: 'May 07 10:30:07.000 [notice] Bootstrapped 10% (conn_done): Connected to a relay' },
+        { type: 'output', text: 'May 07 10:30:12.000 [notice] Bootstrapped 50% (loading_descriptors): Loading relay descriptors' },
+        { type: 'output', text: 'May 07 10:30:18.000 [notice] Bootstrapped 100% (done): Done' },
+        { type: 'output', text: 'May 07 10:30:18.000 [notice] Tor has successfully opened a circuit. Looks like client functionality is working.' }
+      ],
+      'john': [
+        { type: 'output', text: 'Loaded 1 password hash (Raw-SHA256 [SHA256 256/256 AVX2 8x])' },
+        { type: 'output', text: 'Will run 8 OpenMP threads' },
+        { type: 'output', text: 'Press \'q\' or Ctrl-C to abort, almost any other key for status' },
+        { type: 'output', text: '0g 0:00:00:03 0.00% (ETA: 10:45:00) 0g/s 125.3Kp/s 125.3Kc/s 125.3KC/s' },
+        { type: 'output', text: 'P@ssw0rd123         (?))' },
+        { type: 'output', text: '1g 0:00:00:05 100% 0.20g/s 124.5Kp/s 124.5Kc/s 124.5KC/s (1)' },
+        { type: 'output', text: 'Use the "--show" option to display all of the cracked passwords reliably' },
+        { type: 'output', text: 'Session completed.' }
+      ],
+      'jadx': [
+        { type: 'output', text: 'INFO  - loading ...' },
+        { type: 'output', text: 'INFO  - processing ...' },
+        { type: 'output', text: 'INFO  - done' },
+        { type: 'output', text: '' },
+        { type: 'output', text: 'Classes loaded:' },
+        { type: 'output', text: ' - com.example.app.MainActivity' },
+        { type: 'output', text: ' - com.example.app.LoginActivity' },
+        { type: 'output', text: ' - com.example.app.network.ApiClient' },
+        { type: 'output', text: ' - com.example.app.utils.EncryptionHelper' },
+        { type: 'output', text: ' - com.example.app.db.DatabaseHelper' }
+      ]
+    };
+
+    return samples[base] || null;
+  },
+
+  getNextStep(base) {
+    const steps = {
+      'nmap': 'nmap -sV -p 22,80,443 scanme.nmap.org',
+      'gobuster': 'gobuster dir -u https://ejemplo.com -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt',
+      'nikto': 'nikto -h https://ejemplo.com -ssl',
+      'wpscan': 'wpscan --url https://ejemplo-wp.com --enumerate vp',
+      'sqlmap': 'sqlmap -u "http://testphp.vulnweb.com/artists.php?artist=1" --dbs',
+      'hydra': 'hydra -L users.txt -P passwords.txt ssh://192.168.1.1',
+      'nuclei': 'nuclei -u https://ejemplo.com -severity critical,high',
+      'ping': 'traceroute google.com',
+      'curl': 'curl -s -I https://ejemplo.com',
+      'sherlock': 'theHarvester -d ejemplo.com -b google',
+      'tor': 'curl --socks5 127.0.0.1:9050 -s https://check.torproject.org/api/ip',
+      'proxychains': 'proxychains nmap -sT scanme.nmap.org',
+      'john': 'john --show hash.txt',
+      'jadx': 'jadx --show-bad-code -d output/ app.apk'
+    };
+    return steps[base] || null;
+  },
+
+  addCopyGuide(output, cmd) {
+    const div = document.createElement('div');
+    div.className = 'terminal-line guide';
+    div.style.borderLeftColor = 'var(--accent-green)';
+    div.innerHTML = `<span class="label">📋 Para ejecutar:</span> Copia este comando y pégalo en Termux → 
+      <span style="color:var(--accent-green);cursor:pointer;" onclick="App.copyToTermux('${cmd.replace(/'/g,"\\'")}')">📋 Copiar</span>`;
+    output.appendChild(div);
+  },
+
+  copyToTermux(cmd) {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(cmd).then(() => {
+        // Try to open Termux via intent
+        try {
+          const termuxUrl = `termux://open?command=${encodeURIComponent(cmd)}`;
+          window.open(termuxUrl, '_blank');
+        } catch(e) {}
+        // Show feedback
+        const btn = document.querySelector('[onclick*="copyToTermux"]');
+        if (btn) { btn.textContent = '✓ Copiado'; setTimeout(() => btn.textContent = '📋 Copiar y abrir Termux', 2000); }
+      });
+    }
+  },
+
+  runInTermux(cmd) {
+    this.copyToTermux(cmd);
+    // Try multiple intent methods
+    const urls = [
+      `termux://open?command=${encodeURIComponent(cmd)}`,
+      `intent://open?command=${encodeURIComponent(cmd)}#Intent;scheme=termux;end`,
+      `https://play.google.com/store/apps/details?id=com.termux`
+    ];
+    for (const url of urls) {
+      try { window.open(url, '_blank'); break; } catch(e) {}
+    }
+  },
+
+  showHelp(output) {
+    const tools = Object.keys(this.terminalDb).sort();
+    const line = document.createElement('div');
+    line.className = 'terminal-line output';
+    line.innerHTML = `Comandos disponibles: ${tools.map(t => `<span style="color:var(--accent-green);">${t}</span>`).join(', ')}`;
+    output.appendChild(line);
+  },
+
+  setupTerminal() {
+    const input = document.getElementById('terminal-input');
+    const runBtn = document.getElementById('terminal-run');
+    const closeBtn = document.getElementById('terminal-close');
+    const modal = document.getElementById('terminal-modal');
+
+    if (!input) return;
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        this.executeCommand(input.value);
+      }
+    });
+
+    runBtn.addEventListener('click', () => this.executeCommand(input.value));
+
+    closeBtn.addEventListener('click', () => modal.classList.remove('open'));
+
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) modal.classList.remove('open');
+    });
   },
 
   copyBulkInstall() {

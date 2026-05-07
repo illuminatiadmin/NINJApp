@@ -416,6 +416,21 @@ html, body {
   backdrop-filter: blur(4px);
 }
 #tool-modal.open { display: flex; }
+
+/* Terminal modal */
+#terminal-modal {
+  position: fixed; inset: 0; z-index: 110;
+  display: none; align-items: flex-end; justify-content: center;
+  background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
+}
+#terminal-modal.open { display: flex; }
+#terminal-modal .modal-content {
+  animation: slideUp 0.3s ease;
+  max-width: 480px; width: 100%;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius) var(--radius) 0 0;
+}
 #tool-modal .modal-content {
   background: var(--bg-secondary); border: 1px solid var(--border-color);
   border-radius: var(--radius) var(--radius) 0 0;
@@ -532,6 +547,19 @@ html, body {
 .defense-result .bad { color: var(--accent-red); }
 .defense-result .warn { color: var(--accent-yellow); }
 .defense-result .info { color: var(--accent-cyan); }
+
+/* Terminal */
+.terminal-line { white-space: pre-wrap; word-break: break-all; }
+.terminal-line.prompt-line { color: var(--accent-green); }
+.terminal-line.output { color: var(--text-secondary); }
+.terminal-line.error { color: var(--accent-red); }
+.terminal-line.info { color: var(--accent-cyan); }
+.terminal-line.guide {
+  background: rgba(0,212,255,0.05); border-left: 2px solid var(--accent-cyan);
+  padding: 6px 8px; margin: 4px 0; border-radius: 0 4px 4px 0;
+  font-size: 10px; line-height: 1.5;
+}
+.terminal-line.guide .label { color: var(--accent-cyan); font-weight: bold; }
 
 /* Responsive */
 @media (min-width: 480px) {

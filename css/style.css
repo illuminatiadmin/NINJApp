@@ -572,6 +572,14 @@ html, body {
   content: '● ';
 }
 
+/* Notebook */
+.notebook-cmd {
+  color: var(--accent-green) !important;
+}
+#notebook-input:focus {
+  border-color: var(--accent-cyan) !important;
+}
+
 /* Responsive */
 @media (min-width: 480px) {
   #app { border-left: 1px solid var(--border-color); border-right: 1px solid var(--border-color); }

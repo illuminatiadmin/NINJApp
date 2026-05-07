@@ -991,12 +991,14 @@ const App = {
 
   init() {
     this.nativeBridge = this.hasTermuxBridge();
+    this.notebookData = this.loadNotebook();
     this.renderDashboard();
     this.renderTools();
     this.renderLearning();
     this.renderGlossary();
     this.renderResources();
     this.renderDefense();
+    this.renderNotebook();
     this.setupNavigation();
     this.setupSearch();
     this.setupFilters();
@@ -1265,6 +1267,8 @@ const App = {
 
     if (!trimmed) return;
 
+    this.addNotebookEntry('command', trimmed);
+
     // Add prompt line
     const promptLine = document.createElement('div');
     promptLine.className = 'terminal-line prompt-line';
@@ -1355,6 +1359,12 @@ const App = {
         <span style="color:var(--accent-green);cursor:pointer;" onclick="document.getElementById('terminal-input').value='${nextCmd.replace(/'/g,"\\'")}';App.executeCommand('${nextCmd.replace(/'/g,"\\'")}')">${nextCmd}</span>`;
       output.appendChild(nextDiv);
     }
+
+    // Save to notebook
+    const saveBtn = document.createElement('div');
+    saveBtn.style.cssText = 'margin:4px 0;';
+    saveBtn.innerHTML = `<button onclick="App.addNotebookEntry('result', '${fullCmd.replace(/'/g,"\\'")} — [ver salida arriba]')" style="padding:4px 10px;background:rgba(255,170,0,0.1);border:1px solid rgba(255,170,0,0.3);border-radius:4px;color:#ffaa00;font-family:var(--font-mono);font-size:9px;cursor:pointer;">📊 Guardar resultado en block de notas</button>`;
+    output.appendChild(saveBtn);
   },
 
   getSampleOutput(base, fullCmd) {
@@ -1641,6 +1651,7 @@ const App = {
   },
 
   copyToTermux(cmd) {
+    this.addNotebookEntry('command', cmd);
     if (this.hasTermuxBridge()) {
       window.TermuxBridge.runCommand(cmd);
       const btn = document.querySelector('[onclick*="copyToTermux"]');
@@ -1660,6 +1671,7 @@ const App = {
   },
 
   runInTermux(cmd) {
+    this.addNotebookEntry('command', cmd);
     if (this.hasTermuxBridge()) {
       window.TermuxBridge.runCommand(cmd);
       return;
@@ -2065,6 +2077,122 @@ const App = {
         document.getElementById(`defense-${tab.dataset.dtab}`).style.display = 'block';
       });
     });
+  }
+  // ===== NOTEBOOK =====
+
+  loadNotebook() {
+    try {
+      return JSON.parse(localStorage.getItem('ninjapp_notebook') || '{"entries":[]}');
+    } catch(e) {
+      return { entries: [] };
+    }
+  },
+
+  saveNotebook() {
+    localStorage.setItem('ninjapp_notebook', JSON.stringify(this.notebookData));
+  },
+
+  addNotebookEntry(type, content, tags) {
+    if (!content) return;
+    this.notebookData.entries.unshift({
+      id: Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+      type: type || 'note',
+      content: content,
+      tags: tags || [],
+      timestamp: Date.now()
+    });
+    this.saveNotebook();
+    if (document.getElementById('section-notebook').classList.contains('active')) {
+      this.renderNotebook();
+    }
+  },
+
+  deleteNotebookEntry(id) {
+    this.notebookData.entries = this.notebookData.entries.filter(e => e.id !== id);
+    this.saveNotebook();
+    this.renderNotebook();
+  },
+
+  clearNotebook() {
+    if (!confirm('¿Borrar todas las entradas del block de notas?')) return;
+    this.notebookData.entries = [];
+    this.saveNotebook();
+    this.renderNotebook();
+  },
+
+  exportNotebook() {
+    const lines = this.notebookData.entries.map(e => {
+      const date = new Date(e.timestamp).toLocaleString('es');
+      return `[${date}] [${e.type}] ${e.content}`;
+    }).join('\n---\n');
+    if (!lines) { alert('No hay entradas para exportar.'); return; }
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(lines).then(() => alert('Block de notas copiado al portapapeles. Pégalo donde quieras.'));
+    } else {
+      const blob = new Blob([lines], { type: 'text/plain' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `ninjapp-notas-${Date.now()}.txt`;
+      a.click();
+    }
+  },
+
+  renderNotebook() {
+    const container = document.getElementById('notebook-content');
+    if (!container) return;
+
+    const entryCount = this.notebookData.entries.length;
+    const commandCount = this.notebookData.entries.filter(e => e.type === 'command').length;
+
+    let html = `
+      <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+        <button onclick="App.addNotebookEntry('note', document.getElementById('notebook-input').value)" style="flex:1;min-width:140px;padding:10px 16px;background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.3);border-radius:4px;color:var(--accent-cyan);font-family:var(--font-mono);font-size:11px;cursor:pointer;">➕ Agregar nota</button>
+        <button onclick="App.exportNotebook()" style="padding:10px 16px;background:rgba(0,255,65,0.1);border:1px solid rgba(0,255,65,0.3);border-radius:4px;color:var(--accent-green);font-family:var(--font-mono);font-size:11px;cursor:pointer;">📋 Exportar</button>
+        <button onclick="App.clearNotebook()" style="padding:10px 16px;background:rgba(255,68,68,0.1);border:1px solid rgba(255,68,68,0.3);border-radius:4px;color:#ff4444;font-family:var(--font-mono);font-size:11px;cursor:pointer;">🗑 Vaciar</button>
+      </div>
+      <div style="display:flex;gap:6px;margin-bottom:12px;">
+        <input id="notebook-input" type="text" placeholder="Escribe una nota o pega un resultado..." style="flex:1;padding:8px 12px;background:#111118;border:1px solid #222244;border-radius:4px;color:#e0e0e0;font-family:var(--font-mono);font-size:12px;outline:none;" onkeydown="if(event.key==='Enter'){App.addNotebookEntry('note',this.value)}">
+      </div>
+      <div style="font-size:10px;color:var(--text-muted);margin-bottom:8px;font-family:var(--font-mono);">
+        ${entryCount} entradas · ${commandCount} comandos
+      </div>
+    `;
+
+    if (entryCount === 0) {
+      html += `<div style="text-align:center;padding:40px 20px;color:var(--text-muted);font-size:12px;">
+        <div style="font-size:32px;margin-bottom:8px;">📓</div>
+        <div>No hay entradas todavía.</div>
+        <div style="font-size:10px;margin-top:4px;">Los comandos que ejecutes se guardarán aquí automáticamente.</div>
+      </div>`;
+    } else {
+      html += `<div style="display:flex;flex-direction:column;gap:6px;">`;
+      this.notebookData.entries.forEach(e => {
+        const date = new Date(e.timestamp).toLocaleString('es', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+        const typeIcon = { command: '💻', note: '📝', result: '📊' }[e.type] || '📄';
+        const typeColor = { command: 'var(--accent-green)', note: 'var(--accent-cyan)', result: '#ffaa00' }[e.type] || 'var(--text-secondary)';
+        const cmdClass = e.type === 'command' ? 'notebook-cmd' : '';
+        html += `
+          <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:4px;padding:8px 10px;position:relative;">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+              <span style="font-size:11px;">${typeIcon}</span>
+              <span style="font-size:9px;color:${typeColor};font-family:var(--font-mono);text-transform:uppercase;">${e.type}</span>
+              <span style="font-size:9px;color:var(--text-muted);margin-left:auto;">${date}</span>
+              <button onclick="App.deleteNotebookEntry('${e.id}')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:12px;padding:0 2px;">✕</button>
+            </div>
+            <div style="font-size:11px;color:var(--text-primary);font-family:var(--font-mono);word-break:break-all;line-height:1.4;" class="${cmdClass}">${this.escapeHtml(e.content)}</div>
+          </div>
+        `;
+      });
+      html += `</div>`;
+    }
+
+    container.innerHTML = html;
+  },
+
+  escapeHtml(str) {
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
   }
 };
 

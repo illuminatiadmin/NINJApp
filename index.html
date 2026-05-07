@@ -22,6 +22,43 @@
     <div class="loading-bar"><div class="loading-bar-inner"></div></div>
   </div>
 
+  <!-- SETUP WIZARD OVERLAY -->
+  <div id="setup-wizard">
+    <div class="wizard-content">
+      <div class="wizard-step" data-step="1">
+        <div class="wizard-icon">📱</div>
+        <div class="wizard-title">Bienvenido a NINJApp</div>
+        <div class="wizard-desc">Tu hub educativo de ciberseguridad para Android. Las herramientas se ejecutan en <b>Termux</b>, un terminal Linux para Android.</div>
+        <div class="wizard-progress"><span></span></div>
+        <button class="wizard-btn" onclick="App.nextWizardStep()">Comenzar →</button>
+      </div>
+      <div class="wizard-step" data-step="2">
+        <div class="wizard-icon">⬇️</div>
+        <div class="wizard-title">Paso 1: Instala Termux</div>
+        <div class="wizard-desc">Descarga Termux desde <b>F-Droid</b> (NO desde Google Play — está desactualizada allí).</div>
+        <a href="https://f-droid.org/packages/com.termux/" target="_blank" rel="noopener noreferrer" class="wizard-link">⬇ Abrir F-Droid</a>
+        <div class="wizard-progress"><span></span></div>
+        <button class="wizard-btn" onclick="App.nextWizardStep()">Ya lo instalé →</button>
+      </div>
+      <div class="wizard-step" data-step="3">
+        <div class="wizard-icon">⚙️</div>
+        <div class="wizard-title">Paso 2: Actualiza Termux</div>
+        <div class="wizard-desc">Abre Termux y pega este comando (tócalo para copiar):</div>
+        <div class="wizard-command" onclick="App.copyWizardCmd()">pkg update && pkg upgrade -y</div>
+        <div class="wizard-progress"><span></span></div>
+        <button class="wizard-btn" onclick="App.nextWizardStep()">Listo →</button>
+      </div>
+      <div class="wizard-step" data-step="4">
+        <div class="wizard-icon">📋</div>
+        <div class="wizard-title">Paso 3: Instala herramientas</div>
+        <div class="wizard-desc">En NINJApp, cada herramienta tiene su comando de instalación. Tócalo para copiarlo y pégalo en Termux. También puedes instalar todas de una:</div>
+        <div class="wizard-command" onclick="if(navigator.clipboard){let t=DATA.tools.filter(t=>t.termux).map(t=>t.install).filter((v,i,a)=>a.indexOf(v)===i).join('\n');navigator.clipboard.writeText('pkg update && pkg upgrade -y\n'+t).then(()=>this.innerHTML='✓ Copiado!')}">📋 Copiar instalación masiva</div>
+        <div class="wizard-progress"><span></span></div>
+        <button class="wizard-btn" onclick="App.closeWizard()">¡Empezar a aprender!</button>
+      </div>
+    </div>
+  </div>
+
   <!-- APP SHELL -->
   <div id="app">
     <!-- HEADER -->

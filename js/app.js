@@ -748,7 +748,40 @@ const App = {
   hideSplash() {
     setTimeout(() => {
       document.getElementById('splash').classList.add('hidden');
+      if (!localStorage.getItem('ninjapp_wizard_done')) {
+        setTimeout(() => this.showWizard(), 300);
+      }
     }, 1500);
+  },
+
+  showWizard() {
+    document.getElementById('setup-wizard').classList.add('open');
+    document.querySelector('.wizard-step[data-step="1"]').classList.add('active');
+  },
+
+  nextWizardStep() {
+    const current = document.querySelector('.wizard-step.active');
+    const next = current.nextElementSibling;
+    if (next && next.classList.contains('wizard-step')) {
+      current.classList.remove('active');
+      next.classList.add('active');
+    }
+  },
+
+  closeWizard() {
+    document.getElementById('setup-wizard').classList.remove('open');
+    document.querySelectorAll('.wizard-step').forEach(s => s.classList.remove('active'));
+    localStorage.setItem('ninjapp_wizard_done', 'true');
+  },
+
+  copyWizardCmd() {
+    const cmd = 'pkg update && pkg upgrade -y';
+    const el = document.querySelector('.wizard-command');
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(cmd).then(() => {
+        if (el) { el.innerHTML = '✓ Copiado!'; setTimeout(() => { el.innerHTML = cmd; }, 1500); }
+      });
+    }
   },
 
   setupNavigation() {
@@ -1018,7 +1051,12 @@ const App = {
 
     let html = '';
     for (const [category, catTools] of Object.entries(grouped)) {
-      html += `<div style="margin-bottom:6px;"><div class="section-title" style="font-size:11px;margin-bottom:6px;">${catTools[0].icon} ${category}</div>`;
+      const termuxInCat = catTools.filter(t => t.termux);
+      html += `<div style="margin-bottom:6px;">
+        <div class="category-header">
+          <div class="section-title" style="font-size:11px;">${catTools[0].icon} ${category}</div>
+          ${termuxInCat.length ? `<span class="copy-cat-btn" data-cat-copy="${category}">📋 Copiar ${termuxInCat.length} tools</span>` : ''}
+        </div>`;
       catTools.forEach(t => {
         html += `
           <div class="tool-card" data-tool="${t.id}">
@@ -1036,6 +1074,23 @@ const App = {
     container.innerHTML = html;
     container.querySelectorAll('.tool-card').forEach(card => {
       card.addEventListener('click', () => this.openToolModal(card.dataset.tool));
+    });
+    container.querySelectorAll('.copy-cat-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const catName = btn.dataset.catCopy;
+        const catTools = DATA.tools.filter(t => t.catLabel === catName && t.termux);
+        const cmds = [...new Set(catTools.map(t => t.install))];
+        const text = cmds.join('\n');
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText(text).then(() => {
+            const orig = btn.textContent;
+            btn.textContent = '✓ Copiado!';
+            btn.style.borderColor = 'var(--accent-green)';
+            setTimeout(() => { btn.textContent = orig; btn.style.borderColor = ''; }, 2000);
+          });
+        }
+      });
     });
   },
 

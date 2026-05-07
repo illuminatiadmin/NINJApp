@@ -108,7 +108,8 @@ public class MainActivity extends AppCompatActivity {
         String[] env = new String[]{
             "TERM=xterm-256color",
             "HOME=" + getFilesDir().getAbsolutePath(),
-            "PATH=/system/bin:/system/xbin:/sbin:/vendor/bin"
+            "TMPDIR=" + getCacheDir().getAbsolutePath(),
+            "PATH=/system/bin:/system/xbin:/sbin:/vendor/bin:/apex/com.android.runtime/bin"
         };
 
         terminalSession = new TerminalSession(
@@ -169,7 +170,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }, "TermuxBridge");
 
-        guideWebView.loadUrl("https://illuminatiadmin.github.io/NINJApp/");
+        guideWebView.loadUrl("https://illuminatiadmin.github.io/NINJApp/?embed");
     }
 
     // ── Draggable divider ──────────────────────────────────────────────────

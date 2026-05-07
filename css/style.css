@@ -584,3 +584,35 @@ html, body {
 @media (min-width: 480px) {
   #app { border-left: 1px solid var(--border-color); border-right: 1px solid var(--border-color); }
 }
+
+/* Embed mode (right pane in native app) */
+.embed-mode #splash,
+.embed-mode #setup-wizard,
+.embed-mode #header,
+.embed-mode #bottom-nav,
+.embed-mode #terminal-modal { display: none !important; }
+
+.embed-mode #app {
+  max-width: none;
+  height: 100vh;
+  border: none !important;
+}
+
+.embed-mode #content {
+  padding-bottom: 0;
+  height: 100vh;
+}
+
+.embed-mode .section:not(.active) { display: none !important; }
+
+.embed-mode .filter-row { flex-wrap: nowrap; overflow-x: auto; gap: 4px; }
+.embed-mode .filter-chip { font-size: 9px; padding: 3px 8px; white-space: nowrap; }
+.embed-mode .search-bar { font-size: 11px; padding: 6px 10px; }
+.embed-mode .section-title { font-size: 10px; }
+.embed-mode .section-subtitle { font-size: 9px; }
+.embed-mode .tool-card { padding: 6px 10px; margin-bottom: 3px; }
+.embed-mode .tool-card-name { font-size: 11px; }
+.embed-mode .tool-card-desc { font-size: 9px; }
+.embed-mode .category-header { margin-top: 6px; }
+.embed-mode .copy-cat-btn { font-size: 9px; padding: 2px 6px; }
+.embed-mode .card-tag { font-size: 9px; padding: 2px 8px; }

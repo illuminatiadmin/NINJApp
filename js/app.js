@@ -990,6 +990,7 @@ const App = {
   searchQuery: '',
 
   init() {
+    this.isEmbed = document.documentElement.classList.contains('embed-mode');
     this.nativeBridge = this.hasTermuxBridge();
     this.notebookData = this.loadNotebook();
     this.renderDashboard();
@@ -1010,15 +1011,19 @@ const App = {
       const status = document.getElementById('bridge-status');
       if (status) status.textContent = '● Terminal integrado';
     }
+    if (this.isEmbed) {
+      this.switchSection('tools');
+    }
   },
 
   hideSplash() {
+    const delay = this.isEmbed ? 0 : 1500;
     setTimeout(() => {
       document.getElementById('splash').classList.add('hidden');
-      if (!localStorage.getItem('ninjapp_wizard_done')) {
+      if (!this.isEmbed && !localStorage.getItem('ninjapp_wizard_done')) {
         setTimeout(() => this.showWizard(), 300);
       }
-    }, 1500);
+    }, delay);
   },
 
   showWizard() {

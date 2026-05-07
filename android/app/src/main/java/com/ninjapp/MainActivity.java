@@ -2,87 +2,44 @@ package com.ninjapp;
 
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.text.Html;
+import android.text.method.ScrollingMovementMethod;
 import android.view.KeyEvent;
-import android.view.MotionEvent;
 import android.view.View;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.termux.view.TerminalView;
-import com.termux.terminal.TerminalSession;
-import com.termux.terminal.TerminalSessionClient;
-import com.termux.view.TerminalViewClient;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 
 public class MainActivity extends AppCompatActivity {
 
-    private TerminalView terminalView;
-    private TerminalSession terminalSession;
+    private TextView terminalOutput;
+    private EditText terminalInput;
+    private ScrollView terminalScroll;
+    private Button terminalSend;
     private WebView guideWebView;
     private View divider;
     private boolean dividerDragging = false;
 
-    // ── TerminalSessionClient ──────────────────────────────────────────────
-
-    private final TerminalSessionClient terminalSessionClient = new TerminalSessionClient() {
-        @Override public void onTextChanged(TerminalSession changedSession) {}
-        @Override public void onTitleChanged(TerminalSession changedSession) {}
-        @Override public void onSessionFinished(TerminalSession finishedSession) {}
-        @Override public void onCopyTextToClipboard(TerminalSession session, String text) {}
-        @Override public void onPasteTextFromClipboard(TerminalSession session) {}
-        @Override public void onBell(TerminalSession session) {}
-        @Override public void onColorsChanged(TerminalSession session) {}
-        @Override public void onTerminalCursorStateChange(boolean state) {}
-        @Override public Integer getTerminalCursorStyle() { return null; }
-        @Override public void logError(String tag, String message) {}
-        @Override public void logWarn(String tag, String message) {}
-        @Override public void logInfo(String tag, String message) {}
-        @Override public void logDebug(String tag, String message) {}
-        @Override public void logVerbose(String tag, String message) {}
-        @Override public void logStackTraceWithMessage(String tag, String message, Exception e) {}
-        @Override public void logStackTrace(String tag, Exception e) {}
-    };
-
-    // ── TerminalViewClient ─────────────────────────────────────────────────
-
-    private final TerminalViewClient terminalViewClient = new TerminalViewClient() {
-        @Override public float onScale(float scale) { return scale; }
-        @Override public void onSingleTapUp(MotionEvent e) {}
-        @Override public boolean shouldBackButtonBeMappedToEscape() { return false; }
-        @Override public boolean shouldEnforceCharBasedInput() { return false; }
-        @Override public boolean shouldUseCtrlSpaceWorkaround() { return false; }
-        @Override public boolean isTerminalViewSelected() { return true; }
-        @Override public void copyModeChanged(boolean copyMode) {}
-        @Override public boolean onKeyDown(int keyCode, KeyEvent e, TerminalSession session) { return false; }
-        @Override public boolean onKeyUp(int keyCode, KeyEvent e) { return false; }
-        @Override public boolean onLongPress(MotionEvent event) { return false; }
-        @Override public boolean readControlKey() { return false; }
-        @Override public boolean readAltKey() { return false; }
-        @Override public boolean readShiftKey() { return false; }
-        @Override public boolean readFnKey() { return false; }
-        @Override public boolean onCodePoint(int codePoint, boolean ctrlDown, TerminalSession session) { return false; }
-        @Override public void onEmulatorSet() {
-            terminalSession.write(
-                "echo '>_ Terminal NINJApp listo'\n" +
-                "echo 'Ejecuta los comandos que el asistente te indique.'\n" +
-                "echo ''\n" +
-                "PS1='└──╼ '\n"
-            );
-        }
-        @Override public void logError(String tag, String message) {}
-        @Override public void logWarn(String tag, String message) {}
-        @Override public void logInfo(String tag, String message) {}
-        @Override public void logDebug(String tag, String message) {}
-        @Override public void logVerbose(String tag, String message) {}
-        @Override public void logStackTraceWithMessage(String tag, String message, Exception e) {}
-        @Override public void logStackTrace(String tag, Exception e) {}
-    };
+    private Process shellProcess;
+    private OutputStream shellStdin;
+    private BufferedReader shellStdout;
+    private Thread shellReaderThread;
+    private boolean shellRunning = false;
 
     // ── Lifecycle ──────────────────────────────────────────────────────────
 
@@ -95,37 +52,113 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this, "Pon el dispositivo en horizontal (landscape)", Toast.LENGTH_LONG).show();
         }
 
-        setupTerminal();
+        setupViews();
+        startShell();
         setupGuideWebView();
         setupDivider();
     }
 
-    // ── Terminal setup ─────────────────────────────────────────────────────
+    // ── Views ──────────────────────────────────────────────────────────────
 
-    private void setupTerminal() {
-        terminalView = findViewById(R.id.terminal_view);
+    private void setupViews() {
+        terminalOutput = findViewById(R.id.terminal_output);
+        terminalInput = findViewById(R.id.terminal_input);
+        terminalScroll = findViewById(R.id.terminal_scroll);
+        terminalSend = findViewById(R.id.terminal_send);
 
-        String[] env = new String[]{
-            "TERM=xterm-256color",
-            "HOME=" + getFilesDir().getAbsolutePath(),
-            "TMPDIR=" + getCacheDir().getAbsolutePath(),
-            "PATH=/system/bin:/system/xbin:/sbin:/vendor/bin:/apex/com.android.runtime/bin"
-        };
+        terminalOutput.setMovementMethod(new ScrollingMovementMethod());
+        terminalOutput.setTextIsSelectable(true);
 
-        terminalSession = new TerminalSession(
-            "/system/bin/sh",
-            getFilesDir().getAbsolutePath(),
-            new String[]{"--login"},
-            env,
-            null,
-            terminalSessionClient
-        );
+        terminalInput.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_SEND
+                    || (event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER)) {
+                sendCommand(terminalInput.getText().toString());
+                return true;
+            }
+            return false;
+        });
 
-        terminalView.attachSession(terminalSession);
-        terminalSession.updateTerminalSessionClient(terminalSessionClient);
-        terminalView.setTerminalViewClient(terminalViewClient);
-        terminalView.setTextSize(12);
-        terminalView.requestFocus();
+        terminalInput.setOnKeyListener((v, keyCode, event) -> {
+            if (event.getAction() == KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_ENTER) {
+                sendCommand(terminalInput.getText().toString());
+                return true;
+            }
+            return false;
+        });
+
+        terminalSend.setOnClickListener(v -> sendCommand(terminalInput.getText().toString()));
+    }
+
+    // ── Shell (ProcessBuilder) ─────────────────────────────────────────────
+
+    private void startShell() {
+        appendOutput(">_ Terminal NINJApp listo\n");
+        appendOutput("Ejecuta los comandos que el asistente te indique.\n\n");
+
+        new Thread(() -> {
+            try {
+                ProcessBuilder pb = new ProcessBuilder();
+                pb.command("/system/bin/sh");
+                pb.redirectErrorStream(true);
+                pb.directory(getFilesDir());
+
+                shellProcess = pb.start();
+                shellStdin = shellProcess.getOutputStream();
+                shellStdout = new BufferedReader(new InputStreamReader(shellProcess.getInputStream(), StandardCharsets.UTF_8));
+                shellRunning = true;
+
+                // Send initial shell setup
+                writeToShell("export PS1='└──╼ '\n");
+
+                // Reader thread
+                shellReaderThread = new Thread(() -> {
+                    char[] buffer = new char[4096];
+                    try {
+                        int read;
+                        while (shellRunning && (read = shellStdout.read(buffer, 0, buffer.length)) != -1) {
+                            String chunk = new String(buffer, 0, read);
+                            runOnUiThread(() -> appendOutput(chunk));
+                        }
+                    } catch (Exception ignored) {
+                    }
+                });
+                shellReaderThread.setDaemon(true);
+                shellReaderThread.start();
+
+            } catch (Exception e) {
+                runOnUiThread(() -> {
+                    appendOutput("Error al iniciar shell: " + e.getMessage() + "\n");
+                    appendOutput("Asegúrate de que el dispositivo tiene un shell compatible.\n");
+                });
+            }
+        }).start();
+    }
+
+    private void writeToShell(String command) {
+        if (shellStdin != null && shellRunning) {
+            try {
+                shellStdin.write(command.getBytes(StandardCharsets.UTF_8));
+                shellStdin.flush();
+            } catch (Exception ignored) {}
+        }
+    }
+
+    private void sendCommand(String command) {
+        if (command == null || command.isEmpty()) return;
+        appendOutput("└──╼ " + command + "\n");
+        writeToShell(command + "\n");
+        terminalInput.setText("");
+        terminalInput.requestFocus();
+    }
+
+    private void appendOutput(String text) {
+        terminalOutput.append(Html.fromHtml(
+            android.text.TextUtils.htmlEncode(text)
+                .replace("\n", "<br>")
+                .replace(" ", "&nbsp;"),
+            Html.FROM_HTML_MODE_LEGACY
+        ));
+        terminalScroll.post(() -> terminalScroll.fullScroll(View.FOCUS_DOWN));
     }
 
     // ── WebView / JavaScript bridge ────────────────────────────────────────
@@ -155,16 +188,16 @@ public class MainActivity extends AppCompatActivity {
         guideWebView.addJavascriptInterface(new Object() {
             @android.webkit.JavascriptInterface
             public void runCommand(String command) {
-                if (terminalSession != null && command != null && !command.isEmpty()) {
-                    terminalSession.write(command + "\n");
+                if (command != null && !command.isEmpty()) {
+                    runOnUiThread(() -> sendCommand(command));
                 }
             }
 
             @android.webkit.JavascriptInterface
             public void runCommands(String[] commands) {
-                if (terminalSession != null && commands != null) {
+                if (commands != null) {
                     for (String cmd : commands) {
-                        terminalSession.write(cmd + "\n");
+                        runOnUiThread(() -> sendCommand(cmd));
                     }
                 }
             }
@@ -227,8 +260,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (terminalSession != null) {
-            terminalSession.finishIfRunning();
+        shellRunning = false;
+        if (shellProcess != null) {
+            shellProcess.destroy();
         }
         if (guideWebView != null) {
             guideWebView.destroy();

@@ -990,6 +990,7 @@ const App = {
   searchQuery: '',
 
   init() {
+    this.nativeBridge = this.hasTermuxBridge();
     this.renderDashboard();
     this.renderTools();
     this.renderLearning();
@@ -1002,6 +1003,11 @@ const App = {
     this.setupModal();
     this.setupTerminal();
     this.hideSplash();
+    if (this.nativeBridge) {
+      document.body.classList.add('has-native-terminal');
+      const status = document.getElementById('bridge-status');
+      if (status) status.textContent = '● Terminal integrado';
+    }
   },
 
   hideSplash() {
@@ -1630,15 +1636,23 @@ const App = {
     output.appendChild(div);
   },
 
+  hasTermuxBridge() {
+    return typeof window.TermuxBridge !== 'undefined' && window.TermuxBridge !== null;
+  },
+
   copyToTermux(cmd) {
+    if (this.hasTermuxBridge()) {
+      window.TermuxBridge.runCommand(cmd);
+      const btn = document.querySelector('[onclick*="copyToTermux"]');
+      if (btn) { btn.textContent = '▶ Enviado al terminal'; setTimeout(() => btn.textContent = '📋 Copiar y abrir Termux', 2000); }
+      return;
+    }
     if (navigator.clipboard) {
       navigator.clipboard.writeText(cmd).then(() => {
-        // Try to open Termux via intent
         try {
           const termuxUrl = `termux://open?command=${encodeURIComponent(cmd)}`;
           window.open(termuxUrl, '_blank');
         } catch(e) {}
-        // Show feedback
         const btn = document.querySelector('[onclick*="copyToTermux"]');
         if (btn) { btn.textContent = '✓ Copiado'; setTimeout(() => btn.textContent = '📋 Copiar y abrir Termux', 2000); }
       });
@@ -1646,8 +1660,11 @@ const App = {
   },
 
   runInTermux(cmd) {
+    if (this.hasTermuxBridge()) {
+      window.TermuxBridge.runCommand(cmd);
+      return;
+    }
     this.copyToTermux(cmd);
-    // Try multiple intent methods
     const urls = [
       `termux://open?command=${encodeURIComponent(cmd)}`,
       `intent://open?command=${encodeURIComponent(cmd)}#Intent;scheme=termux;end`,

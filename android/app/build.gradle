@@ -38,8 +38,8 @@ dependencies {
     implementation 'com.google.android.material:material:1.11.0'
     implementation 'androidx.webkit:webkit:1.10.0'
 
-    // Terminal emulator from Termux
-    implementation 'com.termux:termux-terminal-view:0.4.0'
+    // Terminal emulator from Termux (via JitPack - builds from termux/termux-app source)
+    implementation 'com.github.termux.termux-app:terminal-view:v0.118.0'
 
     // WebView with JavaScript bridge
     implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'

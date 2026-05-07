@@ -1,26 +1,47 @@
 {
   "name": "NINJApp - Ciberseguridad Android",
   "short_name": "NINJApp",
-  "description": "Plataforma educativa de ciberseguridad para Android con Termux. Hacking ético, OWASP ZAP, Nmap, Burp Suite, WPScan y más.",
+  "description": "Plataforma educativa de ciberseguridad para Android con Termux. Hacking ético, OWASP ZAP, Nmap, Burp Suite, WPScan, guías paso a paso y terminal interactiva.",
   "start_url": "index.html",
+  "scope": "/",
+  "id": "/",
   "display": "standalone",
-  "background_color": "#0a0a0f",
-  "theme_color": "#00ff41",
+  "display_override": ["standalone", "minimal-ui"],
   "orientation": "portrait-primary",
+  "theme_color": "#00ff41",
+  "background_color": "#0a0a0f",
+  "lang": "es",
+  "categories": ["education", "security", "productivity"],
   "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
     {
       "src": "icons/icon-192.svg",
       "sizes": "192x192",
       "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "icons/icon-512.svg",
       "sizes": "512x512",
       "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "purpose": "any"
     }
   ],
-  "categories": ["education", "security"],
-  "lang": "es"
+  "screenshots": [],
+  "prefer_related_applications": false,
+  "related_applications": [],
+  "edge_side_panel": {},
+  "note_taking": false,
+  "dir": "ltr"
 }

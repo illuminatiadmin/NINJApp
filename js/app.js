@@ -791,6 +791,138 @@ const DATA = {
     { term: 'WSL', def: 'Windows Subsystem for Linux. Capa de compatibilidad para ejecutar Linux directamente en Windows sin VM.' }
   ],
 
+  defense: {
+    checklist: [
+      { id: 'vpn', text: 'Uso VPN en redes WiFi públicas', icon: '🔒' },
+      { id: '2fa', text: 'Tengo 2FA activado en todas mis cuentas', icon: '🔑' },
+      { id: 'pwd', text: 'Uso contraseñas únicas con gestor (Bitwarden, Keepass)', icon: '🔐' },
+      { id: 'fw', text: 'Firewall activado en mi dispositivo', icon: '🛡️' },
+      { id: 'update', text: 'SO y apps siempre actualizados', icon: '📲' },
+      { id: 'cam', text: 'Cámara y micrófono tapados cuando no los uso', icon: '📷' },
+      { id: 'browser', text: 'Navegador con anti-fingerprinting y bloqueador de anuncios', icon: '🌐' },
+      { id: 'perm', text: 'Reviso permisos de apps periódicamente', icon: '🔍' },
+      { id: 'wifi', text: 'WiFi y Bluetooth apagados cuando no los necesito', icon: '📡' },
+      { id: 'dns', text: 'Uso DNS seguro (Cloudflare 1.1.1.1 o similar)', icon: '🌍' },
+      { id: 'track', text: 'Tengo bloqueo de rastreadores en mi navegador', icon: '👁️' },
+      { id: 'vault', text: 'No guardo contraseñas en el navegador', icon: '🗄️' }
+    ],
+    checks: [
+      {
+        id: 'ip', title: '🔎 ¿Mi IP está expuesta?', icon: '🌐',
+        desc: 'Verifica si tu IP real se filtra al navegar. Compara tu IP normal vs con Tor.',
+        commands: [
+          { label: 'Ver mi IP pública', cmd: 'curl -s ifconfig.me' },
+          { label: 'Ver IP a través de Tor', cmd: 'curl --socks5 127.0.0.1:9050 -s ifconfig.me' },
+          { label: 'Ver si hay DNS leak', cmd: 'curl -s https://dnsleaktest.com -o /dev/null && echo "Revisa en dnsleaktest.com"' }
+        ],
+        indicator: 'Si ambas IPs son diferentes, Tor funciona. Si son iguales, no estás anónimo.'
+      },
+      {
+        id: 'tracking', title: '👁️ ¿Me están rastreando?', icon: '👁️',
+        desc: 'Detecta conexiones sospechosas, procesos ocultos y actividad inusual en tu dispositivo.',
+        commands: [
+          { label: 'Conexiones activas en tu red', cmd: 'netstat -an | grep ESTABLISHED' },
+          { label: 'Procesos en segundo plano', cmd: 'ps aux | grep -E "camera|mic|audio|recorder"' },
+          { label: 'Puertos abiertos en tu dispositivo', cmd: 'nmap -sT 127.0.0.1' },
+          { label: 'Tráfico por puerto específico', cmd: 'tcpdump -i any port 80 -c 10' }
+        ],
+        indicator: 'Busca conexiones a IPs desconocidas o procesos de cámara/audio activos sin razón.'
+      },
+      {
+        id: 'breach', title: '📢 ¿Mis datos están filtrados?', icon: '📢',
+        desc: 'Verifica si tu correo o contraseñas han sido expuestos en filtraciones conocidas.',
+        commands: [
+          { label: 'Checkear email en HaveIBeenPwned', cmd: 'curl -s "https://haveibeenpwned.com/api/v3/breachedaccount/tu@email.com" | grep -o "Name[^,]*"' },
+          { label: 'Verificar contraseña filtrada (k-anonimato)', cmd: 'echo -n "tucontraseña" | sha1sum | cut -c1-5 | xargs -I{} curl -s "https://api.pwnedpasswords.com/range/{}"' }
+        ],
+        indicator: 'Si aparecen resultados, tus datos están en filtraciones públicas. Cambia contraseñas YA.'
+      },
+      {
+        id: 'fingerprint', title: '🖐️ ¿Me pueden identificar por el navegador?', icon: '🖐️',
+        desc: 'El fingerprinting te identifica aunque uses VPN/incógnito. Verifica qué tan único eres.',
+        commands: [
+          { label: 'Ver mi fingerprint del navegador', cmd: 'Abre https://coveryourtracks.eff.org en tu navegador' },
+          { label: 'Prueba de WebRTC leak', cmd: 'Abre https://browserleaks.com/webrtc en tu navegador' }
+        ],
+        indicator: 'Si tu fingerprint es único, puedes ser rastreado aunque uses VPN.'
+      },
+      {
+        id: 'malware', title: '🦠 ¿Tengo malware o stalkerware?', icon: '🦠',
+        desc: 'Detecta software espía, keyloggers o accesos no autorizados en tu dispositivo Android.',
+        commands: [
+          { label: 'Apps con permisos peligrosos', cmd: 'pkg install termux-api && termux-app-list | grep -i "camera\\|location\\|sms\\|record_audio"' },
+          { label: 'Procesos ocultos de sistema', cmd: 'ps -ef | grep -v "^ " | grep -v "\[" | head -30' },
+          { label: 'Ver qué apps usan la red', cmd: 'netstat -tupn 2>/dev/null || netstat -tun' },
+          { label: 'Buscar archivos sospechosos', cmd: 'find /sdcard -name "*.apk" -mtime -7 2>/dev/null' }
+        ],
+        indicator: 'Apps con permisos de cámara/micrófono sin justificación son sospechosas.'
+      },
+      {
+        id: 'wifi', title: '📶 ¿Mi WiFi es seguro?', icon: '📶',
+        desc: 'Analiza la seguridad de tu red WiFi y detecta intrusos.',
+        commands: [
+          { label: 'Ver dispositivos en tu red', cmd: 'nmap -sn 192.168.1.0/24' },
+          { label: 'Ver qué puertos tienes abiertos', cmd: 'nmap -sT 192.168.1.1' },
+          { label: 'Comprobar seguridad del router', cmd: 'curl -s http://192.168.1.1 | grep -i "model\\|version"' }
+        ],
+        indicator: 'Si ves dispositivos desconocidos en tu red, alguien más está conectado.'
+      }
+    ],
+    hardening: [
+      {
+        title: '📱 Hardening Android', icon: '📱',
+        steps: [
+          'Desactiva "Instalar apps de fuentes desconocidas" cuando no lo uses',
+          'Revisa permisos de apps en Ajustes > Apps > Permisos',
+          'Activa "Google Play Protect"',
+          'Usa gestor de contraseñas (Bitwarden, Keepass)',
+          'Activa cifrado de dispositivo (Ajustes > Seguridad > Cifrado)',
+          'No uses redes WiFi públicas sin VPN',
+          'Apaga WiFi/Bluetooth cuando no los necesites',
+          'Revisa apps con acceso a cámara, micrófono y ubicación'
+        ]
+      },
+      {
+        title: '🌐 Hardening Navegador', icon: '🌐',
+        steps: [
+          'Usa Firefox + uBlock Origin + Privacy Badger',
+          'O usa Tor Browser para máxima privacidad',
+          'Activa "Do Not Track" en ajustes de privacidad',
+          'Desactiva WebRTC en about:config (media.peerconnection.enabled = false)',
+          'Usa DNS over HTTPS (Cloudflare 1.1.1.1 o NextDNS)',
+          'Limpia cookies y caché regularmente',
+          'No guardes contraseñas en el navegador',
+          'Revisa extensiones y elimina las que no uses'
+        ]
+      },
+      {
+        title: '🧅 Hardening Anonimato', icon: '🧅',
+        steps: [
+          'Instala Tor Browser para navegación anónima',
+          'Configura proxychains para enrutar tools por Tor',
+          'Nunca hagas DOX (doxxing) — es contraproducente y peligroso',
+          'Usa emails desechables para registros temporales',
+          'No uses tu nombre real en foros de seguridad',
+          'Separa identidades: una real, una para investigación',
+          'Verifica en dnsleaktest.com que tu DNS no filtre',
+          'Testea en browserleaks.com que WebRTC no exponga tu IP'
+        ]
+      },
+      {
+        title: '🔐 Hardening de Cuentas', icon: '🔐',
+        steps: [
+          'Activa 2FA en TODAS tus cuentas (usa Authy o Aegis)',
+          'No uses SMS como 2FA si puedes evitarlo (usa TOTP)',
+          'Contraseñas únicas para cada servicio',
+          'Revísate en haveibeenpwned.com con tu correo',
+          'Cierra sesiones activas en dispositivos que no reconozcas',
+          'No uses "Iniciar sesión con Google/Facebook" en sitios importantes',
+          'Descarga tus datos de servicios que ya no uses y da de baja la cuenta'
+        ]
+      }
+    ]
+  },
+
   resources: [
     {
       icon: '📱', title: 'Termux (F-Droid)', desc: 'Terminal Linux para Android. Esencial para ejecutar tools de seguridad en tu móvil. Instálalo desde F-Droid, NO desde Play Store.',
@@ -863,6 +995,7 @@ const App = {
     this.renderLearning();
     this.renderGlossary();
     this.renderResources();
+    this.renderDefense();
     this.setupNavigation();
     this.setupSearch();
     this.setupFilters();
@@ -1301,6 +1434,101 @@ const App = {
         </div>
       </a>
     `).join('');
+  },
+
+  renderDefense() {
+    const container = document.getElementById('defense-content');
+    const d = DATA.defense;
+
+    const savedChecks = JSON.parse(localStorage.getItem('ninjapp_defense') || '{}');
+    const doneCount = Object.values(savedChecks).filter(Boolean).length;
+    const totalChecks = d.checklist.length;
+    const score = Math.round((doneCount / totalChecks) * 100);
+
+    container.innerHTML = `
+      <div class="card defense-score">
+        <div class="defense-score-number">${score}%</div>
+        <div class="defense-score-label">Tu puntuación de seguridad</div>
+        <div class="defense-score-bar">
+          <div class="defense-score-fill" style="width:${score}%"></div>
+        </div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:8px;font-family:var(--font-mono);">${doneCount}/${totalChecks} medidas activas</div>
+      </div>
+
+      <div class="defense-tab-row">
+        <span class="defense-tab active" data-dtab="checklist">✅ Checklist</span>
+        <span class="defense-tab" data-dtab="checks">🔎 Scanners</span>
+        <span class="defense-tab" data-dtab="hardening">🔧 Hardening</span>
+      </div>
+
+      <div id="defense-checklist" class="dtab-content active">
+        <div class="card" style="border-color:rgba(0,212,255,0.2);">
+          <div class="card-title" style="color:var(--accent-cyan);font-size:12px;">✅ Checklist de Seguridad Personal</div>
+          <div class="card-desc">Marca las medidas que ya tienes implementadas:</div>
+        </div>
+        ${d.checklist.map(item => `
+          <div class="checklist-item ${savedChecks[item.id] ? 'done' : ''}" data-cid="${item.id}">
+            <div class="checklist-box">${savedChecks[item.id] ? '✓' : ''}</div>
+            <div class="checklist-text">${item.icon} ${item.text}</div>
+          </div>
+        `).join('')}
+      </div>
+
+      <div id="defense-checks" class="dtab-content" style="display:none;">
+        ${d.checks.map(c => `
+          <div class="card">
+            <div class="card-title">${c.icon} ${c.title}</div>
+            <div class="card-desc" style="margin-bottom:8px;">${c.desc}</div>
+            ${c.commands.map(cmd => `
+              <div style="margin-bottom:6px;">
+                <div style="font-size:11px;color:var(--text-secondary);margin-bottom:3px;">${cmd.label}</div>
+                <div class="defense-result" style="cursor:pointer;" onclick="if(navigator.clipboard){navigator.clipboard.writeText('${cmd.cmd.replace(/'/g,"\\'")}').then(()=>{this.innerHTML='✓ Copiado!';setTimeout(()=>this.innerHTML='${cmd.cmd.replace(/'/g,"\\'")}',1200)});}">${cmd.cmd}</div>
+              </div>
+            `).join('')}
+            <div style="margin-top:8px;padding:8px;background:rgba(255,187,0,0.05);border-left:2px solid var(--accent-yellow);border-radius:4px;">
+              <div style="font-size:10px;color:var(--accent-yellow);font-family:var(--font-mono);">💡 ${c.indicator}</div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+
+      <div id="defense-hardening" class="dtab-content" style="display:none;">
+        ${d.hardening.map(h => `
+          <div class="card">
+            <div class="card-title">${h.icon} ${h.title}</div>
+            <div style="margin-top:8px;">
+              ${h.steps.map((s, i) => `
+                <div class="topic-item">
+                  <span class="topic-check">${i+1}.</span>
+                  <span>${s}</span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+
+    // Checklist toggle
+    container.querySelectorAll('.checklist-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const cid = item.dataset.cid;
+        const saved = JSON.parse(localStorage.getItem('ninjapp_defense') || '{}');
+        saved[cid] = !saved[cid];
+        localStorage.setItem('ninjapp_defense', JSON.stringify(saved));
+        this.renderDefense();
+      });
+    });
+
+    // Tab switching
+    container.querySelectorAll('.defense-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        container.querySelectorAll('.defense-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        container.querySelectorAll('.dtab-content').forEach(c => c.style.display = 'none');
+        document.getElementById(`defense-${tab.dataset.dtab}`).style.display = 'block';
+      });
+    });
   }
 };
 

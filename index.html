@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#0a0a0f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="NINJApp">
+  <meta name="description" content="NINJApp - Plataforma educativa de ciberseguridad para Android. Aprende hacking ético con Termux. OWASP ZAP, Nmap, Burp Suite, WPScan y más.">
+  <meta name="keywords" content="ciberseguridad, hacking etico, termux, android, pentest, nmap, metasploit, owasp">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/icon-192.svg">
+  <title>NINJApp - Cybersecurity para Android</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- SPLASH SCREEN -->
+  <div id="splash">
+    <div class="logo">NINJApp</div>
+    <div class="subtitle">Cybersecurity para Android</div>
+    <div class="loading-bar"><div class="loading-bar-inner"></div></div>
+  </div>
+
+  <!-- APP SHELL -->
+  <div id="app">
+    <!-- HEADER -->
+    <header id="header">
+      <div class="brand">NINJ<span>App</span></div>
+      <div class="badge">v1.0 · Android</div>
+    </header>
+
+    <!-- CONTENT -->
+    <main id="content">
+      <!-- Dashboard -->
+      <section id="section-dashboard" class="section active">
+        <div class="section-title">// DASHBOARD</div>
+        <div class="section-subtitle">Centro de aprendizaje para Android + Termux</div>
+        <div id="dashboard-content"></div>
+      </section>
+
+      <!-- Tools -->
+      <section id="section-tools" class="section">
+        <div class="section-title">// HERRAMIENTAS</div>
+        <div class="section-subtitle">Herramientas de ciberseguridad con guías de uso</div>
+        <input type="text" class="search-bar" id="search-bar" placeholder="Buscar herramientas...">
+        <div class="filter-row">
+          <span class="filter-chip active" data-filter="all">Todas</span>
+          <span class="filter-chip" data-filter="recon">Recon</span>
+          <span class="filter-chip" data-filter="web">Web</span>
+          <span class="filter-chip" data-filter="network">Redes</span>
+          <span class="filter-chip" data-filter="vuln">Vuln</span>
+          <span class="filter-chip" data-filter="password">Passwords</span>
+          <span class="filter-chip" data-filter="osint">OSINT</span>
+          <span class="filter-chip" data-filter="exploit">Exploit</span>
+          <span class="filter-chip" data-filter="privacy">Privacidad</span>
+          <span class="filter-chip" data-filter="mobile">Móvil</span>
+          <span class="filter-chip" data-filter="forensic">Forense</span>
+          <span class="filter-chip" data-filter="social">Ing. Social</span>
+        </div>
+        <div id="tools-content"></div>
+      </section>
+
+      <!-- Learn -->
+      <section id="section-learn" class="section">
+        <div class="section-title">// RUTA DE APRENDIZAJE</div>
+        <div class="section-subtitle">Desde fundamentos hasta especialización</div>
+        <div id="learn-content"></div>
+      </section>
+
+      <!-- Glossary -->
+      <section id="section-glossary" class="section">
+        <div class="section-title">// GLOSARIO</div>
+        <div class="section-subtitle">Términos esenciales de ciberseguridad</div>
+        <div id="glossary-content"></div>
+      </section>
+
+      <!-- Resources -->
+      <section id="section-resources" class="section">
+        <div class="section-title">// RECURSOS</div>
+        <div class="section-subtitle">Plataformas, guías y herramientas para seguir aprendiendo</div>
+        <div id="resources-content"></div>
+      </section>
+    </main>
+
+    <!-- BOTTOM NAV -->
+    <nav id="bottom-nav">
+      <button class="nav-item active" data-section="dashboard">
+        <span class="nav-icon">🏠</span>
+        Inicio
+      </button>
+      <button class="nav-item" data-section="tools">
+        <span class="nav-icon">🛡️</span>
+        Tools
+      </button>
+      <button class="nav-item" data-section="learn">
+        <span class="nav-icon">📚</span>
+        Aprender
+      </button>
+      <button class="nav-item" data-section="glossary">
+        <span class="nav-icon">📖</span>
+        Glosario
+      </button>
+      <button class="nav-item" data-section="resources">
+        <span class="nav-icon">🔗</span>
+        Recursos
+      </button>
+    </nav>
+  </div>
+
+  <!-- TOOL MODAL -->
+  <div id="tool-modal">
+    <div class="modal-content">
+      <div style="display:flex;align-items:flex-start;margin-bottom:16px;">
+        <div style="flex:1;"><div class="modal-tool-name">🔧</div></div>
+        <button class="modal-close" id="modal-close">✕</button>
+      </div>
+      <div class="modal-tool-desc">Cargando...</div>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    }
+  </script>
+</body>
+</html>

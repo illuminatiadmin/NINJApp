@@ -12,9 +12,9 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import termux.terminal.TerminalSession;
-import termux.terminal.TerminalView;
-import termux.terminal.TerminalEmulator;
+import com.termux.terminal.TerminalSession;
+import com.termux.terminal.TerminalView;
+import com.termux.terminal.TerminalEmulator;
 
 import java.io.File;
 import java.util.Map;

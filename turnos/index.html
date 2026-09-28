@@ -1,0 +1,827 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+</head><body>
+<title>Planilla Justa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap">
+<style>
+/* Layout: barra superior con pestañas; la vista "Semana" replica la planilla (filas por sector, columnas por día) dentro de un contenedor con scroll horizontal propio. */
+:root{
+  --bg:#eef0f6; --surface:#ffffff; --surface-2:#f6f7fb; --fg:#1a1e33; --muted:#5b6179; --line:#d5d9e7;
+  --accent:#2c3a91; --accent-fg:#ffffff; --band:#8b3a1d; --band-fg:#fff4ee;
+  --ok:#1d7a4c; --warn:#9a5a00; --info:#2560a8; --danger:#b3261e;
+  --mix:74%;
+  --font-ui:'Barlow', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-cond:'Barlow Condensed', 'Arial Narrow', 'Roboto Condensed', sans-serif;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#11131c; --surface:#191c28; --surface-2:#1f2331; --fg:#e6e8f2; --muted:#9ca2bb; --line:#2d3246;
+  --accent:#95a3ff; --accent-fg:#11131c; --band:#d98b63; --band-fg:#1a0f0a;
+  --ok:#5fcf98; --warn:#f0b35a; --info:#7fb2f0; --danger:#ff8a80; --mix:40%; color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#11131c; --surface:#191c28; --surface-2:#1f2331; --fg:#e6e8f2; --muted:#9ca2bb; --line:#2d3246;
+  --accent:#95a3ff; --accent-fg:#11131c; --band:#d98b63; --band-fg:#1a0f0a;
+  --ok:#5fcf98; --warn:#f0b35a; --info:#7fb2f0; --danger:#ff8a80; --mix:40%; color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:15px;line-height:1.45}
+.wrap{max-width:1500px;margin:0 auto;padding-inline:16px;padding-block:0 48px}
+header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 24px;padding-block:18px 10px}
+.brand h1{font-family:var(--font-cond);font-weight:700;font-size:30px;letter-spacing:.01em;margin:0;line-height:1}
+.brand p{margin:4px 0 0;color:var(--muted);font-size:14px}
+nav.tabs{display:flex;flex-wrap:wrap;gap:4px;border-bottom:2px solid var(--line);margin-bottom:16px}
+nav.tabs button{font:600 15px var(--font-ui);background:none;border:0;color:var(--muted);padding:10px 14px;border-bottom:3px solid transparent;margin-bottom:-2px;cursor:pointer}
+nav.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--accent)}
+nav.tabs button:focus-visible,.btn:focus-visible,select:focus-visible,input:focus-visible,td.c:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn{font:600 14px var(--font-ui);border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:8px 14px;border-radius:6px;cursor:pointer;white-space:nowrap}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+.btn.danger{color:var(--danger)}
+.btn.small{padding:4px 10px;font-size:13px}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;margin-bottom:12px}
+.toolbar .week{font:700 20px var(--font-cond);min-width:0;padding-inline:4px}
+.spacer{flex:1}
+.pill{display:inline-flex;align-items:center;gap:6px;font:600 12px var(--font-ui);letter-spacing:.05em;text-transform:uppercase;padding:4px 10px;border-radius:999px;border:1px solid currentColor}
+.pill.ok{color:var(--ok)} .pill.warn{color:var(--warn)} .pill.info{color:var(--info)} .pill.muted{color:var(--muted)}
+.notice{border:1px solid var(--line);border-left:4px solid var(--warn);background:var(--surface);padding:10px 14px;border-radius:6px;margin-bottom:12px;font-size:14px}
+.notice.info{border-left-color:var(--info)}
+.gridwrap{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:8px}
+table.plan{border-collapse:collapse;width:max-content;min-width:100%;font-family:var(--font-cond);font-size:13.5px;font-variant-numeric:tabular-nums}
+table.plan th,table.plan td{border:1px solid var(--line);padding:3px 6px;text-align:center;white-space:nowrap}
+table.plan thead .month th{background:var(--band);color:var(--band-fg);font-weight:700;letter-spacing:.12em;font-size:14px}
+table.plan thead .days th{background:var(--surface-2);font-weight:700;letter-spacing:.06em}
+table.plan thead .dates th{background:var(--surface-2);font-size:16px;font-weight:700}
+table.plan .name{position:sticky;left:0;z-index:1;background:var(--surface);text-align:left;font-family:var(--font-ui);font-size:14px;min-width:170px;font-weight:500}
+table.plan thead .name{background:var(--surface-2)}
+table.plan tr.grp th{text-align:left;font-family:var(--font-ui);font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;background:var(--surface-2);color:var(--muted);padding:6px 8px}
+table.plan tr.grp th.name{background:var(--surface-2)}
+td.c{min-width:128px;text-transform:uppercase;font-weight:600;cursor:pointer;position:relative;background:color-mix(in srgb,var(--c,transparent) var(--mix),var(--surface))}
+td.c:hover{box-shadow:inset 0 0 0 2px var(--accent)}
+td.c.empty{color:var(--muted);font-weight:500}
+td.c.preview{font-style:italic}
+td.c.pin::after{content:"";position:absolute;top:0;right:0;border-style:solid;border-width:0 8px 8px 0;border-color:transparent var(--accent) transparent transparent}
+td.c.free{color:var(--fg)}
+td.meta{color:var(--muted);font-size:13px}
+td.desc{cursor:pointer}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:10px;font-size:13px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:14px;height:14px;border-radius:3px;border:1px solid var(--line);background:color-mix(in srgb,var(--c) var(--mix),var(--surface))}
+details.why{margin-top:16px;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 14px}
+details.why summary{cursor:pointer;font-weight:600}
+details.why ol{margin:8px 0 0;padding-left:20px;font-size:14px;max-width:110ch}
+details.why li{margin:3px 0}
+section[hidden]{display:none}
+h2{font-family:var(--font-cond);font-size:24px;margin:8px 0 6px;text-wrap:balance}
+h3{font-family:var(--font-cond);font-size:19px;margin:18px 0 6px}
+p.lead{color:var(--muted);max-width:75ch;margin:0 0 14px}
+.tablewrap{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:8px}
+table.data{border-collapse:collapse;width:100%;font-size:14px;font-variant-numeric:tabular-nums}
+table.data th,table.data td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+table.data th{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:var(--surface-2);white-space:nowrap}
+table.data td.num,table.data th.num{text-align:right}
+table.data td{white-space:nowrap}
+table.data tr.avg td{font-weight:700;background:var(--surface-2)}
+table.data input[type=text],table.data input[type=number],table.data select{font:14px var(--font-ui);padding:4px 6px;border:1px solid var(--line);border-radius:4px;background:var(--surface);color:var(--fg);max-width:100%}
+table.data input[type=number]{width:64px}
+.bar{display:inline-block;width:90px;height:8px;border-radius:4px;background:var(--surface-2);border:1px solid var(--line);vertical-align:middle;margin-right:8px;overflow:hidden}
+.bar b{display:block;height:100%;background:var(--accent)}
+.chip{font:600 12px var(--font-ui);padding:2px 8px;border-radius:999px;border:1px solid currentColor;white-space:nowrap}
+.chip.ok{color:var(--ok)} .chip.warn{color:var(--warn)} .chip.info{color:var(--info)}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,460px),1fr));gap:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px;min-width:0}
+.card .row{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin-bottom:10px}
+.card label{font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:3px}
+.card label.inline{flex-direction:row;align-items:center;gap:6px;color:var(--fg);font-size:14px}
+.card input[type=text],.card input[type=number],.card select,.form input,.form select,textarea{font:14px var(--font-ui);padding:6px 8px;border:1px solid var(--line);border-radius:4px;background:var(--surface);color:var(--fg)}
+.card input[type=number]{width:56px}
+.cupos{display:flex;flex-wrap:wrap;gap:6px}
+.cupos label{align-items:center}
+.eleg{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,210px),1fr));gap:4px 12px;font-size:13.5px}
+.eleg div{display:flex;justify-content:space-between;align-items:center;gap:6px;min-width:0}
+.eleg div span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.eleg select{font-size:13px;padding:2px 4px}
+.eleg h4{grid-column:1/-1;margin:8px 0 2px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.form{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;margin:10px 0}
+.form label{display:flex;flex-direction:column;gap:3px;font-size:13px;color:var(--muted)}
+textarea{width:100%;min-height:120px;font-family:ui-monospace,monospace;font-size:12.5px}
+.overlay{position:fixed;inset:0;background:rgb(10 12 20 / .45);display:flex;align-items:center;justify-content:center;padding:16px;z-index:10}
+.modal{background:var(--surface);color:var(--fg);border:1px solid var(--line);border-radius:10px;padding:18px;width:min(440px,100%);max-height:90vh;overflow:auto}
+.modal h3{margin-top:0}
+.modal .opts{display:flex;flex-direction:column;gap:4px;margin:10px 0}
+.modal .opts label{display:flex;gap:8px;align-items:center;padding:6px 8px;border-radius:6px;cursor:pointer}
+.modal .opts label:hover{background:var(--surface-2)}
+.modal .opts i{width:14px;height:14px;border-radius:3px;border:1px solid var(--line);background:color-mix(in srgb,var(--c,transparent) var(--mix),var(--surface));flex:none}
+.modal .actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.modal input[type=text]{width:100%;font:14px var(--font-ui);padding:6px 8px;border:1px solid var(--line);border-radius:4px;background:var(--surface);color:var(--fg)}
+#toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:8px;font-weight:600;z-index:20;max-width:calc(100% - 32px)}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+@media (max-width:600px){ table.plan .name{min-width:118px;max-width:118px;white-space:normal;font-size:13px} td.c{min-width:112px} }
+@media (prefers-reduced-motion: no-preference){ td.c{transition:box-shadow .12s} }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <h1>Planilla Justa</h1>
+      <p>Reparto rotativo de puestos, sábados y descansos, con historial a la vista.</p>
+    </div>
+  </header>
+  <nav class="tabs" role="tablist" id="tabs">
+    <button role="tab" data-v="semana" aria-selected="true">Semana</button>
+    <button role="tab" data-v="equidad" aria-selected="false">Equidad</button>
+    <button role="tab" data-v="personal" aria-selected="false">Personal y licencias</button>
+    <button role="tab" data-v="tareas" aria-selected="false">Puestos y reglas</button>
+    <button role="tab" data-v="datos" aria-selected="false">Respaldo</button>
+  </nav>
+  <div id="storageWarn" class="notice" hidden>Este navegador no permite guardar datos. Lo que cambies se pierde al cerrar: usá <b>Respaldo</b> para copiar tus datos.</div>
+  <section id="v-semana"></section>
+  <section id="v-equidad" hidden></section>
+  <section id="v-personal" hidden></section>
+  <section id="v-tareas" hidden></section>
+  <section id="v-datos" hidden></section>
+</div>
+<div id="overlay" class="overlay" hidden></div>
+<div id="toast" hidden></div>
+
+<script>
+'use strict';
+const KEY = 'planilla-justa-v1';
+const DIAS = ['lun','mar','mie','jue','vie','sab','dom'];
+const LAB = ['lun','mar','mie','jue','vie','sab'];
+const SEM = ['lun','mar','mie','jue','vie'];
+const DIA_LARGO = {lun:'LUNES',mar:'MARTES',mie:'MIÉRCOLES',jue:'JUEVES',vie:'VIERNES',sab:'SÁBADO',dom:'DOMINGO'};
+const DIA_CORTO = {lun:'Lun',mar:'Mar',mie:'Mié',jue:'Jue',vie:'Vie',sab:'Sáb',dom:'Dom'};
+const MESES = ['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SETIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
+const COLOR_LIC = '#8fb8e3', COLOR_TXT = '#c9cdd8';
+const PREF = {prefiere:0, si:1, evita:2};
+
+/* ---------- utilidades ---------- */
+const iso = d => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const parse = s => { const [y,m,d] = s.split('-').map(Number); return new Date(y,m-1,d); };
+const addDays = (s,n) => { const d = parse(s); d.setDate(d.getDate()+n); return iso(d); };
+const lunesDe = s => { const d = parse(s); d.setDate(d.getDate()-((d.getDay()+6)%7)); return iso(d); };
+const fechaDe = (week,dia) => addDays(week, DIAS.indexOf(dia));
+const weekIndex = week => { const d = parse(week); return Math.round(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/(7*864e5)); };
+const ddmm = s => { const d = parse(s); return d.getDate()+'/'+(d.getMonth()+1); };
+function hash(str){ let h = 2166136261; for (let i=0;i<str.length;i++){ h ^= str.charCodeAt(i); h = Math.imul(h,16777619); } return h>>>0; }
+const uid = p => p + Math.random().toString(36).slice(2,9);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pct = (a,b) => b ? Math.round(a*1000/b)/10 : 0;
+
+/* ---------- datos de ejemplo (tomados de las planillas de setiembre 2026) ---------- */
+function ejemplo(){
+  const grupos = [
+    {id:'g_ventas', nombre:'Agenda web', base:'AGENDA WEB', color:'#f08a84', cupoSab:3},
+    {id:'g_caja', nombre:'Caja – Telégrafo – Depósito', base:'AGENCIAS/COMUNITARIOS', color:'#f7a35c', cupoSab:0},
+    {id:'g_admin', nombre:'Administración', base:'LOCAL', color:'#f08a84', cupoSab:0},
+    {id:'g_dist', nombre:'Distribución', base:'DISTRIBUCIÓN', color:'#f08a84', cupoSab:0},
+    {id:'g_bec', nombre:'Becarios', base:'PUERTA', color:'#f5e050', cupoSab:0},
+    {id:'g_sup', nombre:'Supervisión', base:'LOCAL', color:'#f08a84', cupoSab:1},
+    {id:'g_jefe', nombre:'Jefe', base:'LOCAL', color:'#f08a84', cupoSab:0},
+    {id:'g_bo', nombre:'Backoffice', base:'AGENCIAS/POGO', color:'#5fd35f', cupoSab:0},
+    {id:'g_cc', nombre:'Centro de cercanía BO Artigas', base:'LOCAL', color:'#f08a84', cupoSab:0},
+  ];
+  let n = 0;
+  const E = (nombre, grupo, o={}) => ({id:'e_'+(++n), nombre, grupo, base:'', horario:'10:00 – 17:15', puesto:'', sabado:'nunca', libreFijo:'', descanso:false, activo:true, ...o});
+  const V = (nombre, puesto, o={}) => E(nombre, 'g_ventas', {puesto, sabado:'rota', descanso:true, ...o});
+  const empleados = [
+    V('Areta, José Joaquín','11'), V('Muñoz, Marcos','9'), V('Lucero, Daniela','7',{base:'LOCAL'}),
+    V('Medina, Federico','6'), V('Pozzi, Patricia','4'), V('Fernández, Angélica','2'),
+    V('Dalmao, Lorena',''), V('Alvez, Franco','1'), V('Albernaz, Florencia','12'),
+    V('Barretto, Cristian','5',{horario:'09:45 – 17:00'}), V('Gomez, Syntia','3',{horario:'09:45 – 17:00'}),
+    V('Ferreira, Karin',''), V('Quintana, Karen','8'), V('Texeira, Antonella','10',{horario:'09:45 – 17:00'}),
+    E('Tavarez, Alba','g_caja',{descanso:true}), E('Gardela, Virginia','g_caja',{descanso:true}), E('Nan, Cristian','g_caja',{descanso:true}),
+    E('Odriozola, José','g_admin',{horario:'09:30 – 16:45'}), E('Redelico, Mariela','g_admin',{horario:'07:00 – 15:42'}),
+    E('Nuñez, Juan José','g_dist'),
+    E('Flores, Lucas','g_bec',{horario:'Variable',sabado:'fijo',libreFijo:'mie'}), E('Cardozo, Diego','g_bec',{horario:'10:00 – 16:00'}),
+    E('Gabrielli, Sergio','g_sup',{sabado:'rota'}), E('Carabio, Fernanda','g_sup',{horario:'10:00 – 14:00',sabado:'rota'}),
+    E('Zeni, María Laura','g_jefe',{horario:'09:45 – 17:00'}),
+    E('Acosta, Janny','g_bo',{horario:''}),
+    E('Nuñez, Shubert','g_cc',{horario:'08:15 – 15:30'}),
+  ];
+  const del = g => Object.fromEntries(empleados.filter(e=>e.grupo===g).map(e=>[e.id,'si']));
+  const L5 = {lun:1,mar:1,mie:1,jue:1,vie:1,sab:0};
+  const tareas = [
+    {id:'t_dep', nombre:'DEPÓSITO/CUBRE ENTREGAS', color:'#f6c343', modo:'semanal', sinComision:true, cupos:{...L5}, elegibles:del('g_ventas')},
+    {id:'t_ent', nombre:'ENTREGAS', color:'#a9e8ef', modo:'diario', sinComision:true, cupos:{...L5}, elegibles:del('g_ventas')},
+    {id:'t_pt', nombre:'AG. WEB/PUERTA TARDE (16 a 17)', color:'#fff15a', modo:'diario', sinComision:true, cupos:{...L5}, elegibles:del('g_ventas')},
+    {id:'t_cs', nombre:'CAJA/ENTREGAS', color:'#f9c89b', modo:'diario', sinComision:true, cupos:{lun:0,mar:0,mie:0,jue:0,vie:0,sab:1}, elegibles:del('g_ventas')},
+    {id:'t_caja', nombre:'CAJA/CUBRE TELÉGRAFO', color:'#f9c89b', modo:'semanal', sinComision:false, cupos:{...L5}, elegibles:del('g_caja')},
+    {id:'t_tel', nombre:'TELÉGRAFO/CUBRE CAJA', color:'#ffd24d', modo:'semanal', sinComision:false, cupos:{...L5}, elegibles:del('g_caja')},
+  ];
+  const id = nom => empleados.find(e=>e.nombre===nom).id;
+  const licencias = [
+    {id:'l_1', emp:id('Dalmao, Lorena'), desde:'2026-09-28', hasta:'2026-10-02', motivo:'LICENCIA'},
+    {id:'l_2', emp:id('Ferreira, Karin'), desde:'2026-09-28', hasta:'2026-10-02', motivo:'LICENCIA'},
+    {id:'l_3', emp:id('Gardela, Virginia'), desde:'2026-09-28', hasta:'2026-10-02', motivo:'LICENCIA'},
+    {id:'l_4', emp:id('Acosta, Janny'), desde:'2026-09-28', hasta:'2026-09-28', motivo:'LICENCIA'},
+    {id:'l_5', emp:id('Acosta, Janny'), desde:'2026-10-01', hasta:'2026-10-02', motivo:'LICENCIA'},
+  ];
+  return {
+    version:1, ejemplo:true,
+    config:{compensatorios:['mar','mie','jue'], ventana:12, descansos:['11:45 – 12:30','12:30 – 13:15','13:15 – 14:00']},
+    grupos, empleados, tareas, licencias, semanas:{}
+  };
+}
+
+/* ---------- estado ---------- */
+let storageOk = true;
+function cargar(){
+  try { const raw = localStorage.getItem(KEY); if (raw){ const s = JSON.parse(raw); if (s && Array.isArray(s.empleados)) return s; } }
+  catch(e){ storageOk = false; }
+  return ejemplo();
+}
+function guardar(){
+  try { localStorage.setItem(KEY, JSON.stringify(state)); storageOk = true; }
+  catch(e){ storageOk = false; }
+  document.getElementById('storageWarn').hidden = storageOk;
+}
+let state = cargar();
+let vista = 'semana';
+let week = lunesDe(iso(new Date()));
+try { const v = localStorage.getItem(KEY+':vista'); if (v) vista = v; } catch(e){}
+
+const grupo = id => state.grupos.find(g=>g.id===id);
+const tarea = id => state.tareas.find(t=>t.id===id);
+const emp = id => state.empleados.find(e=>e.id===id);
+const baseDe = e => (e.base||'').trim() || grupo(e.grupo)?.base || 'LOCAL';
+const activos = () => state.empleados.filter(e=>e.activo);
+const trabaja = c => !!c && (c.t==='base' || c.t==='tarea' || c.t==='texto');
+const elegible = (e,t) => !!t.elegibles?.[e.id] && t.elegibles[e.id] !== 'no';
+function licenciaEn(eid, fecha){ return state.licencias.find(l=>l.emp===eid && l.desde<=fecha && fecha<=l.hasta); }
+function semana(w){ return state.semanas[w] ||= {celdas:{}, descansos:{}, confirmada:false, generada:false, motivos:[]}; }
+
+/* ---------- historial ---------- */
+function nuevoStat(){ return {pres:0, semanas:0, sab:0, ultSab:'', sinCom:0, tareas:{}, ultima:{}}; }
+function acumular(st, w, sem){
+  for (const [eid, cs] of Object.entries(sem.celdas||{})){
+    const s = st[eid]; if (!s) continue;
+    let presente = false;
+    for (const d of LAB){
+      const c = cs[d]; if (!trabaja(c)) continue;
+      presente = true; s.pres++;
+      const f = fechaDe(w,d);
+      if (d==='sab'){ s.sab++; if (f > s.ultSab) s.ultSab = f; }
+      if (c.t==='tarea'){
+        const t = tarea(c.id); if (!t) continue;
+        s.tareas[t.id] = (s.tareas[t.id]||0)+1;
+        if (!s.ultima[t.id] || f > s.ultima[t.id]) s.ultima[t.id] = f;
+        if (t.sinComision) s.sinCom++;
+      }
+    }
+    if (presente) s.semanas++;
+  }
+}
+/* Estadística de las semanas confirmadas dentro de la ventana, anteriores a w. Con incluir=true suma también la semana w. */
+function estadisticas(w, incluir){
+  const desde = addDays(w, -7*(+state.config.ventana||12));
+  const st = {}; for (const e of state.empleados) st[e.id] = nuevoStat();
+  for (const [k, sem] of Object.entries(state.semanas)){
+    if (k < desde || k > w) continue;
+    if (k === w){ if (!incluir || !sem.generada) continue; }
+    else if (!sem.confirmada) continue;
+    acumular(st, k, sem);
+  }
+  return st;
+}
+
+/* ---------- generador ---------- */
+function cmpClave(a,b){
+  for (let i=0;i<a.length;i++){
+    if (typeof a[i] === 'string'){ if (a[i] !== b[i]) return a[i] < b[i] ? -1 : 1; }
+    else if (Math.abs(a[i]-b[i]) > 1e-9) return a[i]-b[i];
+  }
+  return 0;
+}
+function generar(w){
+  const sem = semana(w);
+  const act = activos();
+  const cel = {}, motivos = [];
+  const get = (e,d) => cel[e.id][d];
+  const set = (e,d,c) => { cel[e.id][d] = c; };
+
+  // 1. Lo fijado a mano se respeta
+  for (const e of act){ cel[e.id] = {}; for (const d of LAB){ const c = sem.celdas?.[e.id]?.[d]; if (c?.fijo) cel[e.id][d] = c; } }
+  // 2. Licencias
+  for (const e of act) for (const d of LAB){ if (!get(e,d)){ const l = licenciaEn(e.id, fechaDe(w,d)); if (l) set(e,d,{t:'ausencia', txt:l.motivo||'LICENCIA'}); } }
+  // 3. Libre fijo semanal
+  for (const e of act) if (e.libreFijo && !get(e,e.libreFijo)) set(e,e.libreFijo,{t:'libre'});
+
+  const hist = estadisticas(w, false);
+
+  // 4. Sábados: primero quien hace más tiempo que no trabaja uno
+  for (const e of act) if (e.sabado==='fijo' && !get(e,'sab')) set(e,'sab',{t:'base'});
+  for (const g of state.grupos){
+    const cupo = +g.cupoSab||0; if (cupo<=0) continue;
+    const miembros = act.filter(e=>e.grupo===g.id);
+    let faltan = cupo - miembros.filter(e=>trabaja(get(e,'sab'))).length;
+    const cands = miembros.filter(e=>e.sabado==='rota' && !get(e,'sab'))
+      .map(e=>{ const s = hist[e.id]; return {e, k:[s.ultSab||'', s.semanas ? s.sab/s.semanas : 0, hash(w+e.id+'sab')]}; })
+      .sort((a,b)=>cmpClave(a.k,b.k));
+    if (faltan > cands.length) motivos.push(`Aviso: ${g.nombre} necesita ${cupo} persona(s) el sábado y solo hay ${cands.length} disponible(s).`);
+    for (const x of cands.slice(0, Math.max(0,faltan))){
+      set(x.e,'sab',{t:'base'});
+      const u = hist[x.e.id].ultSab;
+      motivos.push(`Sábado → ${x.e.nombre}: ${u ? 'último sábado trabajado el '+ddmm(u) : 'sin sábados registrados'} (${cands.length} en la rotación de ${g.nombre}).`);
+    }
+  }
+  for (const e of act) if (!get(e,'sab')) set(e,'sab',{t:'libre'});
+
+  // 5. Día libre compensatorio para quien trabaja el sábado
+  for (const e of act){
+    if (e.sabado==='fijo' || !trabaja(get(e,'sab'))) continue;
+    if (SEM.some(d=>get(e,d)?.t==='libre')) continue;
+    let ops = (state.config.compensatorios||[]).filter(d=>SEM.includes(d) && !get(e,d));
+    if (!ops.length) ops = SEM.filter(d=>!get(e,d));
+    if (!ops.length){ motivos.push(`Aviso: ${e.nombre} trabaja el sábado y no le queda día hábil libre para compensar.`); continue; }
+    const libres = d => act.filter(x=>x.grupo===e.grupo && get(x,d)?.t==='libre').length;
+    ops.sort((a,b)=>libres(a)-libres(b) || hash(w+e.id+a)-hash(w+e.id+b));
+    set(e,ops[0],{t:'libre'});
+    motivos.push(`Libre compensatorio → ${e.nombre}: ${DIA_LARGO[ops[0]].toLowerCase()} (el día con menos compañeros libres).`);
+  }
+
+  // Contadores de trabajo: historial + esta semana
+  const cur = {};
+  for (const e of act){
+    const h = hist[e.id];
+    let presSem = 0;
+    for (const d of LAB){ const c = get(e,d); if (d==='sab' ? trabaja(c) : (!c || trabaja(c))) presSem++; }
+    cur[e.id] = {pres:h.pres+presSem, sinCom:h.sinCom, tareas:{...h.tareas}, ultima:{...h.ultima}};
+    for (const d of LAB){ const c = get(e,d); if (c?.t==='tarea'){ const t = tarea(c.id); if (!t) continue; cur[e.id].tareas[t.id]=(cur[e.id].tareas[t.id]||0)+1; if (t.sinComision) cur[e.id].sinCom++; } }
+  }
+  const disponible = (e,d) => d==='sab' ? (get(e,'sab')?.t==='base' && !get(e,'sab').fijo) : !get(e,d);
+  const asignados = (t,d) => act.filter(e=>{ const c = get(e,d); return c?.t==='tarea' && c.id===t.id; }).length;
+  const clave = (e,t,pen) => { const s = cur[e.id], den = Math.max(1,s.pres);
+    return [pen, t.sinComision ? s.sinCom/den : 0, (s.tareas[t.id]||0)/den, PREF[t.elegibles[e.id]] ?? 1, s.ultima[t.id]||'', hash(w+e.id+t.id)]; };
+  const explicar = (lista,t) => {
+    const a = lista[0], s = cur[a.e.id], den = Math.max(1,s.pres);
+    let txt = t.sinComision ? `llevaba ${s.sinCom} de ${den} días sin comisión (${pct(s.sinCom,den)}%)` : `llevaba ${s.tareas[t.id]||0} de ${den} días en este puesto`;
+    txt += `, el menor entre ${lista.length} disponible${lista.length>1?'s':''}`;
+    if (lista.length>1){
+      const b = lista[1];
+      if (cmpClave(a.k.slice(0,3), b.k.slice(0,3))===0){
+        txt += a.k[3]!==b.k[3] ? ' (empate: decidió la preferencia declarada)' : a.k[4]!==b.k[4] ? ' (empate: hacía más tiempo que no le tocaba)' : ' (empate: decidió el sorteo de la semana)';
+      }
+    }
+    return txt;
+  };
+  const asignar = (e,t,d) => { set(e,d,{t:'tarea', id:t.id}); const s = cur[e.id]; s.tareas[t.id]=(s.tareas[t.id]||0)+1; if (t.sinComision) s.sinCom++; s.ultima[t.id] = fechaDe(w,d); };
+
+  // 6. Puestos semanales: una persona toda la semana
+  for (const t of state.tareas.filter(t=>t.modo==='semanal')){
+    const maxC = Math.max(0, ...LAB.map(d=>+t.cupos[d]||0));
+    for (let k=0;k<maxC;k++){
+      const dias = LAB.filter(d=>(+t.cupos[d]||0)>k && asignados(t,d)<(+t.cupos[d]||0));
+      if (!dias.length) continue;
+      const lista = act.filter(e=>elegible(e,t)).map(e=>({e, pen:dias.filter(d=>!disponible(e,d)).length}))
+        .filter(x=>x.pen<dias.length).map(x=>({e:x.e, k:clave(x.e,t,x.pen)})).sort((a,b)=>cmpClave(a.k,b.k));
+      if (!lista.length){ motivos.push(`Aviso: nadie disponible para ${t.nombre}.`); continue; }
+      const txt = explicar(lista,t);
+      for (const d of dias) if (disponible(lista[0].e,d)) asignar(lista[0].e,t,d);
+      motivos.push(`${t.nombre} (toda la semana) → ${lista[0].e.nombre}: ${txt}.`);
+    }
+  }
+  // 7. Puestos diarios (y huecos de los semanales)
+  for (const d of LAB){
+    for (const t of state.tareas){
+      let falta = (+t.cupos[d]||0) - asignados(t,d);
+      while (falta > 0){
+        const lista = act.filter(e=>elegible(e,t) && disponible(e,d)).map(e=>({e, k:clave(e,t,0)})).sort((a,b)=>cmpClave(a.k,b.k));
+        if (!lista.length){ motivos.push(`Aviso: ${DIA_LARGO[d].toLowerCase()} nadie disponible para ${t.nombre}.`); break; }
+        const txt = explicar(lista,t);
+        asignar(lista[0].e,t,d);
+        motivos.push(`${DIA_CORTO[d]} ${ddmm(fechaDe(w,d))} · ${t.nombre} → ${lista[0].e.nombre}: ${txt}.`);
+        falta--;
+      }
+    }
+  }
+  // 8. El resto hace su tarea base
+  for (const e of act) for (const d of SEM) if (!get(e,d)) set(e,d,{t:'base'});
+
+  // 9. Descansos: cada semana todos corren un turno, parejo por sector
+  const slots = (state.config.descansos||[]).map(s=>s.trim()).filter(Boolean);
+  const desc = {};
+  for (const [eid,v] of Object.entries(sem.descansos||{})) if (v?.fijo) desc[eid] = v;
+  if (slots.length){
+    const wi = weekIndex(w);
+    for (const g of state.grupos){
+      const miembros = act.filter(e=>e.grupo===g.id && e.descanso && !desc[e.id] && LAB.some(d=>trabaja(get(e,d))));
+      miembros.forEach((e,i)=>{ desc[e.id] = {txt:slots[(i+wi)%slots.length]}; });
+    }
+  }
+  // conservar celdas de personas inactivas que ya estaban
+  for (const [eid,cs] of Object.entries(sem.celdas||{})) if (!cel[eid]) cel[eid] = cs;
+  sem.celdas = cel; sem.descansos = desc; sem.motivos = motivos; sem.generada = true;
+  state.ejemplo = false;
+  guardar();
+}
+
+/* ---------- presentación de celdas ---------- */
+function celdaVista(e,d,sem){
+  if (d==='dom') return {txt:'FREE', color:'', cls:'free'};
+  let c = sem?.celdas?.[e.id]?.[d];
+  let preview = false;
+  if (!c){ const l = licenciaEn(e.id, fechaDe(week,d)); if (l){ c = {t:'ausencia', txt:l.motivo}; preview = true; } else if (e.libreFijo===d){ c = {t:'libre'}; preview = true; } }
+  if (!c) return {txt:'·', color:'', cls:'empty'};
+  let txt = '', color = '';
+  if (c.t==='base'){ txt = baseDe(e); color = grupo(e.grupo)?.color||''; }
+  else if (c.t==='tarea'){ const t = tarea(c.id); txt = t ? t.nombre : '(puesto borrado)'; color = t?.color||''; }
+  else if (c.t==='libre'){ txt = 'FREE'; }
+  else if (c.t==='ausencia'){ txt = c.txt||'LICENCIA'; color = COLOR_LIC; }
+  else { txt = c.txt||''; color = COLOR_TXT; }
+  return {txt, color, cls:(c.t==='libre'?'free ':'')+(c.fijo?'pin ':'')+(preview?'preview':'')};
+}
+
+/* ---------- vista Semana ---------- */
+function tituloMes(w){
+  const a = parse(w), b = parse(addDays(w,6));
+  return a.getMonth()===b.getMonth() ? `${MESES[a.getMonth()]} ${a.getFullYear()}` : `${MESES[a.getMonth()]} / ${MESES[b.getMonth()]} ${b.getFullYear()}`;
+}
+function renderSemana(){
+  const sem = state.semanas[week];
+  const prev = state.semanas[addDays(week,-7)];
+  const conf = !!sem?.confirmada, gen = !!sem?.generada;
+  const estado = conf ? '<span class="pill ok">Confirmada · cuenta para el reparto</span>' : gen ? '<span class="pill warn">Borrador · aún no cuenta</span>' : '<span class="pill muted">Sin generar</span>';
+  let avisos = '';
+  if (state.ejemplo) avisos += `<div class="notice info">Cargué como ejemplo a las personas, horarios y licencias de la planilla del 28/9. Revisalos en <b>Personal y licencias</b> y <b>Puestos y reglas</b> antes de usarla en serio. Todavía no hay historial: las primeras semanas el orden sale de un sorteo reproducible, y a medida que confirmás semanas el reparto se empareja solo.</div>`;
+  if (!conf && prev && prev.generada && !prev.confirmada) avisos += `<div class="notice">La semana anterior está en borrador. Confirmala primero, si no, no se tiene en cuenta al repartir esta.</div>`;
+  const dias = DIAS.map(d=>fechaDe(week,d));
+  let h = `<div class="toolbar">
+    <button class="btn" data-a="prev" aria-label="Semana anterior">←</button>
+    <span class="week">Semana del ${ddmm(dias[0])} al ${ddmm(dias[6])}</span>
+    <button class="btn" data-a="next" aria-label="Semana siguiente">→</button>
+    <button class="btn small" data-a="hoy">Esta semana</button>
+    ${estado}
+    <span class="spacer"></span>
+    <button class="btn ${gen?'':'primary'}" data-a="generar" ${conf?'disabled title="Reabrí la semana para volver a generarla"':''}>${gen?'Volver a generar':'Generar semana'}</button>
+    ${gen ? (conf ? '<button class="btn" data-a="reabrir">Reabrir</button>' : '<button class="btn primary" data-a="confirmar">Confirmar semana</button>') : ''}
+    <button class="btn" data-a="excel" ${gen?'':'disabled'}>Copiar para Excel</button>
+  </div>${avisos}`;
+  h += `<div class="gridwrap"><table class="plan"><thead>
+    <tr class="month"><th class="name"></th><th colspan="7">– ${tituloMes(week)} –</th><th colspan="3"></th></tr>
+    <tr class="days"><th class="name">Funcionario</th>${DIAS.map(d=>`<th>${DIA_LARGO[d]}</th>`).join('')}<th>Horario</th><th>Puesto</th><th>Descanso</th></tr>
+    <tr class="dates"><th class="name"></th>${dias.map(f=>`<th>${parse(f).getDate()}</th>`).join('')}<th></th><th></th><th></th></tr>
+  </thead><tbody>`;
+  for (const g of state.grupos){
+    const miembros = activos().filter(e=>e.grupo===g.id);
+    if (!miembros.length) continue;
+    h += `<tr class="grp"><th class="name">${esc(g.nombre)}</th><th colspan="10"></th></tr>`;
+    for (const e of miembros){
+      h += `<tr><td class="name">${esc(e.nombre)}</td>`;
+      for (const d of DIAS){
+        const v = celdaVista(e,d,sem);
+        if (d==='dom') h += `<td class="c free">FREE</td>`;
+        else h += `<td class="c ${v.cls}" tabindex="0" data-e="${e.id}" data-d="${d}" style="${v.color?`--c:${v.color}`:''}" title="Tocar para cambiar">${esc(v.txt)}</td>`;
+      }
+      const ds = sem?.descansos?.[e.id];
+      h += `<td class="meta">${esc(e.horario)}</td><td class="meta">${esc(e.puesto||(e.grupo==='g_ventas'?'——':''))}</td>
+        <td class="meta desc c ${ds?.fijo?'pin':''}" tabindex="0" data-e="${e.id}" data-d="desc" title="Tocar para cambiar">${esc(ds?.txt||'')}</td></tr>`;
+    }
+  }
+  h += `</tbody></table></div>`;
+  const usados = new Map();
+  for (const g of state.grupos) if (g.color) usados.set(g.base, g.color);
+  for (const t of state.tareas) usados.set(t.nombre, t.color);
+  usados.set('LICENCIA', COLOR_LIC);
+  h += `<div class="legend">${[...usados].map(([n,c])=>`<span><i style="--c:${c}"></i>${esc(n)}</span>`).join('')}<span><i style="--c:transparent"></i>FREE</span><span class="muted">Esquina marcada = fijado a mano (se respeta al regenerar)</span></div>`;
+  if (sem?.motivos?.length){
+    h += `<details class="why"><summary>Por qué quedó así (${sem.motivos.length} decisiones)</summary><ol>${sem.motivos.map(m=>`<li>${esc(m)}</li>`).join('')}</ol></details>`;
+  } else if (!gen){
+    h += `<p class="muted small" style="margin-top:12px">Antes de generar podés tocar cualquier celda para fijarla (por ejemplo, un pedido especial). Las licencias cargadas ya se ven en cursiva.</p>`;
+  }
+  document.getElementById('v-semana').innerHTML = h;
+}
+
+/* ---------- editor de celda ---------- */
+function abrirEditor(eid, d){
+  const e = emp(eid); if (!e) return;
+  const sem = semana(week);
+  const ov = document.getElementById('overlay');
+  let opts = [];
+  if (d==='desc'){
+    const cur = sem.descansos?.[eid];
+    opts.push({v:'auto', l:'Automático (rota al generar)', c:''});
+    for (const s of state.config.descansos||[]) if (s.trim()) opts.push({v:'d:'+s, l:s, c:''});
+    opts.push({v:'texto', l:'Otro horario…', c:''});
+    var actual = cur?.fijo ? (state.config.descansos.includes(cur.txt) ? 'd:'+cur.txt : 'texto') : 'auto';
+    var txtAct = cur?.fijo && !state.config.descansos.includes(cur.txt) ? cur.txt : '';
+  } else {
+    const c = sem.celdas?.[eid]?.[d];
+    opts.push({v:'auto', l:'Automático (lo decide la app)', c:''});
+    opts.push({v:'base', l:`Tarea base: ${baseDe(e)}`, c:grupo(e.grupo)?.color||''});
+    opts.push({v:'libre', l:'FREE (libre)', c:''});
+    opts.push({v:'lic', l:'LICENCIA', c:COLOR_LIC});
+    for (const t of state.tareas) opts.push({v:'t:'+t.id, l:t.nombre, c:t.color});
+    opts.push({v:'texto', l:'Otro (texto libre)…', c:COLOR_TXT});
+    var actual = !c?.fijo ? 'auto' : c.t==='base' ? 'base' : c.t==='libre' ? 'libre' : c.t==='ausencia' ? 'lic' : c.t==='tarea' ? 't:'+c.id : 'texto';
+    var txtAct = c?.fijo && c.t==='texto' ? c.txt : '';
+  }
+  const titulo = d==='desc' ? 'Descanso' : `${DIA_LARGO[d].toLowerCase()} ${ddmm(fechaDe(week,d))}`;
+  ov.innerHTML = `<div class="modal" role="dialog" aria-modal="true" aria-labelledby="edTit">
+    <h3 id="edTit">${esc(e.nombre)} · ${titulo}</h3>
+    <p class="muted small" style="margin:0">Lo que elijas queda fijado y se respeta al volver a generar.${sem.confirmada?' La semana está confirmada: el cambio cuenta en el historial.':''}</p>
+    <div class="opts">${opts.map((o,i)=>`<label><input type="radio" name="edOpt" id="edOpt${i}" value="${esc(o.v)}" ${o.v===actual?'checked':''}><i style="--c:${o.c||'transparent'}"></i>${esc(o.l)}</label>`).join('')}</div>
+    <input type="text" id="edTxt" placeholder="Texto, por ejemplo TELETRABAJO o PUERTA 9 a 13H" value="${esc(txtAct)}">
+    <div class="actions" style="margin-top:12px"><button class="btn" data-a="edCancel">Cancelar</button><button class="btn primary" data-a="edOk">Guardar</button></div>
+  </div>`;
+  ov.hidden = false;
+  ov.dataset.e = eid; ov.dataset.d = d;
+  ov.querySelector('input[name=edOpt]:checked')?.focus();
+}
+function guardarEditor(){
+  const ov = document.getElementById('overlay');
+  const eid = ov.dataset.e, d = ov.dataset.d;
+  const v = ov.querySelector('input[name=edOpt]:checked')?.value;
+  const txt = document.getElementById('edTxt').value.trim().toUpperCase();
+  const sem = semana(week);
+  if (d==='desc'){
+    sem.descansos ||= {};
+    if (v==='auto') delete sem.descansos[eid];
+    else if (v==='texto'){ if (!txt) return toast('Escribí el horario del descanso.'); sem.descansos[eid] = {txt:document.getElementById('edTxt').value.trim(), fijo:true}; }
+    else sem.descansos[eid] = {txt:v.slice(2), fijo:true};
+  } else {
+    sem.celdas[eid] ||= {};
+    let c = null;
+    if (v==='base') c = {t:'base'};
+    else if (v==='libre') c = {t:'libre'};
+    else if (v==='lic') c = {t:'ausencia', txt:'LICENCIA'};
+    else if (v?.startsWith('t:')) c = {t:'tarea', id:v.slice(2)};
+    else if (v==='texto'){ if (!txt) return toast('Escribí el texto para la celda.'); c = {t:'texto', txt}; }
+    if (c){ c.fijo = true; sem.celdas[eid][d] = c; }
+    else delete sem.celdas[eid][d];
+  }
+  cerrarEditor(); guardar(); render();
+  toast(v==='auto' ? 'Celda liberada. Se decide al volver a generar.' : 'Celda fijada.');
+}
+function cerrarEditor(){ const ov = document.getElementById('overlay'); ov.hidden = true; ov.innerHTML = ''; }
+
+/* ---------- vista Equidad ---------- */
+function renderEquidad(){
+  const sem = state.semanas[week];
+  const st = estadisticas(week, true);
+  const nConf = Object.entries(state.semanas).filter(([k,s])=>s.confirmada && k<=week && k>=addDays(week,-7*(+state.config.ventana||12))).length;
+  let h = `<h2>¿Está parejo?</h2>
+  <p class="lead">Cuenta las semanas confirmadas de las últimas ${esc(state.config.ventana)} (${nConf} confirmada${nConf===1?'':'s'})${sem?.generada && !sem.confirmada ? ', más el borrador de la semana del '+ddmm(week) : ''}. El porcentaje sin comisión se mide sobre los días trabajados, así nadie queda en desventaja por volver de licencia. La marca compara a cada persona con el promedio de su sector.</p>`;
+  let alguno = false;
+  for (const g of state.grupos){
+    const miembros = state.empleados.filter(e=>e.activo && e.grupo===g.id);
+    const ts = state.tareas.filter(t=>miembros.some(e=>elegible(e,t)));
+    const rotaSab = +g.cupoSab>0 && miembros.some(e=>e.sabado==='rota');
+    if (!ts.length && !rotaSab) continue;
+    alguno = true;
+    const hayComision = ts.some(t=>t.sinComision);
+    const conDatos = miembros.filter(e=>st[e.id].pres>0);
+    const prom = conDatos.length ? conDatos.reduce((a,e)=>a+st[e.id].sinCom/st[e.id].pres,0)/conDatos.length : 0;
+    const promSab = conDatos.length ? conDatos.reduce((a,e)=>a+st[e.id].sab,0)/conDatos.length : 0;
+    h += `<h3>${esc(g.nombre)}</h3><div class="tablewrap"><table class="data"><thead><tr>
+      <th>Funcionario</th><th class="num">Días trab.</th>${rotaSab?'<th class="num">Sábados</th><th>Último sábado</th>':''}
+      ${hayComision?'<th>Días sin comisión</th><th>Comparado al promedio</th>':''}
+      ${ts.map(t=>`<th class="num" title="${esc(t.nombre)}">${esc(t.nombre.length>18?t.nombre.slice(0,17)+'…':t.nombre)}</th>`).join('')}
+    </tr></thead><tbody>`;
+    for (const e of miembros){
+      const s = st[e.id];
+      const p = s.pres ? s.sinCom/s.pres : 0;
+      const dif = (p - prom)*100;
+      const chip = !s.pres ? '<span class="muted small">sin datos</span>' : Math.abs(dif) <= 5 ? '<span class="chip ok">parejo</span>' : dif>0 ? `<span class="chip warn">+${dif.toFixed(0)} pts, le tocó más</span>` : `<span class="chip info">${dif.toFixed(0)} pts, le tocará</span>`;
+      h += `<tr><td>${esc(e.nombre)}</td><td class="num">${s.pres}</td>
+        ${rotaSab?`<td class="num">${e.sabado==='rota'?s.sab:'—'}</td><td>${e.sabado!=='rota'?'<span class="muted small">no rota</span>':s.ultSab?ddmm(s.ultSab):'—'}</td>`:''}
+        ${hayComision?`<td><span class="bar"><b style="width:${Math.min(100,p*100)}%"></b></span>${s.sinCom} (${pct(s.sinCom,s.pres)}%)</td><td>${chip}</td>`:''}
+        ${ts.map(t=>`<td class="num">${elegible(e,t)?(s.tareas[t.id]||0):'—'}</td>`).join('')}</tr>`;
+    }
+    h += `<tr class="avg"><td>Promedio</td><td class="num"></td>${rotaSab?`<td class="num">${promSab.toFixed(1)}</td><td></td>`:''}${hayComision?`<td>${(prom*100).toFixed(1)}%</td><td></td>`:''}${ts.map(()=>'<td></td>').join('')}</tr>`;
+    h += `</tbody></table></div>`;
+  }
+  if (!alguno) h += `<p class="muted">No hay puestos rotativos configurados.</p>`;
+  document.getElementById('v-equidad').innerHTML = h;
+}
+
+/* ---------- vista Personal ---------- */
+function opcionesGrupo(sel){ return state.grupos.map(g=>`<option value="${g.id}" ${g.id===sel?'selected':''}>${esc(g.nombre)}</option>`).join(''); }
+function renderPersonal(){
+  let h = `<h2>Personal</h2><p class="lead">Los cambios se guardan solos. <b>Sábados</b>: “Rota” entra en la rotación de su sector, “Todos” trabaja todos los sábados, “Nunca” no trabaja sábados. <b>Libre fijo</b> es para quien libra siempre el mismo día.</p>
+  <div class="tablewrap"><table class="data"><thead><tr><th>Activo</th><th>Nombre</th><th>Sector</th><th>Tarea base</th><th>Horario</th><th>Puesto</th><th>Sábados</th><th>Libre fijo</th><th>Descanso rota</th><th></th></tr></thead><tbody>`;
+  for (const e of state.empleados){
+    h += `<tr data-emp="${e.id}">
+      <td><input type="checkbox" id="ac_${e.id}" data-f="activo" ${e.activo?'checked':''} aria-label="Activo"></td>
+      <td><input type="text" id="no_${e.id}" data-f="nombre" value="${esc(e.nombre)}" size="20"></td>
+      <td><select id="gr_${e.id}" data-f="grupo">${opcionesGrupo(e.grupo)}</select></td>
+      <td><input type="text" id="ba_${e.id}" data-f="base" value="${esc(e.base)}" placeholder="${esc(grupo(e.grupo)?.base||'')}" size="14"></td>
+      <td><input type="text" id="ho_${e.id}" data-f="horario" value="${esc(e.horario)}" size="12"></td>
+      <td><input type="text" id="pu_${e.id}" data-f="puesto" value="${esc(e.puesto)}" size="3"></td>
+      <td><select id="sa_${e.id}" data-f="sabado">${[['rota','Rota'],['fijo','Todos'],['nunca','Nunca']].map(([v,l])=>`<option value="${v}" ${e.sabado===v?'selected':''}>${l}</option>`).join('')}</select></td>
+      <td><select id="lf_${e.id}" data-f="libreFijo"><option value="">—</option>${SEM.map(d=>`<option value="${d}" ${e.libreFijo===d?'selected':''}>${DIA_CORTO[d]}</option>`).join('')}</select></td>
+      <td><input type="checkbox" id="de_${e.id}" data-f="descanso" ${e.descanso?'checked':''} aria-label="Descanso rota"></td>
+      <td><button class="btn small danger" data-a="delEmp" data-id="${e.id}">Borrar</button></td></tr>`;
+  }
+  h += `</tbody></table></div>
+  <div class="form"><label>Nombre<input type="text" id="nuevoNombre" placeholder="Apellido, Nombre"></label>
+    <label>Sector<select id="nuevoGrupo">${opcionesGrupo(state.grupos[0]?.id)}</select></label>
+    <button class="btn primary" data-a="addEmp">Agregar funcionario</button></div>
+  <p class="muted small">Para quien se va por un tiempo, mejor destildar “Activo” que borrar: se conserva su historial.</p>
+  <h2 style="margin-top:28px">Licencias y ausencias</h2>
+  <p class="lead">Se aplican solas a cada semana que caiga en el rango. Quien está de licencia no entra en ningún reparto esos días.</p>
+  <div class="form">
+    <label>Funcionario<select id="licEmp">${state.empleados.filter(e=>e.activo).map(e=>`<option value="${e.id}">${esc(e.nombre)}</option>`).join('')}</select></label>
+    <label>Desde<input type="date" id="licDesde" value="${week}"></label>
+    <label>Hasta<input type="date" id="licHasta" value="${addDays(week,4)}"></label>
+    <label>Motivo<input type="text" id="licMotivo" value="LICENCIA" list="motivos" size="14"></label>
+    <datalist id="motivos"><option value="LICENCIA"><option value="LICENCIA PARQUE"><option value="TELETRABAJO"><option value="COMISIÓN C/VIÁTICO"><option value="CURSO"></datalist>
+    <button class="btn primary" data-a="addLic">Agregar</button>
+  </div>
+  <div class="tablewrap"><table class="data"><thead><tr><th>Funcionario</th><th>Desde</th><th>Hasta</th><th>Motivo</th><th></th></tr></thead><tbody>
+  ${[...state.licencias].sort((a,b)=>b.desde.localeCompare(a.desde)).map(l=>`<tr><td>${esc(emp(l.emp)?.nombre||'(borrado)')}</td><td>${ddmm(l.desde)}/${l.desde.slice(0,4)}</td><td>${ddmm(l.hasta)}/${l.hasta.slice(0,4)}</td><td>${esc(l.motivo)}</td><td><button class="btn small danger" data-a="delLic" data-id="${l.id}">Quitar</button></td></tr>`).join('') || '<tr><td colspan="5" class="muted">No hay licencias cargadas.</td></tr>'}
+  </tbody></table></div>
+  <p class="muted small">Si una licencia se carga después de generar la semana, tocá “Volver a generar” para que se aplique.</p>`;
+  document.getElementById('v-personal').innerHTML = h;
+}
+
+/* ---------- vista Puestos y reglas ---------- */
+function renderTareas(){
+  let h = `<h2>Puestos rotativos</h2><p class="lead">Cada puesto dice cuántas personas necesita por día y quiénes lo pueden hacer. “Toda la semana” le da el puesto a una sola persona de lunes a viernes; “Por día” lo reparte día a día. La preferencia solo desempata: nunca le da a alguien más turnos de los que le corresponden.</p><div class="cards">`;
+  for (const t of state.tareas){
+    h += `<div class="card" data-t="${t.id}">
+      <div class="row"><label style="flex:1;min-width:180px">Nombre<input type="text" id="tn_${t.id}" data-tf="nombre" value="${esc(t.nombre)}"></label>
+        <label>Color<input type="color" id="tc_${t.id}" data-tf="color" value="${esc(t.color)}"></label>
+        <label>Reparto<select id="tm_${t.id}" data-tf="modo"><option value="diario" ${t.modo==='diario'?'selected':''}>Por día</option><option value="semanal" ${t.modo==='semanal'?'selected':''}>Toda la semana</option></select></label></div>
+      <div class="row"><label class="inline"><input type="checkbox" id="ts_${t.id}" data-tf="sinComision" ${t.sinComision?'checked':''}> No comisiona (se suma al total “sin comisión”)</label></div>
+      <div class="row cupos"><span class="muted small">Personas por día:</span>${LAB.map(d=>`<label class="inline">${DIA_CORTO[d]}<input type="number" min="0" max="9" id="tq_${t.id}_${d}" data-cupo="${d}" value="${+t.cupos[d]||0}"></label>`).join('')}</div>
+      <div class="eleg">`;
+    for (const g of state.grupos){
+      const ms = state.empleados.filter(e=>e.activo && e.grupo===g.id);
+      if (!ms.length) continue;
+      h += `<h4>${esc(g.nombre)} <button class="btn small" data-a="elegTodos" data-g="${g.id}">Todos</button><button class="btn small" data-a="elegNinguno" data-g="${g.id}">Ninguno</button></h4>`;
+      for (const e of ms){
+        const v = t.elegibles?.[e.id] || 'no';
+        h += `<div><span title="${esc(e.nombre)}">${esc(e.nombre)}</span><select id="te_${t.id}_${e.id}" data-eleg="${e.id}" aria-label="${esc(e.nombre)}">${[['no','No'],['si','Sí'],['prefiere','Sí, lo prefiere'],['evita','Sí, prefiere evitarlo']].map(([a,b])=>`<option value="${a}" ${v===a?'selected':''}>${b}</option>`).join('')}</select></div>`;
+      }
+    }
+    h += `</div><div class="row" style="margin-top:12px;margin-bottom:0"><button class="btn small danger" data-a="delTarea" data-id="${t.id}">Borrar puesto</button></div></div>`;
+  }
+  h += `</div><div class="form"><button class="btn primary" data-a="addTarea">Agregar puesto</button></div>
+  <h2 style="margin-top:28px">Sectores</h2>
+  <p class="lead">La tarea base es lo que hace cada persona cuando no le toca un puesto rotativo. “Sábado” es cuántas personas del sector trabajan cada sábado.</p>
+  <div class="tablewrap"><table class="data"><thead><tr><th>Sector</th><th>Tarea base</th><th>Color</th><th class="num">Personas el sábado</th><th></th></tr></thead><tbody>
+  ${state.grupos.map(g=>`<tr data-g="${g.id}"><td><input type="text" id="gn_${g.id}" data-gf="nombre" value="${esc(g.nombre)}" size="24"></td><td><input type="text" id="gb_${g.id}" data-gf="base" value="${esc(g.base)}" size="18"></td><td><input type="color" id="gc_${g.id}" data-gf="color" value="${esc(g.color||'#cccccc')}"></td><td class="num"><input type="number" min="0" max="20" id="gs_${g.id}" data-gf="cupoSab" value="${+g.cupoSab||0}"></td><td><button class="btn small danger" data-a="delGrupo" data-id="${g.id}">Borrar</button></td></tr>`).join('')}
+  </tbody></table></div>
+  <div class="form"><label>Nuevo sector<input type="text" id="nuevoGrupoNombre"></label><button class="btn" data-a="addGrupo">Agregar sector</button></div>
+  <h2 style="margin-top:28px">Reglas</h2>
+  <div class="card" style="max-width:720px">
+    <div class="row"><span class="small">Día libre por trabajar el sábado, preferentemente:</span>${SEM.map(d=>`<label class="inline"><input type="checkbox" id="comp_${d}" data-comp="${d}" ${(state.config.compensatorios||[]).includes(d)?'checked':''}>${DIA_CORTO[d]}</label>`).join('')}</div>
+    <p class="muted small" style="margin-top:-4px">Se elige el día con menos compañeros del sector libres. Si ninguno de estos días está disponible, usa otro de lunes a viernes.</p>
+    <div class="row"><label class="inline">Mirar el historial de las últimas <input type="number" min="2" max="52" id="cfgVentana" value="${esc(state.config.ventana)}"> semanas</label></div>
+    <label>Turnos de descanso (uno por línea; cada semana todos corren un turno)<textarea id="cfgDesc" style="min-height:80px">${esc((state.config.descansos||[]).join('\n'))}</textarea></label>
+  </div>`;
+  document.getElementById('v-tareas').innerHTML = h;
+}
+
+/* ---------- vista Respaldo ---------- */
+function renderDatos(){
+  const nSem = Object.values(state.semanas).filter(s=>s.generada).length;
+  const nConf = Object.values(state.semanas).filter(s=>s.confirmada).length;
+  document.getElementById('v-datos').innerHTML = `<h2>Respaldo</h2>
+  <p class="lead">Los datos se guardan solo en este navegador y en este dispositivo (${state.empleados.length} personas, ${nSem} semanas generadas, ${nConf} confirmadas). Si otra persona arma la planilla en otra computadora, pasale el respaldo. Guardá una copia de vez en cuando: si se borran los datos del navegador, se pierde el historial.</p>
+  <div class="toolbar"><button class="btn primary" data-a="descargar">Descargar respaldo (.json)</button><button class="btn" data-a="copiarJson">Copiar respaldo</button></div>
+  <h3>Restaurar</h3>
+  <div class="toolbar"><label class="btn" for="archivo">Elegir archivo de respaldo</label><input type="file" id="archivo" accept=".json,application/json" hidden></div>
+  <label class="small muted" for="pegado">O pegá acá el texto de un respaldo:</label>
+  <textarea id="pegado" placeholder='{"version":1, ...}'></textarea>
+  <div class="toolbar" style="margin-top:8px"><button class="btn" data-a="importarTexto">Restaurar desde el texto</button></div>
+  <h3>Empezar de nuevo</h3>
+  <div class="toolbar"><button class="btn danger" data-a="reset">Volver a los datos de ejemplo</button><span id="resetConf" hidden><span class="small">Se borra todo, historial incluido.</span> <button class="btn danger" data-a="resetOk">Sí, borrar todo</button></span></div>`;
+}
+
+/* ---------- render general ---------- */
+function render(){
+  document.querySelectorAll('#tabs button').forEach(b=>b.setAttribute('aria-selected', String(b.dataset.v===vista)));
+  for (const v of ['semana','equidad','personal','tareas','datos']) document.getElementById('v-'+v).hidden = v!==vista;
+  ({semana:renderSemana, equidad:renderEquidad, personal:renderPersonal, tareas:renderTareas, datos:renderDatos})[vista]();
+  document.getElementById('storageWarn').hidden = storageOk;
+}
+let toastT;
+function toast(msg){ const t = document.getElementById('toast'); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(()=>t.hidden=true, 2800); }
+async function copiar(texto, ok){
+  try { await navigator.clipboard.writeText(texto); toast(ok); }
+  catch(e){
+    const ov = document.getElementById('overlay');
+    ov.innerHTML = `<div class="modal"><h3>Copiá este texto</h3><p class="muted small">El navegador no dejó copiar automáticamente. Seleccioná todo y copialo.</p><textarea id="copiaManual" readonly>${esc(texto)}</textarea><div class="actions" style="margin-top:10px"><button class="btn primary" data-a="edCancel">Listo</button></div></div>`;
+    ov.hidden = false; const ta = document.getElementById('copiaManual'); ta.focus(); ta.select();
+  }
+}
+function tsvSemana(){
+  const sem = state.semanas[week]; const dias = DIAS.map(d=>fechaDe(week,d));
+  const filas = [['Funcionario', ...DIAS.map((d,i)=>`${DIA_LARGO[d]} ${parse(dias[i]).getDate()}`), 'Horario', 'Puesto', 'Descanso']];
+  for (const g of state.grupos){
+    const ms = activos().filter(e=>e.grupo===g.id); if (!ms.length) continue;
+    filas.push([g.nombre.toUpperCase()]);
+    for (const e of ms) filas.push([e.nombre, ...DIAS.map(d=>celdaVista(e,d,sem).txt.replace('·','')), e.horario, e.puesto, sem?.descansos?.[e.id]?.txt||'']);
+  }
+  return filas.map(f=>f.join('\t')).join('\n');
+}
+function importar(texto){
+  try {
+    const s = JSON.parse(texto);
+    if (!s || !Array.isArray(s.empleados) || !Array.isArray(s.tareas) || !Array.isArray(s.grupos)) throw new Error('formato');
+    s.licencias ||= []; s.semanas ||= {}; s.config ||= ejemplo().config;
+    state = s; guardar(); vista = 'semana'; render(); toast('Respaldo restaurado.');
+  } catch(e){ toast('Ese texto no es un respaldo válido de Planilla Justa.'); }
+}
+
+/* ---------- eventos ---------- */
+document.getElementById('tabs').addEventListener('click', ev=>{
+  const b = ev.target.closest('button[data-v]'); if (!b) return;
+  vista = b.dataset.v; try { localStorage.setItem(KEY+':vista', vista); } catch(e){}
+  render();
+});
+document.addEventListener('click', ev=>{
+  const cell = ev.target.closest('td.c[data-e]');
+  if (cell){ abrirEditor(cell.dataset.e, cell.dataset.d); return; }
+  const b = ev.target.closest('[data-a]'); if (!b) return;
+  const a = b.dataset.a;
+  const sem = () => semana(week);
+  switch (a){
+    case 'prev': week = addDays(week,-7); render(); break;
+    case 'next': week = addDays(week,7); render(); break;
+    case 'hoy': week = lunesDe(iso(new Date())); render(); break;
+    case 'generar': if (sem().confirmada) return; generar(week); render(); toast('Semana generada. Revisala y confirmala.'); break;
+    case 'confirmar': sem().confirmada = true; guardar(); render(); toast('Confirmada. Ya cuenta para repartir las próximas semanas.'); break;
+    case 'reabrir': sem().confirmada = false; guardar(); render(); toast('Semana reabierta. Deja de contar hasta que la confirmes.'); break;
+    case 'excel': copiar(tsvSemana(), 'Copiada. Pegala en Excel.'); break;
+    case 'edOk': guardarEditor(); break;
+    case 'edCancel': cerrarEditor(); break;
+    case 'addEmp': {
+      const n = document.getElementById('nuevoNombre').value.trim(); if (!n) return toast('Escribí el nombre.');
+      const g = document.getElementById('nuevoGrupo').value;
+      state.empleados.push({id:uid('e_'), nombre:n, grupo:g, base:'', horario:'10:00 – 17:15', puesto:'', sabado:+grupo(g)?.cupoSab>0?'rota':'nunca', libreFijo:'', descanso:false, activo:true});
+      guardar(); render(); toast('Agregado. Marcá en qué puestos rota desde “Puestos y reglas”.'); break; }
+    case 'delEmp': {
+      if (b.dataset.sure!=='1'){ b.dataset.sure='1'; b.textContent='¿Seguro?'; return; }
+      state.empleados = state.empleados.filter(e=>e.id!==b.dataset.id);
+      state.licencias = state.licencias.filter(l=>l.emp!==b.dataset.id);
+      for (const t of state.tareas) delete t.elegibles?.[b.dataset.id];
+      guardar(); render(); break; }
+    case 'addLic': {
+      const l = {id:uid('l_'), emp:document.getElementById('licEmp').value, desde:document.getElementById('licDesde').value, hasta:document.getElementById('licHasta').value, motivo:(document.getElementById('licMotivo').value.trim()||'LICENCIA').toUpperCase()};
+      if (!l.emp || !l.desde || !l.hasta) return toast('Completá funcionario y fechas.');
+      if (l.hasta < l.desde) return toast('La fecha “hasta” es anterior a “desde”.');
+      state.licencias.push(l); guardar(); render(); toast('Licencia agregada.'); break; }
+    case 'delLic': state.licencias = state.licencias.filter(l=>l.id!==b.dataset.id); guardar(); render(); break;
+    case 'elegTodos': case 'elegNinguno': {
+      const t = tarea(b.closest('[data-t]').dataset.t); t.elegibles ||= {};
+      for (const e of state.empleados.filter(e=>e.grupo===b.dataset.g)){ if (a==='elegTodos') t.elegibles[e.id] = t.elegibles[e.id] && t.elegibles[e.id]!=='no' ? t.elegibles[e.id] : 'si'; else delete t.elegibles[e.id]; }
+      guardar(); render(); break; }
+    case 'addTarea': state.tareas.push({id:uid('t_'), nombre:'NUEVO PUESTO', color:'#b7e1a1', modo:'diario', sinComision:true, cupos:{lun:1,mar:1,mie:1,jue:1,vie:1,sab:0}, elegibles:{}}); guardar(); render(); break;
+    case 'delTarea': {
+      if (b.dataset.sure!=='1'){ b.dataset.sure='1'; b.textContent='¿Seguro? Tocá de nuevo'; return; }
+      state.tareas = state.tareas.filter(t=>t.id!==b.dataset.id); guardar(); render(); break; }
+    case 'addGrupo': {
+      const n = document.getElementById('nuevoGrupoNombre').value.trim(); if (!n) return toast('Escribí el nombre del sector.');
+      state.grupos.push({id:uid('g_'), nombre:n, base:'LOCAL', color:'#f08a84', cupoSab:0}); guardar(); render(); break; }
+    case 'delGrupo': {
+      if (state.empleados.some(e=>e.grupo===b.dataset.id)) return toast('Ese sector tiene personas. Pasalas a otro sector primero.');
+      state.grupos = state.grupos.filter(g=>g.id!==b.dataset.id); guardar(); render(); break; }
+    case 'descargar': {
+      const blob = new Blob([JSON.stringify(state,null,1)], {type:'application/json'});
+      const url = URL.createObjectURL(blob); const link = document.createElement('a');
+      link.href = url; link.download = `planilla-justa-${iso(new Date())}.json`; document.body.appendChild(link); link.click(); link.remove();
+      setTimeout(()=>URL.revokeObjectURL(url), 2000);
+      toast('Si no se descargó, usá “Copiar respaldo”.'); break; }
+    case 'copiarJson': copiar(JSON.stringify(state), 'Respaldo copiado. Guardalo en un lugar seguro.'); break;
+    case 'importarTexto': importar(document.getElementById('pegado').value); break;
+    case 'reset': document.getElementById('resetConf').hidden = false; break;
+    case 'resetOk': state = ejemplo(); guardar(); week = lunesDe(iso(new Date())); vista = 'semana'; render(); toast('Datos de ejemplo restaurados.'); break;
+  }
+});
+document.addEventListener('keydown', ev=>{
+  if (ev.key==='Escape' && !document.getElementById('overlay').hidden) cerrarEditor();
+  if ((ev.key==='Enter' || ev.key===' ') && ev.target.matches?.('td.c[data-e]')){ ev.preventDefault(); abrirEditor(ev.target.dataset.e, ev.target.dataset.d); }
+});
+document.getElementById('overlay').addEventListener('click', ev=>{ if (ev.target.id==='overlay') cerrarEditor(); });
+document.addEventListener('change', ev=>{
+  const el = ev.target;
+  const val = el.type==='checkbox' ? el.checked : el.value;
+  const tr = el.closest('tr[data-emp]');
+  if (tr && el.dataset.f){ const e = emp(tr.dataset.emp); e[el.dataset.f] = el.dataset.f==='nombre' ? String(val).trim() : val; guardar(); if (el.dataset.f==='grupo') render(); return; }
+  const card = el.closest('[data-t]');
+  if (card){
+    const t = tarea(card.dataset.t);
+    if (el.dataset.tf) t[el.dataset.tf] = el.dataset.tf==='nombre' ? String(val).trim().toUpperCase() : val;
+    else if (el.dataset.cupo) t.cupos[el.dataset.cupo] = Math.max(0, +val||0);
+    else if (el.dataset.eleg){ t.elegibles ||= {}; if (val==='no') delete t.elegibles[el.dataset.eleg]; else t.elegibles[el.dataset.eleg] = val; }
+    guardar(); return;
+  }
+  const gr = el.closest('tr[data-g]');
+  if (gr && el.dataset.gf){ const g = grupo(gr.dataset.g); g[el.dataset.gf] = el.dataset.gf==='cupoSab' ? Math.max(0,+val||0) : el.dataset.gf==='base' ? String(val).trim().toUpperCase() : val; guardar(); return; }
+  if (el.dataset.comp){ const set = new Set(state.config.compensatorios||[]); val ? set.add(el.dataset.comp) : set.delete(el.dataset.comp); state.config.compensatorios = SEM.filter(d=>set.has(d)); guardar(); return; }
+  if (el.id==='cfgVentana'){ state.config.ventana = Math.min(52, Math.max(2, +val||12)); guardar(); return; }
+  if (el.id==='cfgDesc'){ state.config.descansos = String(val).split('\n').map(s=>s.trim()).filter(Boolean); guardar(); return; }
+  if (el.id==='archivo' && el.files?.[0]){ const r = new FileReader(); r.onload = () => importar(String(r.result)); r.readAsText(el.files[0]); }
+});
+
+render();
+</script>
+</body></html>

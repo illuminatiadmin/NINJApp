@@ -1,4 +1,4 @@
-# Planilla Justa
+# PlanillaCTRL
 
 App para armar la planilla semanal de funcionarios. Reparte los puestos que rotan
 (Entregas, Depósito, Puerta tarde…), los sábados, los días libres y los descansos.
@@ -11,6 +11,7 @@ Los datos quedan guardados en ese navegador; en **Ajustes → Respaldo** se copi
 - **Guía paso a paso** la primera vez que se abre; se vuelve a ver con el botón “?”.
 - **Planilla** por semana (grilla) o por día (cómoda en el celular). Tocando una casilla se ve
   por qué le tocó eso a esa persona y se puede cambiar; lo cambiado a mano queda fijo.
+- **Imagen para WhatsApp**: genera un PNG con colores de la semana completa o de un día, para descargar o compartir.
 - **Avisar falta**: marca la ausencia y, si la persona tenía un puesto que rota, busca a quién le corresponde cubrirlo.
 - **Equipo**: personas, próximo sábado estimado, licencias, teletrabajo y cursos (los días de curso no se asignan puestos que rotan).
 - **Puestos**: cuántas personas necesita cada puesto por día y quién lo puede hacer (o si le gusta / prefiere evitarlo).

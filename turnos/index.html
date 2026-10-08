@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 </head><body>
-<title>Planilla Justa</title>
+<title>PlanillaCTRL</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap">
@@ -182,6 +182,8 @@ textarea{width:100%;min-height:110px;font-family:ui-monospace,monospace;font-siz
 .coach .dots i.on{background:var(--accent);width:16px;border-radius:3px}
 .coach .actions{margin-top:12px}
 .muted{color:var(--muted)} .sm{font-size:13px}
+.imgprev{background:var(--soft);border-radius:14px;padding:8px;max-height:52vh;overflow:auto;margin-top:10px}
+.imgprev img{display:block;width:100%;height:auto;border-radius:8px;background:#fff}
 @media (prefers-reduced-motion: no-preference){
   .coach,.sheet{animation:pop .22s ease-out}
   .coach-ring{transition:left .25s,top .25s,width .25s,height .25s}
@@ -192,7 +194,7 @@ textarea{width:100%;min-height:110px;font-family:ui-monospace,monospace;font-siz
 <div class="app">
   <header class="top">
     <div class="logo" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4M8 15l2.5 2.5L16 13"/></svg></div>
-    <div class="brand"><h1>Planilla Justa</h1><small>Turnos de la semana, sin vueltas</small></div>
+    <div class="brand"><h1>Planilla<span style="color:var(--accent)">CTRL</span></h1><small>Los turnos de la semana, bajo control</small></div>
     <span class="spacer"></span>
     <button class="iconbtn" id="btnAyuda" data-a="guia" aria-label="Ver la guía" title="Ver la guía">?</button>
   </header>
@@ -576,6 +578,7 @@ function renderPlanilla(){
       <button class="btn" id="btnFalta" data-a="falta"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5v.5"/></svg>Avisar falta</button>
       ${conf ? '' : `<button class="btn ${gen?'':'accent'}" id="btnGenerar" data-a="generar"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.7M20 4v5h-5"/></svg>${gen?'Rearmar':'Armar semana'}</button>`}
       ${gen ? (conf ? '<button class="btn" id="btnConfirmar" data-a="reabrir">Reabrir</button>' : '<button class="btn primary" id="btnConfirmar" data-a="confirmar"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Confirmar</button>') : ''}
+      <button class="btn" id="btnImagen" data-a="imagen" ${gen?'':'disabled'} title="Imagen con colores para mandar por WhatsApp"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="9" cy="10" r="1.6"/><path d="M21 16l-5-5-8 8"/></svg>Imagen</button>
       <button class="btn" data-a="excel" ${gen?'':'disabled'} title="Copiar para pegar en Excel"><svg viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></svg>Excel</button>
     </div>`;
   if (state.ejemplo) h += `<div class="banner"><b class="dot"></b><div>Cargué tu equipo y las licencias de la planilla del 28/9 como punto de partida. Revisá <b>Equipo</b> y <b>Puestos</b>, y después tocá <b>Armar semana</b>.</div></div>`;
@@ -881,6 +884,7 @@ const PASOS = [
   {v:'planilla', s:'#viewToggle', t:'Semana o día', x:'En el celular es más cómodo ver un día a la vez.'},
   {v:'planilla', s:'#btnFalta', t:'¿Alguien faltó?', x:'Avisalo acá. Si tenía Entregas, Depósito u otro puesto que rota, la app busca a quién le corresponde cubrirlo.'},
   {v:'planilla', s:'#btnConfirmar', alt:'#estado', t:'Confirmá', x:'Cuando la planilla esté lista, confirmala. Así la app sabe qué hizo cada uno y la semana siguiente sigue rotando bien.'},
+  {v:'planilla', s:'#btnImagen', alt:'#estado', t:'Mandala por WhatsApp', x:'Con “Imagen” bajás una captura prolija de la semana o de un día, con sus colores, lista para mandar al grupo.'},
   {v:'equipo', s:'#tabs [data-v="equipo"]', t:'Equipo', x:'Las personas, sus horarios, si trabajan sábados, licencias y cursos.'},
   {v:'puestos', s:'#tabs [data-v="puestos"]', t:'Puestos', x:'Qué puestos rotan, cuántas personas necesita cada uno por día y quién los puede hacer.'},
   {v:'ajustes', s:'#tabs [data-v="ajustes"]', t:'Ajustes', x:'Los días libres preferidos, los horarios de descanso y el respaldo de tus datos.'},
@@ -920,6 +924,170 @@ function ubicarGuia(el){
 }
 addEventListener('resize', ()=>{ if (paso>=0) ubicarGuia(objetivo(PASOS[paso])); });
 
+
+/* ---------- imagen para WhatsApp ---------- */
+const IMG = {bg:'#ffffff', ink:'#151827', muted:'#646b82', line:'#e1e5ef', soft:'#f3f5fa', accent:'#ff6a3d', falta:'#d4382c'};
+const FUENTE = (w,sz,display) => `${w} ${sz}px ${display?'"Bricolage Grotesque",':''}"DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif`;
+let imgModo = 'semana', imgDia = 'lun', imgBlob = null;
+function mezclar(hex, t){
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex||''); if (!m) return IMG.soft;
+  const n = parseInt(m[1],16), f = c => Math.round(c*t + 255*(1-t));
+  return `rgb(${f(n>>16)},${f(n>>8&255)},${f(n&255)})`;
+}
+function caja(ctx,x,y,w,h,r){ ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(x,y,w,h,r); else ctx.rect(x,y,w,h); }
+/* texto centrado que entra en maxW: una línea, o dos cortando en un espacio o "/" */
+function escribir(ctx, txt, cx, cy, maxW, size, weight){
+  let sz = size; ctx.font = FUENTE(weight, sz);
+  if (ctx.measureText(txt).width <= maxW){ ctx.fillText(txt, cx, cy); return; }
+  const cortes = [...txt.matchAll(/[ \/]/g)].map(m=>m.index);
+  if (cortes.length){
+    const mid = txt.length/2, c = cortes.sort((a,b)=>Math.abs(a-mid)-Math.abs(b-mid))[0];
+    const l1 = txt.slice(0, txt[c]==='/' ? c+1 : c).trim(), l2 = txt.slice(c+1).trim();
+    while (sz > 8 && Math.max(ctx.measureText(l1).width, ctx.measureText(l2).width) > maxW){ sz -= .5; ctx.font = FUENTE(weight, sz); }
+    ctx.fillText(l1, cx, cy - sz*.6); ctx.fillText(l2, cx, cy + sz*.6); return;
+  }
+  while (sz > 8 && ctx.measureText(txt).width > maxW){ sz -= .5; ctx.font = FUENTE(weight, sz); }
+  ctx.fillText(txt, cx, cy);
+}
+function nuevoLienzo(w,h){
+  const S = 2, c = document.createElement('canvas'); c.width = w*S; c.height = h*S;
+  const ctx = c.getContext('2d'); ctx.scale(S,S); ctx.fillStyle = IMG.bg; ctx.fillRect(0,0,w,h); ctx.textBaseline = 'middle';
+  return [c, ctx];
+}
+function encabezado(ctx, x, titulo, sub){
+  ctx.font = FUENTE(800,15,true); const bw = ctx.measureText('PlanillaCTRL').width + 24;
+  caja(ctx, x, 24, bw, 28, 14); ctx.fillStyle = IMG.accent; ctx.fill();
+  ctx.fillStyle = '#1d0d06'; ctx.textAlign = 'center'; ctx.fillText('PlanillaCTRL', x+bw/2, 38.5);
+  ctx.textAlign = 'left'; ctx.fillStyle = IMG.ink; ctx.font = FUENTE(800,30,true); ctx.fillText(titulo, x, 82);
+  ctx.fillStyle = IMG.muted; ctx.font = FUENTE(500,15); ctx.fillText(sub, x, 110);
+}
+function pintarChip(ctx, v, x, y, w, h){
+  caja(ctx, x, y, w, h, 8);
+  if (v.cls.includes('free')){ ctx.fillStyle = IMG.bg; ctx.fill(); ctx.strokeStyle = IMG.line; ctx.lineWidth = 1.5; ctx.stroke(); ctx.fillStyle = IMG.muted; }
+  else if (v.cls.includes('empty')){ ctx.fillStyle = IMG.soft; ctx.fill(); ctx.fillStyle = IMG.muted; }
+  else { ctx.fillStyle = mezclar(v.color, .62); ctx.fill(); if (v.cls.includes('falta')){ ctx.strokeStyle = IMG.falta; ctx.lineWidth = 2; ctx.stroke(); } ctx.fillStyle = IMG.ink; }
+  ctx.textAlign = 'center';
+  const cx = x+w/2, cy = y+h/2, txt = v.txt.toUpperCase();
+  if (v.nota){ escribir(ctx, txt, cx, cy-6, w-12, 11, 700); ctx.font = FUENTE(500,10); ctx.fillText(v.nota, cx, cy+8, w-12); }
+  else escribir(ctx, txt, cx, cy, w-12, 11.5, 700);
+}
+const gruposConGente = () => state.grupos.map(g=>[g, activos().filter(e=>e.grupo===g.id)]).filter(([,ms])=>ms.length);
+const PIE = 'Los horarios de descanso están sujetos a las necesidades del local.';
+async function lienzoSemana(){
+  try { await document.fonts?.ready; } catch(e){}
+  const sem = state.semanas[week];
+  const P = 28, NAME = 200, DAY = 146, HOR = 112, DESC = 112, G = 5, RH = 40, GH = 36, TH = 50, TOP = 132;
+  const grupos = gruposConGente();
+  const filas = grupos.reduce((a,[,ms])=>a + GH + ms.length*RH, 0);
+  const W = P*2 + NAME + 7*(DAY+G) + HOR + G + DESC, H = TOP + TH + filas + 56;
+  const [c, ctx] = nuevoLienzo(W, H);
+  const a = parse(week), b = parse(addDays(week,6));
+  encabezado(ctx, P, `Semana del ${a.getDate()}${a.getMonth()!==b.getMonth()?' de '+MESES[a.getMonth()]:''} al ${b.getDate()} de ${MESES[b.getMonth()]}`, `${b.getFullYear()}${sem?.confirmada?'':' · borrador'}`);
+  let y = TOP;
+  const colX = i => P + NAME + i*(DAY+G), xh = colX(7), xd = xh + HOR + G;
+  ctx.textAlign = 'center';
+  DIAS.forEach((d,i)=>{
+    ctx.fillStyle = IMG.muted; ctx.font = FUENTE(700,12); ctx.fillText(DIA_LARGO[d].toUpperCase(), colX(i)+DAY/2, y+12);
+    ctx.fillStyle = IMG.ink; ctx.font = FUENTE(800,21,true); ctx.fillText(String(parse(fechaDe(week,d)).getDate()), colX(i)+DAY/2, y+34);
+  });
+  ctx.fillStyle = IMG.muted; ctx.font = FUENTE(700,12); ctx.fillText('HORARIO', xh+HOR/2, y+24); ctx.fillText('DESCANSO', xd+DESC/2, y+24);
+  y += TH;
+  for (const [g, ms] of grupos){
+    caja(ctx, P, y+GH/2-5, 10, 10, 3); ctx.fillStyle = g.color || IMG.line; ctx.fill();
+    ctx.textAlign = 'left'; ctx.fillStyle = IMG.muted; ctx.font = FUENTE(700,12); ctx.fillText(g.nombre.toUpperCase(), P+18, y+GH/2+1);
+    y += GH;
+    for (const e of ms){
+      ctx.strokeStyle = IMG.line; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(P, y+.5); ctx.lineTo(W-P, y+.5); ctx.stroke();
+      ctx.textAlign = 'left'; ctx.fillStyle = IMG.ink; ctx.font = FUENTE(500,14); ctx.fillText(e.nombre, P, y+RH/2, NAME-10);
+      DIAS.forEach((d,i)=>pintarChip(ctx, celdaVista(e,d,sem), colX(i), y+4, DAY, RH-8));
+      ctx.textAlign = 'center'; ctx.fillStyle = IMG.muted; ctx.font = FUENTE(500,12.5);
+      ctx.fillText(e.horario||'', xh+HOR/2, y+RH/2, HOR-6);
+      const ds = sem?.descansos?.[e.id]?.txt; if (ds) ctx.fillText(ds, xd+DESC/2, y+RH/2, DESC-6);
+      y += RH;
+    }
+  }
+  ctx.textAlign = 'left'; ctx.fillStyle = IMG.muted; ctx.font = FUENTE(500,12); ctx.fillText(PIE, P, H-26);
+  return c;
+}
+async function lienzoDia(d){
+  try { await document.fonts?.ready; } catch(e){}
+  const sem = state.semanas[week], f = fechaDe(week,d);
+  const P = 28, NAME = 240, CH = 250, HOR = 118, DESC = 118, G = 10, RH = 44, GH = 36, TH = 30, TOP = 132;
+  const grupos = gruposConGente();
+  const filas = grupos.reduce((a,[,ms])=>a + GH + ms.length*RH, 0);
+  const W = P*2 + NAME + CH + HOR + DESC + G*3, H = TOP + TH + filas + 56;
+  const [c, ctx] = nuevoLienzo(W, H);
+  const pf = parse(f);
+  encabezado(ctx, P, `${DIA_LARGO[d]} ${pf.getDate()} de ${MESES[pf.getMonth()]}`, `${pf.getFullYear()}${sem?.confirmada?'':' · borrador'}`);
+  const xc = P+NAME+G, xh = xc+CH+G, xd = xh+HOR+G;
+  let y = TOP;
+  ctx.fillStyle = IMG.muted; ctx.font = FUENTE(700,12); ctx.textAlign = 'left'; ctx.fillText('FUNCIONARIO', P, y+12);
+  ctx.textAlign = 'center'; ctx.fillText('TAREA', xc+CH/2, y+12); ctx.fillText('HORARIO', xh+HOR/2, y+12); ctx.fillText('DESCANSO', xd+DESC/2, y+12);
+  y += TH;
+  for (const [g, ms] of grupos){
+    caja(ctx, P, y+GH/2-5, 10, 10, 3); ctx.fillStyle = g.color || IMG.line; ctx.fill();
+    ctx.textAlign = 'left'; ctx.fillStyle = IMG.muted; ctx.font = FUENTE(700,12); ctx.fillText(g.nombre.toUpperCase(), P+18, y+GH/2+1);
+    y += GH;
+    for (const e of ms){
+      ctx.strokeStyle = IMG.line; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(P, y+.5); ctx.lineTo(W-P, y+.5); ctx.stroke();
+      ctx.textAlign = 'left'; ctx.fillStyle = IMG.ink; ctx.font = FUENTE(500,15); ctx.fillText(e.nombre, P, y+RH/2, NAME-6);
+      pintarChip(ctx, celdaVista(e,d,sem), xc, y+5, CH, RH-10);
+      ctx.textAlign = 'center'; ctx.fillStyle = IMG.muted; ctx.font = FUENTE(500,13);
+      ctx.fillText(e.horario||'', xh+HOR/2, y+RH/2, HOR-6);
+      const ds = trabaja(sem?.celdas?.[e.id]?.[d]) && sem?.descansos?.[e.id]?.txt; if (ds) ctx.fillText(ds, xd+DESC/2, y+RH/2, DESC-6);
+      y += RH;
+    }
+  }
+  ctx.textAlign = 'left'; ctx.fillStyle = IMG.muted; ctx.font = FUENTE(500,12); ctx.fillText(PIE, P, H-26);
+  return c;
+}
+const nombreImg = () => imgModo==='semana' ? `planilla-semana-${week}.png` : `planilla-${fechaDe(week,imgDia)}.png`;
+function abrirImagen(){
+  imgDia = dia; imgBlob = null;
+  abrirHoja(`<h3>Imagen para WhatsApp</h3><p class="sub">Así queda la planilla con sus colores, lista para mandar.</p>
+    <span class="seg"><button data-a="imgModo" data-m="semana" aria-pressed="${imgModo==='semana'}">Toda la semana</button><button data-a="imgModo" data-m="dia" aria-pressed="${imgModo==='dia'}">Un día</button></span>
+    <div class="toggles" id="imgDias" style="margin-top:10px" ${imgModo==='dia'?'':'hidden'}>${LAB.map(x=>`<button class="tog" data-a="imgDia" data-d="${x}" aria-pressed="${x===imgDia}">${DIA_CORTO[x]} ${parse(fechaDe(week,x)).getDate()}</button>`).join('')}</div>
+    <div class="imgprev"><img id="imgPrev" alt="Vista previa de la planilla"></div>
+    <p class="muted sm" style="margin:8px 0 0">En el celular también podés mantener apretada la imagen para guardarla.</p>
+    <div class="actions"><button class="btn ghost" data-a="cerrar">Cerrar</button><button class="btn" id="imgShare" data-a="imgShare" hidden>Compartir</button><button class="btn primary" data-a="imgSave">Descargar imagen</button></div>`);
+  pintarPreview();
+}
+let pintando = 0;
+async function pintarPreview(){
+  const turno = ++pintando;
+  const c = imgModo==='semana' ? await lienzoSemana() : await lienzoDia(imgDia);
+  const blob = await new Promise(r=>c.toBlob(r, 'image/png'));
+  if (turno !== pintando) return;
+  imgBlob = blob;
+  const im = document.getElementById('imgPrev'); if (!im) return;
+  if (im.src.startsWith('blob:')) URL.revokeObjectURL(im.src);
+  im.src = URL.createObjectURL(blob);
+  let puede = false;
+  try { puede = !!navigator.canShare?.({files:[new File([blob], nombreImg(), {type:'image/png'})]}); } catch(e){}
+  document.getElementById('imgShare').hidden = !puede;
+}
+async function compartirImagen(){
+  if (!imgBlob) return;
+  try { await navigator.share({files:[new File([imgBlob], nombreImg(), {type:'image/png'})], title:'Planilla'}); }
+  catch(e){ if (e?.name !== 'AbortError') toast('Desde acá no se puede compartir. Descargala y mandala por WhatsApp.'); }
+}
+/* guarda un archivo: en el visor de Claude pide permiso; abierto suelto, descarga directo */
+async function guardarArchivo(nombre, data, ok){
+  let dl = null;
+  if (window.claude?.use){ try { dl = await window.claude.use('downloads'); } catch(e){} }
+  if (dl){
+    try { await dl.save({filename:nombre, data}); toast(ok); }
+    catch(e){
+      if (e?.code==='declined') return;
+      toast(e?.code==='rate_limited' ? 'Esperá un momento y probá de nuevo.' : 'No se pudo descargar desde acá.');
+    }
+    return;
+  }
+  const url = URL.createObjectURL(data instanceof Blob ? data : new Blob([data], {type:'application/octet-stream'}));
+  const link = document.createElement('a'); link.href = url; link.download = nombre; document.body.appendChild(link); link.click(); link.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 4000); toast(ok);
+}
+
 /* ---------- render general ---------- */
 function render(){
   document.querySelectorAll('#tabs button').forEach(b=>b.setAttribute('aria-selected', String(b.dataset.v===vista)));
@@ -951,7 +1119,7 @@ function importar(texto){
     const s = JSON.parse(texto);
     if (!s || !Array.isArray(s.empleados) || !Array.isArray(s.tareas) || !Array.isArray(s.grupos)) throw new Error('formato');
     state = migrar(s); guardar(); vista = 'planilla'; render(); toast('Datos restaurados.');
-  } catch(e){ toast('Eso no parece un respaldo de Planilla Justa.'); }
+  } catch(e){ toast('Eso no parece un respaldo de PlanillaCTRL.'); }
 }
 
 /* ---------- eventos ---------- */
@@ -977,6 +1145,11 @@ document.addEventListener('click', ev=>{
     case 'generar': { const av = generar(week); render(); toast(av.length ? 'Armada, con avisos. Mirá arriba.' : 'Semana armada. Revisala y confirmala.'); break; }
     case 'confirmar': semana(week).confirmada = true; guardar(); render(); toast('¡Confirmada!'); break;
     case 'reabrir': semana(week).confirmada = false; guardar(); render(); toast('Reabierta.'); break;
+    case 'imagen': abrirImagen(); break;
+    case 'imgModo': imgModo = b.dataset.m; sheet.querySelectorAll('[data-a="imgModo"]').forEach(x=>x.setAttribute('aria-pressed', String(x===b))); document.getElementById('imgDias').hidden = imgModo!=='dia'; pintarPreview(); break;
+    case 'imgDia': imgDia = b.dataset.d; sheet.querySelectorAll('[data-a="imgDia"]').forEach(x=>x.setAttribute('aria-pressed', String(x===b))); pintarPreview(); break;
+    case 'imgSave': if (imgBlob) guardarArchivo(nombreImg(), imgBlob, 'Imagen guardada.'); break;
+    case 'imgShare': compartirImagen(); break;
     case 'excel': copiar(tsvSemana(), 'Copiada. Pegala en Excel.'); break;
     case 'falta': abrirFalta(); break;
     case 'faltaCelda': { const e = sheet.dataset.e, d = sheet.dataset.d; abrirFalta(e, d); break; }
@@ -1013,10 +1186,7 @@ document.addEventListener('click', ev=>{
     case 'delGrupo': if (state.empleados.some(e=>e.grupo===b.dataset.id)) return toast('Ese sector tiene personas. Pasalas a otro sector primero.'); state.grupos = state.grupos.filter(g=>g.id!==b.dataset.id); guardar(); render(); break;
     case 'comp': { b.setAttribute('aria-pressed', String(b.getAttribute('aria-pressed')!=='true')); state.config.compensatorios = [...document.querySelectorAll('[data-a="comp"][aria-pressed="true"]')].map(x=>x.dataset.d); guardar(); break; }
     case 'copiarJson': copiar(JSON.stringify(state), 'Respaldo copiado. Guardalo en un lugar seguro.'); break;
-    case 'descargar': {
-      const url = URL.createObjectURL(new Blob([JSON.stringify(state,null,1)], {type:'application/json'}));
-      const link = document.createElement('a'); link.href = url; link.download = `planilla-justa-${hoy()}.json`; document.body.appendChild(link); link.click(); link.remove();
-      setTimeout(()=>URL.revokeObjectURL(url), 2000); toast('Si no se descargó, usá “Copiar respaldo”.'); break; }
+    case 'descargar': guardarArchivo(`planillactrl-${hoy()}.json`, JSON.stringify(state,null,1), 'Respaldo descargado.'); break;
     case 'importarTexto': importar(document.getElementById('pegado').value); break;
     case 'reset': document.getElementById('resetConf').hidden = false; break;
     case 'resetOk': state = ejemplo(); guardar(); week = lunesDe(hoy()); vista = 'planilla'; render(); toast('Listo, empezaste de cero.'); break;

@@ -4,149 +4,213 @@
 <title>Planilla Justa</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap">
 <style>
-/* Layout: barra superior con pestañas; la vista "Semana" replica la planilla (filas por sector, columnas por día) dentro de un contenedor con scroll horizontal propio. */
+/* Layout: app de una columna; barra de pestañas arriba en escritorio y abajo en celular. La planilla se ve por semana (grilla de chips) o por día (lista). */
 :root{
-  --bg:#eef0f6; --surface:#ffffff; --surface-2:#f6f7fb; --fg:#1a1e33; --muted:#5b6179; --line:#d5d9e7;
-  --accent:#2c3a91; --accent-fg:#ffffff; --band:#8b3a1d; --band-fg:#fff4ee;
-  --ok:#1d7a4c; --warn:#9a5a00; --info:#2560a8; --danger:#b3261e;
-  --mix:74%;
-  --font-ui:'Barlow', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --font-cond:'Barlow Condensed', 'Arial Narrow', 'Roboto Condensed', sans-serif;
+  --bg:#f3f5fa; --surface:#ffffff; --soft:#eceff7; --ink:#151827; --muted:#646b82; --line:#e1e5ef;
+  --accent:#ff6a3d; --accent-soft:#ffe6dc; --mint:#13a58a; --warn:#c77a00; --danger:#d4382c;
+  --mix:62%; --shadow:0 1px 2px rgb(21 24 39 / .06),0 6px 20px rgb(21 24 39 / .06);
+  --font-display:'Bricolage Grotesque','Avenir Next','Segoe UI',system-ui,sans-serif;
+  --font-ui:'DM Sans',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
 }
 @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
-  --bg:#11131c; --surface:#191c28; --surface-2:#1f2331; --fg:#e6e8f2; --muted:#9ca2bb; --line:#2d3246;
-  --accent:#95a3ff; --accent-fg:#11131c; --band:#d98b63; --band-fg:#1a0f0a;
-  --ok:#5fcf98; --warn:#f0b35a; --info:#7fb2f0; --danger:#ff8a80; --mix:40%; color-scheme:dark;
+  --bg:#0e1017; --surface:#171a24; --soft:#202432; --ink:#eef0f7; --muted:#9aa1b8; --line:#272b3a;
+  --accent:#ff825c; --accent-soft:#3a2219; --mint:#3fd0b0; --warn:#f0b04a; --danger:#ff7b70;
+  --mix:42%; --shadow:0 1px 2px rgb(0 0 0 / .3),0 8px 24px rgb(0 0 0 / .25); color-scheme:dark;
 }}
 :root[data-theme="dark"]{
-  --bg:#11131c; --surface:#191c28; --surface-2:#1f2331; --fg:#e6e8f2; --muted:#9ca2bb; --line:#2d3246;
-  --accent:#95a3ff; --accent-fg:#11131c; --band:#d98b63; --band-fg:#1a0f0a;
-  --ok:#5fcf98; --warn:#f0b35a; --info:#7fb2f0; --danger:#ff8a80; --mix:40%; color-scheme:dark;
+  --bg:#0e1017; --surface:#171a24; --soft:#202432; --ink:#eef0f7; --muted:#9aa1b8; --line:#272b3a;
+  --accent:#ff825c; --accent-soft:#3a2219; --mint:#3fd0b0; --warn:#f0b04a; --danger:#ff7b70;
+  --mix:42%; --shadow:0 1px 2px rgb(0 0 0 / .3),0 8px 24px rgb(0 0 0 / .25); color-scheme:dark;
 }
 *{box-sizing:border-box}
 [hidden]{display:none!important}
-body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:15px;line-height:1.45}
-.wrap{max-width:1500px;margin:0 auto;padding-inline:16px;padding-block:0 48px}
-header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 24px;padding-block:18px 10px}
-.brand h1{font-family:var(--font-cond);font-weight:700;font-size:30px;letter-spacing:.01em;margin:0;line-height:1}
-.brand p{margin:4px 0 0;color:var(--muted);font-size:14px}
-nav.tabs{display:flex;flex-wrap:wrap;gap:4px;border-bottom:2px solid var(--line);margin-bottom:16px}
-nav.tabs button{font:600 15px var(--font-ui);background:none;border:0;color:var(--muted);padding:10px 14px;border-bottom:3px solid transparent;margin-bottom:-2px;cursor:pointer}
-nav.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--accent)}
-nav.tabs button:focus-visible,.btn:focus-visible,select:focus-visible,input:focus-visible,td.c:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.btn{font:600 14px var(--font-ui);border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:8px 14px;border-radius:6px;cursor:pointer;white-space:nowrap}
-.btn:hover{border-color:var(--accent)}
-.btn.primary{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
-.btn.danger{color:var(--danger)}
-.btn.small{padding:4px 10px;font-size:13px}
-.btn[disabled]{opacity:.45;cursor:not-allowed}
-.toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;margin-bottom:12px}
-.toolbar .week{font:700 20px var(--font-cond);min-width:0;padding-inline:4px}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-ui);font-size:15px;line-height:1.45;-webkit-tap-highlight-color:transparent}
+button,input,select,textarea{font:inherit;color:inherit}
+.app{max-width:1440px;margin:0 auto;padding-inline:16px;padding-block:14px 110px}
+header.top{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.logo{width:40px;height:40px;border-radius:12px;background:var(--accent);display:grid;place-items:center;flex:none}
+.logo svg{width:24px;height:24px;stroke:#fff;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.brand h1{font-family:var(--font-display);font-weight:800;font-size:24px;margin:0;line-height:1;letter-spacing:-.02em}
+.brand small{color:var(--muted);font-size:13px}
 .spacer{flex:1}
-.pill{display:inline-flex;align-items:center;gap:6px;font:600 12px var(--font-ui);letter-spacing:.05em;text-transform:uppercase;padding:4px 10px;border-radius:999px;border:1px solid currentColor}
-.pill.ok{color:var(--ok)} .pill.warn{color:var(--warn)} .pill.info{color:var(--info)} .pill.muted{color:var(--muted)}
-.notice{border:1px solid var(--line);border-left:4px solid var(--warn);background:var(--surface);padding:10px 14px;border-radius:6px;margin-bottom:12px;font-size:14px}
-.notice.info{border-left-color:var(--info)}
-.gridwrap{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:8px}
-table.plan{border-collapse:collapse;width:max-content;min-width:100%;font-family:var(--font-cond);font-size:13.5px;font-variant-numeric:tabular-nums}
-table.plan th,table.plan td{border:1px solid var(--line);padding:3px 6px;text-align:center;white-space:nowrap}
-table.plan thead .month th{background:var(--band);color:var(--band-fg);font-weight:700;letter-spacing:.12em;font-size:14px}
-table.plan thead .days th{background:var(--surface-2);font-weight:700;letter-spacing:.06em}
-table.plan thead .dates th{background:var(--surface-2);font-size:16px;font-weight:700}
-table.plan .name{position:sticky;left:0;z-index:1;background:var(--surface);text-align:left;font-family:var(--font-ui);font-size:14px;min-width:170px;font-weight:500}
-table.plan thead .name{background:var(--surface-2)}
-table.plan tr.grp th{text-align:left;font-family:var(--font-ui);font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;background:var(--surface-2);color:var(--muted);padding:6px 8px}
-table.plan tr.grp th.name{background:var(--surface-2)}
-td.c{min-width:128px;text-transform:uppercase;font-weight:600;cursor:pointer;position:relative;background:color-mix(in srgb,var(--c,transparent) var(--mix),var(--surface))}
-td.c:hover{box-shadow:inset 0 0 0 2px var(--accent)}
-td.c.empty{color:var(--muted);font-weight:500}
-td.c.preview{font-style:italic}
-td.c.pin::after{content:"";position:absolute;top:0;right:0;border-style:solid;border-width:0 8px 8px 0;border-color:transparent var(--accent) transparent transparent}
-td.c.free{color:var(--fg)}
-td.meta{color:var(--muted);font-size:13px}
-td.desc{cursor:pointer}
-.legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:10px;font-size:13px;color:var(--muted)}
+.iconbtn{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;cursor:pointer;font-weight:800;font-size:17px;flex:none}
+.iconbtn:hover{border-color:var(--ink)}
+nav.tabs{display:flex;gap:4px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:4px;margin-bottom:16px;box-shadow:var(--shadow);width:max-content;max-width:100%}
+nav.tabs button{display:flex;align-items:center;gap:8px;border:0;background:none;padding:9px 16px;border-radius:12px;font-weight:700;color:var(--muted);cursor:pointer}
+nav.tabs button svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+nav.tabs button[aria-selected="true"]{background:var(--ink);color:var(--bg)}
+@media (max-width:720px){
+  nav.tabs{position:fixed;left:0;right:0;bottom:0;width:auto;max-width:none;margin:0;border-radius:18px 18px 0 0;border-bottom:0;justify-content:space-around;padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px));z-index:5}
+  nav.tabs button{flex-direction:column;gap:2px;font-size:11.5px;padding:6px 8px;flex:1}
+  nav.tabs button[aria-selected="true"]{background:var(--accent-soft);color:var(--ink)}
+}
+:focus-visible{outline:2.5px solid var(--accent);outline-offset:2px}
+.btn{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:14px;border:1px solid var(--line);background:var(--surface);padding:9px 16px;border-radius:999px;cursor:pointer;white-space:nowrap}
+.btn:hover{border-color:var(--ink)}
+.btn.primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.btn.accent{background:var(--accent);color:#1d0d06;border-color:var(--accent)}
+.btn.ghost{background:transparent}
+.btn.danger{color:var(--danger)}
+.btn.sm{padding:6px 12px;font-size:13px}
+.btn[disabled]{opacity:.4;cursor:not-allowed}
+.btn svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.weekbar{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.weekbar .lbl{min-width:0;padding-inline:4px}
+.eyebrow{font-size:11.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.weekbar .wk{font-family:var(--font-display);font-weight:800;font-size:26px;line-height:1.05;letter-spacing:-.02em}
+.toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:12px}
+.status{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;padding:6px 12px;border-radius:999px;background:var(--soft)}
+.status i{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+.status.ok i{background:var(--mint)} .status.draft i{background:var(--warn)}
+.seg{display:inline-flex;background:var(--soft);border-radius:999px;padding:3px}
+.seg button{border:0;background:none;padding:6px 14px;border-radius:999px;font-weight:700;font-size:13px;color:var(--muted);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
+.banner{display:flex;gap:12px;align-items:flex-start;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px 14px;margin-bottom:12px;font-size:14px;box-shadow:var(--shadow)}
+.banner b.dot{width:10px;height:10px;border-radius:50%;background:var(--accent);flex:none;margin-top:6px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);min-width:0}
+.planwrap{overflow-x:auto;padding:6px}
+table.plan{border-collapse:separate;border-spacing:4px;width:max-content;min-width:100%;font-variant-numeric:tabular-nums}
+table.plan th{font-size:12px;font-weight:700;color:var(--muted);text-align:center;padding:4px 2px}
+table.plan th .num{display:block;font-family:var(--font-display);font-size:20px;color:var(--ink);line-height:1.1}
+table.plan th.today .num{color:var(--accent)}
+table.plan .name{position:sticky;left:0;z-index:1;background:var(--surface);text-align:left;min-width:168px;padding:2px 8px 2px 4px;font-size:14px;font-weight:500;white-space:nowrap}
+table.plan tr.grp td{padding:12px 4px 2px}
+.sector{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
+.sector i{width:10px;height:10px;border-radius:3px;background:var(--c)}
+table.plan td.meta{font-size:12.5px;color:var(--muted);white-space:nowrap;padding:0 6px}
+.chip{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;min-width:122px;min-height:34px;padding:5px 8px;border-radius:10px;border:0;background:color-mix(in srgb,var(--c,var(--soft)) var(--mix),var(--surface));font-size:11.5px;font-weight:700;letter-spacing:.02em;text-transform:uppercase;text-align:center;cursor:pointer;line-height:1.2}
+.chip:hover{box-shadow:inset 0 0 0 2px var(--ink)}
+.chip.free{background:transparent;box-shadow:inset 0 0 0 1.5px var(--line);color:var(--muted)}
+.chip.free:hover{box-shadow:inset 0 0 0 2px var(--ink)}
+.chip.empty{background:var(--soft);color:var(--muted);font-weight:500}
+.chip.preview{font-style:italic}
+.chip.pin::after{content:"";position:absolute;top:5px;right:5px;width:6px;height:6px;border-radius:50%;background:var(--ink)}
+.chip.falta{box-shadow:inset 0 0 0 2px var(--danger)}
+.chip small{display:block;font-weight:500;text-transform:none;letter-spacing:0;font-size:11px;opacity:.85}
+.chip.static{cursor:default}
+.chip.static:hover{box-shadow:inset 0 0 0 1.5px var(--line)}
+.days{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:10px}
+.days button{flex:none;border:1px solid var(--line);background:var(--surface);border-radius:14px;padding:6px 12px;cursor:pointer;text-align:center;min-width:54px}
+.days button b{display:block;font-family:var(--font-display);font-size:20px;line-height:1.1}
+.days button span{font-size:12px;color:var(--muted);font-weight:700}
+.days button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.days button[aria-pressed="true"] span{color:inherit;opacity:.75}
+.daylist{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,340px),1fr));gap:12px}
+.daylist .card{padding:12px 14px}
+.prow{display:flex;align-items:center;gap:10px;padding:6px 0;border-top:1px solid var(--line)}
+.prow:first-of-type{border-top:0}
+.avatar{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-size:12.5px;font-weight:700;background:color-mix(in srgb,var(--c,var(--soft)) 55%,var(--surface));flex:none}
+.prow .who{flex:1;min-width:0}
+.prow .who div{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prow .who small{color:var(--muted);font-size:12px}
+.prow .chip{width:auto;min-width:0;max-width:52%;flex:none}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:12px;font-size:12.5px;color:var(--muted)}
 .legend span{display:inline-flex;align-items:center;gap:6px}
-.legend i{width:14px;height:14px;border-radius:3px;border:1px solid var(--line);background:color-mix(in srgb,var(--c) var(--mix),var(--surface))}
-details.why{margin-top:16px;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 14px}
-details.why summary{cursor:pointer;font-weight:600}
-details.why ol{margin:8px 0 0;padding-left:20px;font-size:14px;max-width:110ch}
-details.why li{margin:3px 0}
-section[hidden]{display:none}
-h2{font-family:var(--font-cond);font-size:24px;margin:8px 0 6px;text-wrap:balance}
-h3{font-family:var(--font-cond);font-size:19px;margin:18px 0 6px}
-p.lead{color:var(--muted);max-width:75ch;margin:0 0 14px}
-.tablewrap{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:8px}
-table.data{border-collapse:collapse;width:100%;font-size:14px;font-variant-numeric:tabular-nums}
-table.data th,table.data td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
-table.data th{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:var(--surface-2);white-space:nowrap}
-table.data td.num,table.data th.num{text-align:right}
-table.data td{white-space:nowrap}
-table.data tr.avg td{font-weight:700;background:var(--surface-2)}
-table.data input[type=text],table.data input[type=number],table.data select{font:14px var(--font-ui);padding:4px 6px;border:1px solid var(--line);border-radius:4px;background:var(--surface);color:var(--fg);max-width:100%}
-table.data input[type=number]{width:64px}
-.bar{display:inline-block;width:90px;height:8px;border-radius:4px;background:var(--surface-2);border:1px solid var(--line);vertical-align:middle;margin-right:8px;overflow:hidden}
-.bar b{display:block;height:100%;background:var(--accent)}
-.chip{font:600 12px var(--font-ui);padding:2px 8px;border-radius:999px;border:1px solid currentColor;white-space:nowrap}
-.chip.ok{color:var(--ok)} .chip.warn{color:var(--warn)} .chip.info{color:var(--info)}
-.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,460px),1fr));gap:14px}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px;min-width:0}
-.card .row{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin-bottom:10px}
-.card label{font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:3px}
-.card label.inline{flex-direction:row;align-items:center;gap:6px;color:var(--fg);font-size:14px}
-.card input[type=text],.card input[type=number],.card select,.form input,.form select,textarea{font:14px var(--font-ui);padding:6px 8px;border:1px solid var(--line);border-radius:4px;background:var(--surface);color:var(--fg)}
-.card input[type=number]{width:56px}
-.cupos{display:flex;flex-wrap:wrap;gap:6px}
-.cupos label{align-items:center}
-.eleg{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,210px),1fr));gap:4px 12px;font-size:13.5px}
-.eleg div{display:flex;justify-content:space-between;align-items:center;gap:6px;min-width:0}
-.eleg div span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.eleg select{font-size:13px;padding:2px 4px}
-.eleg h4{grid-column:1/-1;margin:8px 0 2px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.form{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;margin:10px 0}
-.form label{display:flex;flex-direction:column;gap:3px;font-size:13px;color:var(--muted)}
-textarea{width:100%;min-height:120px;font-family:ui-monospace,monospace;font-size:12.5px}
-.overlay{position:fixed;inset:0;background:rgb(10 12 20 / .45);display:flex;align-items:center;justify-content:center;padding:16px;z-index:10}
-.modal{background:var(--surface);color:var(--fg);border:1px solid var(--line);border-radius:10px;padding:18px;width:min(440px,100%);max-height:90vh;overflow:auto}
-.modal h3{margin-top:0}
-.modal .opts{display:flex;flex-direction:column;gap:4px;margin:10px 0}
-.modal .opts label{display:flex;gap:8px;align-items:center;padding:6px 8px;border-radius:6px;cursor:pointer}
-.modal .opts label:hover{background:var(--surface-2)}
-.modal .opts i{width:14px;height:14px;border-radius:3px;border:1px solid var(--line);background:color-mix(in srgb,var(--c,transparent) var(--mix),var(--surface));flex:none}
-.modal .actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
-.modal input[type=text]{width:100%;font:14px var(--font-ui);padding:6px 8px;border:1px solid var(--line);border-radius:4px;background:var(--surface);color:var(--fg)}
-#toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:8px;font-weight:600;z-index:20;max-width:calc(100% - 32px)}
-.muted{color:var(--muted)}
-.small{font-size:13px}
-@media (max-width:600px){ table.plan .name{min-width:118px;max-width:118px;white-space:normal;font-size:13px} td.c{min-width:112px} }
-@media (prefers-reduced-motion: no-preference){ td.c{transition:box-shadow .12s} }
+.legend i{width:12px;height:12px;border-radius:4px;background:color-mix(in srgb,var(--c) var(--mix),var(--surface));box-shadow:inset 0 0 0 1px var(--line)}
+h2{font-family:var(--font-display);font-weight:800;font-size:26px;letter-spacing:-.02em;margin:4px 0 4px;text-wrap:balance}
+h3{font-family:var(--font-display);font-weight:800;font-size:19px;margin:22px 0 8px;letter-spacing:-.01em}
+.lead{color:var(--muted);max-width:70ch;margin:0 0 14px}
+.headrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.people{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,290px),1fr));gap:10px}
+.person{display:flex;align-items:center;gap:12px;padding:12px;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:16px;cursor:pointer;width:100%}
+.person:hover{border-color:var(--ink)}
+.person.off{opacity:.55}
+.person .who{flex:1;min-width:0}
+.person .who b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.person .who small{color:var(--muted);font-size:12.5px}
+.tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.tag{font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--soft);color:var(--muted)}
+.tag.hot{background:var(--accent-soft);color:var(--ink)}
+.list{display:flex;flex-direction:column;gap:8px}
+.item{display:flex;align-items:center;gap:12px;padding:10px 14px;flex-wrap:wrap}
+.item .who{flex:1;min-width:160px}
+.item small{color:var(--muted)}
+.tasks{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,440px),1fr));gap:12px}
+.task{padding:14px}
+.task .top{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+.swatch{width:36px;height:36px;border-radius:10px;border:1px solid var(--line);padding:0;cursor:pointer;overflow:hidden;background:none}
+.swatch::-webkit-color-swatch-wrapper{padding:0}.swatch::-webkit-color-swatch{border:0}
+.field{display:flex;flex-direction:column;gap:4px;font-size:12.5px;font-weight:700;color:var(--muted);min-width:0}
+.field input[type=text],.field input[type=number],.field input[type=date],.field select,.in{font-size:15px;font-weight:500;color:var(--ink);background:var(--soft);border:1px solid transparent;border-radius:12px;padding:9px 12px;width:100%}
+.field input:focus,.field select:focus,.in:focus{border-color:var(--ink);outline:none}
+.grid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,200px),1fr));gap:10px}
+.toggles{display:flex;flex-wrap:wrap;gap:6px}
+.tog{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-size:13px;font-weight:700;cursor:pointer;color:var(--muted)}
+.tog[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.counter{display:flex;flex-wrap:wrap;gap:6px}
+.counter label{display:flex;flex-direction:column;align-items:center;font-size:12px;font-weight:700;color:var(--muted);gap:2px}
+.counter input{width:46px;text-align:center;font-weight:700;background:var(--soft);border:1px solid transparent;border-radius:10px;padding:6px 2px;color:var(--ink)}
+.who-can{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.who-can .grpname{width:100%;display:flex;align-items:center;gap:4px;font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:6px}
+.pchip{border:1px dashed var(--line);background:transparent;border-radius:999px;padding:5px 10px;font-size:13px;cursor:pointer;color:var(--muted)}
+.pchip.si{border-style:solid;background:var(--soft);color:var(--ink);font-weight:600}
+.pchip.prefiere{border-style:solid;background:color-mix(in srgb,var(--mint) 22%,var(--surface));border-color:var(--mint);color:var(--ink);font-weight:600}
+.pchip.evita{border-style:solid;background:color-mix(in srgb,var(--warn) 18%,var(--surface));border-color:var(--warn);color:var(--ink);font-weight:600}
+.keyrow{display:flex;flex-wrap:wrap;gap:8px;font-size:12.5px;color:var(--muted);margin:6px 0 10px}
+.check{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:500;color:var(--ink);cursor:pointer}
+.check input{width:18px;height:18px;accent-color:var(--accent)}
+.sheet-bg{position:fixed;inset:0;background:rgb(10 12 20 / .5);display:flex;align-items:center;justify-content:center;padding:16px;z-index:20}
+.sheet{background:var(--surface);border-radius:22px;padding:20px;width:min(520px,100%);max-height:88vh;overflow:auto;box-shadow:0 20px 60px rgb(0 0 0 / .3)}
+@media (max-width:720px){ .sheet-bg{align-items:flex-end;padding:0} .sheet{border-radius:22px 22px 0 0;width:100%;padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))} }
+.sheet h3{margin:0 0 4px}
+.sheet .sub{color:var(--muted);font-size:13.5px;margin:0 0 12px}
+.why{display:flex;gap:10px;background:var(--soft);border-radius:14px;padding:10px 12px;font-size:13.5px;margin-bottom:12px}
+.why b{color:var(--accent);flex:none}
+.opts{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,200px),1fr));gap:6px;margin-bottom:10px}
+.opt{display:flex;align-items:center;gap:8px;text-align:left;border:1.5px solid var(--line);background:var(--surface);border-radius:12px;padding:8px 10px;font-size:13px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:.01em}
+.opt i{width:14px;height:14px;border-radius:4px;flex:none;background:color-mix(in srgb,var(--c,transparent) var(--mix),var(--surface));box-shadow:inset 0 0 0 1px var(--line)}
+.opt[aria-pressed="true"]{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink)}
+.opt.auto{text-transform:none;grid-column:1/-1}
+.actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:14px}
+.actions .left{margin-right:auto}
+.result{list-style:none;padding:0;margin:8px 0 0;display:flex;flex-direction:column;gap:6px}
+.result li{background:var(--soft);border-radius:12px;padding:8px 12px;font-size:14px}
+textarea{width:100%;min-height:110px;font-family:ui-monospace,monospace;font-size:12.5px;background:var(--soft);border:1px solid transparent;border-radius:12px;padding:10px;color:var(--ink)}
+#toast{position:fixed;left:50%;bottom:calc(88px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:11px 18px;border-radius:999px;font-weight:700;font-size:14px;z-index:40;max-width:calc(100% - 32px);text-align:center}
+/* guía */
+.coach-block{position:fixed;inset:0;z-index:30}
+.coach-ring{position:fixed;z-index:31;border-radius:16px;box-shadow:0 0 0 3px var(--accent),0 0 0 9999px rgb(10 12 20 / .62);pointer-events:none}
+.coach-ring.center{left:50%;top:50%;width:0;height:0;box-shadow:0 0 0 9999px rgb(10 12 20 / .62)}
+.coach{position:fixed;z-index:32;background:var(--surface);color:var(--ink);border-radius:20px;padding:16px 18px;width:min(340px,calc(100% - 32px));box-shadow:0 20px 60px rgb(0 0 0 / .35)}
+.coach .step{font-size:12px;font-weight:700;color:var(--accent);letter-spacing:.08em;text-transform:uppercase}
+.coach h4{font-family:var(--font-display);font-size:20px;margin:4px 0 6px;letter-spacing:-.01em}
+.coach p{margin:0;font-size:14.5px;color:var(--muted)}
+.coach .dots{display:flex;gap:4px;margin-top:12px}
+.coach .dots i{width:6px;height:6px;border-radius:50%;background:var(--line)}
+.coach .dots i.on{background:var(--accent);width:16px;border-radius:3px}
+.coach .actions{margin-top:12px}
+.muted{color:var(--muted)} .sm{font-size:13px}
+@media (prefers-reduced-motion: no-preference){
+  .coach,.sheet{animation:pop .22s ease-out}
+  .coach-ring{transition:left .25s,top .25s,width .25s,height .25s}
+  @keyframes pop{from{transform:translateY(8px);opacity:.4}to{transform:none;opacity:1}}
+}
 </style>
 
-<div class="wrap">
+<div class="app">
   <header class="top">
-    <div class="brand">
-      <h1>Planilla Justa</h1>
-      <p>Reparto rotativo de puestos, sábados y descansos, con historial a la vista.</p>
-    </div>
+    <div class="logo" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4M8 15l2.5 2.5L16 13"/></svg></div>
+    <div class="brand"><h1>Planilla Justa</h1><small>Turnos de la semana, sin vueltas</small></div>
+    <span class="spacer"></span>
+    <button class="iconbtn" id="btnAyuda" data-a="guia" aria-label="Ver la guía" title="Ver la guía">?</button>
   </header>
   <nav class="tabs" role="tablist" id="tabs">
-    <button role="tab" data-v="semana" aria-selected="true">Semana</button>
-    <button role="tab" data-v="equidad" aria-selected="false">Equidad</button>
-    <button role="tab" data-v="personal" aria-selected="false">Personal y licencias</button>
-    <button role="tab" data-v="tareas" aria-selected="false">Puestos y reglas</button>
-    <button role="tab" data-v="datos" aria-selected="false">Respaldo</button>
+    <button role="tab" data-v="planilla" aria-selected="true"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Planilla</button>
+    <button role="tab" data-v="equipo" aria-selected="false"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"/><circle cx="17" cy="9" r="2.5"/><path d="M16 14.6c2.7.2 4.6 2 5.3 5"/></svg>Equipo</button>
+    <button role="tab" data-v="puestos" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.5"/></svg>Puestos</button>
+    <button role="tab" data-v="ajustes" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>Ajustes</button>
   </nav>
-  <div id="storageWarn" class="notice" hidden>Este navegador no permite guardar datos. Lo que cambies se pierde al cerrar: usá <b>Respaldo</b> para copiar tus datos.</div>
-  <section id="v-semana"></section>
-  <section id="v-equidad" hidden></section>
-  <section id="v-personal" hidden></section>
-  <section id="v-tareas" hidden></section>
-  <section id="v-datos" hidden></section>
+  <div id="storageWarn" class="banner" hidden><b class="dot"></b><div>Este navegador no deja guardar datos. Antes de cerrar, copiá tus datos desde <b>Ajustes → Respaldo</b>.</div></div>
+  <section id="v-planilla"></section>
+  <section id="v-equipo" hidden></section>
+  <section id="v-puestos" hidden></section>
+  <section id="v-ajustes" hidden></section>
 </div>
-<div id="overlay" class="overlay" hidden></div>
-<div id="toast" hidden></div>
+<div id="sheet" class="sheet-bg" hidden></div>
+<div id="coach" hidden></div>
+<div id="toast" hidden role="status"></div>
 
 <script>
 'use strict';
@@ -154,40 +218,46 @@ const KEY = 'planilla-justa-v1';
 const DIAS = ['lun','mar','mie','jue','vie','sab','dom'];
 const LAB = ['lun','mar','mie','jue','vie','sab'];
 const SEM = ['lun','mar','mie','jue','vie'];
-const DIA_LARGO = {lun:'LUNES',mar:'MARTES',mie:'MIÉRCOLES',jue:'JUEVES',vie:'VIERNES',sab:'SÁBADO',dom:'DOMINGO'};
+const DIA_LARGO = {lun:'Lunes',mar:'Martes',mie:'Miércoles',jue:'Jueves',vie:'Viernes',sab:'Sábado',dom:'Domingo'};
 const DIA_CORTO = {lun:'Lun',mar:'Mar',mie:'Mié',jue:'Jue',vie:'Vie',sab:'Sáb',dom:'Dom'};
-const MESES = ['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SETIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
-const COLOR_LIC = '#8fb8e3', COLOR_TXT = '#c9cdd8';
+const MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','setiembre','octubre','noviembre','diciembre'];
+const MES_C = ['ene','feb','mar','abr','may','jun','jul','ago','set','oct','nov','dic'];
+const COLOR_LIC = '#8fb8e3', COLOR_FALTA = '#f3a6a0', COLOR_TXT = '#c9cdd8';
 const PREF = {prefiere:0, si:1, evita:2};
+const DIAS_MES = 20;
 
 /* ---------- utilidades ---------- */
 const iso = d => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const parse = s => { const [y,m,d] = s.split('-').map(Number); return new Date(y,m-1,d); };
 const addDays = (s,n) => { const d = parse(s); d.setDate(d.getDate()+n); return iso(d); };
 const lunesDe = s => { const d = parse(s); d.setDate(d.getDate()-((d.getDay()+6)%7)); return iso(d); };
-const fechaDe = (week,dia) => addDays(week, DIAS.indexOf(dia));
-const weekIndex = week => { const d = parse(week); return Math.round(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/(7*864e5)); };
+const fechaDe = (w,dia) => addDays(w, DIAS.indexOf(dia));
+const weekIndex = w => { const d = parse(w); return Math.round(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/(7*864e5)); };
 const ddmm = s => { const d = parse(s); return d.getDate()+'/'+(d.getMonth()+1); };
+const dmes = s => { const d = parse(s); return d.getDate()+' '+MES_C[d.getMonth()]; };
+const hoy = () => iso(new Date());
 function hash(str){ let h = 2166136261; for (let i=0;i<str.length;i++){ h ^= str.charCodeAt(i); h = Math.imul(h,16777619); } return h>>>0; }
 const uid = p => p + Math.random().toString(36).slice(2,9);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const pct = (a,b) => b ? Math.round(a*1000/b)/10 : 0;
+const iniciales = n => { const p = n.replace(',', '').split(/\s+/).filter(Boolean); return (((p[1]||'')[0]||'') + ((p[0]||'')[0]||'')).toUpperCase(); };
+const nombreCorto = n => { const [ap, no] = n.split(',').map(s=>s.trim()); return no ? `${no.split(' ')[0]} ${ap}` : n; };
+const ls = { get(k){ try { return localStorage.getItem(KEY+':'+k); } catch(e){ return null; } }, set(k,v){ try { localStorage.setItem(KEY+':'+k, v); } catch(e){} } };
 
-/* ---------- datos de ejemplo (tomados de las planillas de setiembre 2026) ---------- */
+/* ---------- datos de ejemplo (de las planillas de setiembre 2026) ---------- */
 function ejemplo(){
   const grupos = [
-    {id:'g_ventas', nombre:'Agenda web', base:'AGENDA WEB', color:'#f08a84', cupoSab:3},
-    {id:'g_caja', nombre:'Caja – Telégrafo – Depósito', base:'AGENCIAS/COMUNITARIOS', color:'#f7a35c', cupoSab:0},
-    {id:'g_admin', nombre:'Administración', base:'LOCAL', color:'#f08a84', cupoSab:0},
-    {id:'g_dist', nombre:'Distribución', base:'DISTRIBUCIÓN', color:'#f08a84', cupoSab:0},
-    {id:'g_bec', nombre:'Becarios', base:'PUERTA', color:'#f5e050', cupoSab:0},
-    {id:'g_sup', nombre:'Supervisión', base:'LOCAL', color:'#f08a84', cupoSab:1},
-    {id:'g_jefe', nombre:'Jefe', base:'LOCAL', color:'#f08a84', cupoSab:0},
-    {id:'g_bo', nombre:'Backoffice', base:'AGENCIAS/POGO', color:'#5fd35f', cupoSab:0},
-    {id:'g_cc', nombre:'Centro de cercanía BO Artigas', base:'LOCAL', color:'#f08a84', cupoSab:0},
+    {id:'g_ventas', nombre:'Agenda web', base:'AGENDA WEB', color:'#f08a84', cupoSab:3, maxLibres:2},
+    {id:'g_caja', nombre:'Caja – Telégrafo – Depósito', base:'AGENCIAS/COMUNITARIOS', color:'#f7a35c', cupoSab:0, maxLibres:0},
+    {id:'g_admin', nombre:'Administración', base:'LOCAL', color:'#f08a84', cupoSab:0, maxLibres:0},
+    {id:'g_dist', nombre:'Distribución', base:'DISTRIBUCIÓN', color:'#f08a84', cupoSab:0, maxLibres:0},
+    {id:'g_bec', nombre:'Becarios', base:'PUERTA', color:'#f5e050', cupoSab:0, maxLibres:0},
+    {id:'g_sup', nombre:'Supervisión', base:'LOCAL', color:'#f08a84', cupoSab:1, maxLibres:1},
+    {id:'g_jefe', nombre:'Jefe', base:'LOCAL', color:'#f08a84', cupoSab:0, maxLibres:0},
+    {id:'g_bo', nombre:'Backoffice', base:'AGENCIAS/POGO', color:'#5fd35f', cupoSab:0, maxLibres:0},
+    {id:'g_cc', nombre:'Centro de cercanía BO Artigas', base:'LOCAL', color:'#f08a84', cupoSab:0, maxLibres:0},
   ];
   let n = 0;
-  const E = (nombre, grupo, o={}) => ({id:'e_'+(++n), nombre, grupo, base:'', horario:'10:00 – 17:15', puesto:'', sabado:'nunca', libreFijo:'', descanso:false, activo:true, ...o});
+  const E = (nombre, grupo, o={}) => ({id:'e_'+(++n), nombre, grupo, base:'', horario:'10:00 – 17:15', puesto:'', sabado:'nunca', libreFijo:'', descanso:false, activo:true, inicioSab:'', inicioSinCom:'', ...o});
   const V = (nombre, puesto, o={}) => E(nombre, 'g_ventas', {puesto, sabado:'rota', descanso:true, ...o});
   const empleados = [
     V('Areta, José Joaquín','11'), V('Muñoz, Marcos','9'), V('Lucero, Daniela','7',{base:'LOCAL'}),
@@ -216,35 +286,44 @@ function ejemplo(){
   ];
   const id = nom => empleados.find(e=>e.nombre===nom).id;
   const licencias = [
-    {id:'l_1', emp:id('Dalmao, Lorena'), desde:'2026-09-28', hasta:'2026-10-02', motivo:'LICENCIA'},
-    {id:'l_2', emp:id('Ferreira, Karin'), desde:'2026-09-28', hasta:'2026-10-02', motivo:'LICENCIA'},
-    {id:'l_3', emp:id('Gardela, Virginia'), desde:'2026-09-28', hasta:'2026-10-02', motivo:'LICENCIA'},
-    {id:'l_4', emp:id('Acosta, Janny'), desde:'2026-09-28', hasta:'2026-09-28', motivo:'LICENCIA'},
-    {id:'l_5', emp:id('Acosta, Janny'), desde:'2026-10-01', hasta:'2026-10-02', motivo:'LICENCIA'},
+    {id:'l_1', emp:id('Dalmao, Lorena'), desde:'2026-09-28', hasta:'2026-10-02', motivo:'LICENCIA', parcial:false},
+    {id:'l_2', emp:id('Ferreira, Karin'), desde:'2026-09-28', hasta:'2026-10-02', motivo:'LICENCIA', parcial:false},
+    {id:'l_3', emp:id('Gardela, Virginia'), desde:'2026-09-28', hasta:'2026-10-02', motivo:'LICENCIA', parcial:false},
+    {id:'l_4', emp:id('Acosta, Janny'), desde:'2026-09-28', hasta:'2026-09-28', motivo:'LICENCIA', parcial:false},
+    {id:'l_5', emp:id('Acosta, Janny'), desde:'2026-10-01', hasta:'2026-10-02', motivo:'LICENCIA', parcial:false},
   ];
-  return {
-    version:1, ejemplo:true,
-    config:{compensatorios:['mar','mie','jue'], ventana:12, descansos:['11:45 – 12:30','12:30 – 13:15','13:15 – 14:00']},
-    grupos, empleados, tareas, licencias, semanas:{}
-  };
+  return {version:2, ejemplo:true,
+    config:{compensatorios:['mar','mie','jue'], ventana:12, descansos:['11:45 – 12:30','12:30 – 13:15','13:15 – 14:00'], inicioFecha:''},
+    grupos, empleados, tareas, licencias, semanas:{}};
+}
+function migrar(s){
+  s.config ||= {}; s.config.compensatorios ||= ['mar','mie','jue']; s.config.ventana ||= 12;
+  s.config.descansos ||= []; s.config.inicioFecha ||= '';
+  for (const g of s.grupos) g.maxLibres ??= 0;
+  for (const e of s.empleados){ e.inicioSab ??= ''; e.inicioSinCom ??= ''; }
+  for (const l of s.licencias ||= []) l.parcial ??= false;
+  s.semanas ||= {};
+  for (const sem of Object.values(s.semanas)){ sem.porque ||= {}; sem.descansos ||= {}; }
+  s.version = 2; return s;
 }
 
 /* ---------- estado ---------- */
 let storageOk = true;
 function cargar(){
-  try { const raw = localStorage.getItem(KEY); if (raw){ const s = JSON.parse(raw); if (s && Array.isArray(s.empleados)) return s; } }
+  try { const raw = localStorage.getItem(KEY); if (raw){ const s = JSON.parse(raw); if (s && Array.isArray(s.empleados)) return migrar(s); } }
   catch(e){ storageOk = false; }
   return ejemplo();
 }
 function guardar(){
-  try { localStorage.setItem(KEY, JSON.stringify(state)); storageOk = true; }
-  catch(e){ storageOk = false; }
+  try { localStorage.setItem(KEY, JSON.stringify(state)); storageOk = true; } catch(e){ storageOk = false; }
   document.getElementById('storageWarn').hidden = storageOk;
 }
 let state = cargar();
-let vista = 'semana';
-let week = lunesDe(iso(new Date()));
-try { const v = localStorage.getItem(KEY+':vista'); if (v) vista = v; } catch(e){}
+let vista = ls.get('vista') || 'planilla'; if (!['planilla','equipo','puestos','ajustes'].includes(vista)) vista = 'planilla';
+let modo = ls.get('modo') || (window.innerWidth < 720 ? 'dia' : 'semana');
+let week = lunesDe(hoy());
+let dia = diaInicial();
+function diaInicial(){ const i = Math.round((parse(hoy())-parse(week))/864e5); return i>=0 && i<6 ? DIAS[i] : 'lun'; }
 
 const grupo = id => state.grupos.find(g=>g.id===id);
 const tarea = id => state.tareas.find(t=>t.id===id);
@@ -253,8 +332,10 @@ const baseDe = e => (e.base||'').trim() || grupo(e.grupo)?.base || 'LOCAL';
 const activos = () => state.empleados.filter(e=>e.activo);
 const trabaja = c => !!c && (c.t==='base' || c.t==='tarea' || c.t==='texto');
 const elegible = (e,t) => !!t.elegibles?.[e.id] && t.elegibles[e.id] !== 'no';
-function licenciaEn(eid, fecha){ return state.licencias.find(l=>l.emp===eid && l.desde<=fecha && fecha<=l.hasta); }
-function semana(w){ return state.semanas[w] ||= {celdas:{}, descansos:{}, confirmada:false, generada:false, motivos:[]}; }
+const ausenciaEn = (eid,f) => state.licencias.find(l=>l.emp===eid && !l.parcial && l.desde<=f && f<=l.hasta);
+const notaEn = (eid,f) => state.licencias.find(l=>l.emp===eid && l.parcial && l.desde<=f && f<=l.hasta);
+function semana(w){ const s = state.semanas[w] ||= {celdas:{}, descansos:{}, porque:{}, confirmada:false, generada:false}; s.porque ||= {}; s.descansos ||= {}; return s; }
+function setPorque(sem, eid, d, txt){ (sem.porque[eid] ||= {})[d] = txt; }
 
 /* ---------- historial ---------- */
 function nuevoStat(){ return {pres:0, semanas:0, sab:0, ultSab:'', sinCom:0, tareas:{}, ultima:{}}; }
@@ -277,7 +358,6 @@ function acumular(st, w, sem){
     if (presente) s.semanas++;
   }
 }
-/* Estadística de las semanas confirmadas dentro de la ventana, anteriores a w. Con incluir=true suma también la semana w. */
 function estadisticas(w, incluir){
   const desde = addDays(w, -7*(+state.config.ventana||12));
   const st = {}; for (const e of state.empleados) st[e.id] = nuevoStat();
@@ -287,10 +367,15 @@ function estadisticas(w, incluir){
     else if (!sem.confirmada) continue;
     acumular(st, k, sem);
   }
+  // punto de partida cargado a mano
+  const ini = state.config.inicioFecha;
+  for (const e of state.empleados){
+    const s = st[e.id];
+    if (e.inicioSab && e.inicioSab < w && e.inicioSab > s.ultSab) s.ultSab = e.inicioSab;
+    if (ini && ini >= desde && ini <= w){ s.pres += DIAS_MES; s.sinCom += +e.inicioSinCom || 0; }
+  }
   return st;
 }
-
-/* ---------- generador ---------- */
 function cmpClave(a,b){
   for (let i=0;i<a.length;i++){
     if (typeof a[i] === 'string'){ if (a[i] !== b[i]) return a[i] < b[i] ? -1 : 1; }
@@ -298,251 +383,291 @@ function cmpClave(a,b){
   }
   return 0;
 }
+/* contadores de la semana w: historial + lo que ya hay en "cel" */
+function contadores(w, cel){
+  const hist = estadisticas(w, false), cur = {};
+  for (const e of activos()){
+    const h = hist[e.id], cs = cel[e.id] || {};
+    let presSem = 0;
+    for (const d of LAB){ const c = cs[d]; if (d==='sab' ? trabaja(c) : (!c || trabaja(c))) presSem++; }
+    const s = cur[e.id] = {pres:h.pres+presSem, sinCom:h.sinCom, tareas:{...h.tareas}, ultima:{...h.ultima}};
+    for (const d of LAB){ const c = cs[d]; if (c?.t==='tarea'){ const t = tarea(c.id); if (!t) continue; s.tareas[t.id]=(s.tareas[t.id]||0)+1; if (t.sinComision) s.sinCom++; } }
+  }
+  return cur;
+}
+const clave = (cur,w,e,t,pen) => { const s = cur[e.id], den = Math.max(1,s.pres);
+  return [pen, t.sinComision ? s.sinCom/den : 0, (s.tareas[t.id]||0)/den, PREF[t.elegibles[e.id]] ?? 1, s.ultima[t.id]||'', hash(w+e.id+t.id)]; };
+function porqueTarea(cur, lista, t){
+  const a = lista[0], s = cur[a.e.id];
+  let txt = t.sinComision ? `Es quien menos veces estuvo en puestos sin comisión últimamente (${s.sinCom} de ${Math.max(1,s.pres)} días).` : `Es quien menos veces hizo este puesto últimamente.`;
+  if (lista.length>1 && cmpClave(a.k.slice(0,3), lista[1].k.slice(0,3))===0)
+    txt += a.k[3]!==lista[1].k[3] ? ' Había empate y se tuvo en cuenta que le gusta este puesto.' : a.k[4]!==lista[1].k[4] ? ' Había empate: hacía más tiempo que no le tocaba.' : ' Había empate y se sorteó.';
+  return txt;
+}
+
+/* ---------- generador ---------- */
 function generar(w){
   const sem = semana(w);
   const act = activos();
-  const cel = {}, motivos = [];
+  const cel = {}, porque = {}, avisos = [];
   const get = (e,d) => cel[e.id][d];
-  const set = (e,d,c) => { cel[e.id][d] = c; };
+  const set = (e,d,c,why) => { cel[e.id][d] = c; if (why) (porque[e.id] ||= {})[d] = why; };
 
-  // 1. Lo fijado a mano se respeta
-  for (const e of act){ cel[e.id] = {}; for (const d of LAB){ const c = sem.celdas?.[e.id]?.[d]; if (c?.fijo) cel[e.id][d] = c; } }
-  // 2. Licencias
-  for (const e of act) for (const d of LAB){ if (!get(e,d)){ const l = licenciaEn(e.id, fechaDe(w,d)); if (l) set(e,d,{t:'ausencia', txt:l.motivo||'LICENCIA'}); } }
-  // 3. Libre fijo semanal
-  for (const e of act) if (e.libreFijo && !get(e,e.libreFijo)) set(e,e.libreFijo,{t:'libre'});
+  // 1. lo fijado a mano
+  for (const e of act){ cel[e.id] = {}; for (const d of LAB){ const c = sem.celdas?.[e.id]?.[d]; if (c?.fijo){ cel[e.id][d] = c; const p = sem.porque?.[e.id]?.[d]; if (p) (porque[e.id] ||= {})[d] = p; } } }
+  // 2. ausencias de día completo
+  for (const e of act) for (const d of LAB){ if (!get(e,d)){ const l = ausenciaEn(e.id, fechaDe(w,d)); if (l) set(e,d,{t:'ausencia', txt:l.motivo||'LICENCIA'}); } }
+  // 3. libre fijo
+  for (const e of act) if (e.libreFijo && !get(e,e.libreFijo)) set(e,e.libreFijo,{t:'libre'},'Es su día libre fijo.');
 
   const hist = estadisticas(w, false);
-
-  // 4. Sábados: primero quien hace más tiempo que no trabaja uno
-  for (const e of act) if (e.sabado==='fijo' && !get(e,'sab')) set(e,'sab',{t:'base'});
+  // 4. sábados
+  for (const e of act) if (e.sabado==='fijo' && !get(e,'sab')) set(e,'sab',{t:'base'},'Trabaja todos los sábados.');
   for (const g of state.grupos){
     const cupo = +g.cupoSab||0; if (cupo<=0) continue;
     const miembros = act.filter(e=>e.grupo===g.id);
-    let faltan = cupo - miembros.filter(e=>trabaja(get(e,'sab'))).length;
+    const faltan = cupo - miembros.filter(e=>trabaja(get(e,'sab'))).length;
     const cands = miembros.filter(e=>e.sabado==='rota' && !get(e,'sab'))
       .map(e=>{ const s = hist[e.id]; return {e, k:[s.ultSab||'', s.semanas ? s.sab/s.semanas : 0, hash(w+e.id+'sab')]}; })
       .sort((a,b)=>cmpClave(a.k,b.k));
-    if (faltan > cands.length) motivos.push(`Aviso: ${g.nombre} necesita ${cupo} persona(s) el sábado y solo hay ${cands.length} disponible(s).`);
+    if (faltan > cands.length) avisos.push(`${g.nombre}: faltan personas para el sábado.`);
     for (const x of cands.slice(0, Math.max(0,faltan))){
-      set(x.e,'sab',{t:'base'});
       const u = hist[x.e.id].ultSab;
-      motivos.push(`Sábado → ${x.e.nombre}: ${u ? 'último sábado trabajado el '+ddmm(u) : 'sin sábados registrados'} (${cands.length} en la rotación de ${g.nombre}).`);
+      set(x.e,'sab',{t:'base'}, u ? `Le toca sábado: su último sábado fue el ${ddmm(u)}.` : 'Le toca sábado: no tenía sábados registrados.');
     }
   }
   for (const e of act) if (!get(e,'sab')) set(e,'sab',{t:'libre'});
-
-  // 5. Día libre compensatorio para quien trabaja el sábado
+  // 5. libre compensatorio
   for (const e of act){
     if (e.sabado==='fijo' || !trabaja(get(e,'sab'))) continue;
     if (SEM.some(d=>get(e,d)?.t==='libre')) continue;
-    let ops = (state.config.compensatorios||[]).filter(d=>SEM.includes(d) && !get(e,d));
-    if (!ops.length) ops = SEM.filter(d=>!get(e,d));
-    if (!ops.length){ motivos.push(`Aviso: ${e.nombre} trabaja el sábado y no le queda día hábil libre para compensar.`); continue; }
+    const g = grupo(e.grupo), max = +g?.maxLibres||0;
     const libres = d => act.filter(x=>x.grupo===e.grupo && get(x,d)?.t==='libre').length;
+    const pref = (state.config.compensatorios||[]).filter(d=>SEM.includes(d) && !get(e,d));
+    let ops = pref.filter(d=>!max || libres(d) < max);
+    if (!ops.length) ops = SEM.filter(d=>!get(e,d) && (!max || libres(d) < max));
+    if (!ops.length) ops = SEM.filter(d=>!get(e,d));
+    if (!ops.length){ avisos.push(`${nombreCorto(e.nombre)} trabaja el sábado y no le queda día para librar.`); continue; }
     ops.sort((a,b)=>libres(a)-libres(b) || hash(w+e.id+a)-hash(w+e.id+b));
-    set(e,ops[0],{t:'libre'});
-    motivos.push(`Libre compensatorio → ${e.nombre}: ${DIA_LARGO[ops[0]].toLowerCase()} (el día con menos compañeros libres).`);
+    set(e,ops[0],{t:'libre'},'Libre por trabajar el sábado.');
   }
 
-  // Contadores de trabajo: historial + esta semana
-  const cur = {};
-  for (const e of act){
-    const h = hist[e.id];
-    let presSem = 0;
-    for (const d of LAB){ const c = get(e,d); if (d==='sab' ? trabaja(c) : (!c || trabaja(c))) presSem++; }
-    cur[e.id] = {pres:h.pres+presSem, sinCom:h.sinCom, tareas:{...h.tareas}, ultima:{...h.ultima}};
-    for (const d of LAB){ const c = get(e,d); if (c?.t==='tarea'){ const t = tarea(c.id); if (!t) continue; cur[e.id].tareas[t.id]=(cur[e.id].tareas[t.id]||0)+1; if (t.sinComision) cur[e.id].sinCom++; } }
-  }
-  const disponible = (e,d) => d==='sab' ? (get(e,'sab')?.t==='base' && !get(e,'sab').fijo) : !get(e,d);
-  const asignados = (t,d) => act.filter(e=>{ const c = get(e,d); return c?.t==='tarea' && c.id===t.id; }).length;
-  const clave = (e,t,pen) => { const s = cur[e.id], den = Math.max(1,s.pres);
-    return [pen, t.sinComision ? s.sinCom/den : 0, (s.tareas[t.id]||0)/den, PREF[t.elegibles[e.id]] ?? 1, s.ultima[t.id]||'', hash(w+e.id+t.id)]; };
-  const explicar = (lista,t) => {
-    const a = lista[0], s = cur[a.e.id], den = Math.max(1,s.pres);
-    let txt = t.sinComision ? `llevaba ${s.sinCom} de ${den} días sin comisión (${pct(s.sinCom,den)}%)` : `llevaba ${s.tareas[t.id]||0} de ${den} días en este puesto`;
-    txt += `, el menor entre ${lista.length} disponible${lista.length>1?'s':''}`;
-    if (lista.length>1){
-      const b = lista[1];
-      if (cmpClave(a.k.slice(0,3), b.k.slice(0,3))===0){
-        txt += a.k[3]!==b.k[3] ? ' (empate: decidió la preferencia declarada)' : a.k[4]!==b.k[4] ? ' (empate: hacía más tiempo que no le tocaba)' : ' (empate: decidió el sorteo de la semana)';
-      }
-    }
-    return txt;
+  const cur = contadores(w, cel);
+  const disponible = (e,d) => {
+    if (notaEn(e.id, fechaDe(w,d))) return false;
+    return d==='sab' ? (get(e,'sab')?.t==='base' && !get(e,'sab').fijo) : !get(e,d);
   };
-  const asignar = (e,t,d) => { set(e,d,{t:'tarea', id:t.id}); const s = cur[e.id]; s.tareas[t.id]=(s.tareas[t.id]||0)+1; if (t.sinComision) s.sinCom++; s.ultima[t.id] = fechaDe(w,d); };
+  const asignados = (t,d) => act.filter(e=>{ const c = get(e,d); return c?.t==='tarea' && c.id===t.id; }).length;
+  const asignar = (e,t,d,why) => { set(e,d,{t:'tarea', id:t.id}, why); const s = cur[e.id]; s.tareas[t.id]=(s.tareas[t.id]||0)+1; if (t.sinComision) s.sinCom++; s.ultima[t.id] = fechaDe(w,d); };
 
-  // 6. Puestos semanales: una persona toda la semana
+  // 6. puestos de toda la semana
   for (const t of state.tareas.filter(t=>t.modo==='semanal')){
     const maxC = Math.max(0, ...LAB.map(d=>+t.cupos[d]||0));
     for (let k=0;k<maxC;k++){
       const dias = LAB.filter(d=>(+t.cupos[d]||0)>k && asignados(t,d)<(+t.cupos[d]||0));
       if (!dias.length) continue;
       const lista = act.filter(e=>elegible(e,t)).map(e=>({e, pen:dias.filter(d=>!disponible(e,d)).length}))
-        .filter(x=>x.pen<dias.length).map(x=>({e:x.e, k:clave(x.e,t,x.pen)})).sort((a,b)=>cmpClave(a.k,b.k));
-      if (!lista.length){ motivos.push(`Aviso: nadie disponible para ${t.nombre}.`); continue; }
-      const txt = explicar(lista,t);
-      for (const d of dias) if (disponible(lista[0].e,d)) asignar(lista[0].e,t,d);
-      motivos.push(`${t.nombre} (toda la semana) → ${lista[0].e.nombre}: ${txt}.`);
+        .filter(x=>x.pen<dias.length).map(x=>({e:x.e, k:clave(cur,w,x.e,t,x.pen)})).sort((a,b)=>cmpClave(a.k,b.k));
+      if (!lista.length){ avisos.push(`Nadie disponible para ${t.nombre}.`); continue; }
+      const why = 'Toda la semana. ' + porqueTarea(cur, lista, t);
+      for (const d of dias) if (disponible(lista[0].e,d)) asignar(lista[0].e,t,d,why);
     }
   }
-  // 7. Puestos diarios (y huecos de los semanales)
+  // 7. puestos por día
   for (const d of LAB){
     for (const t of state.tareas){
       let falta = (+t.cupos[d]||0) - asignados(t,d);
       while (falta > 0){
-        const lista = act.filter(e=>elegible(e,t) && disponible(e,d)).map(e=>({e, k:clave(e,t,0)})).sort((a,b)=>cmpClave(a.k,b.k));
-        if (!lista.length){ motivos.push(`Aviso: ${DIA_LARGO[d].toLowerCase()} nadie disponible para ${t.nombre}.`); break; }
-        const txt = explicar(lista,t);
-        asignar(lista[0].e,t,d);
-        motivos.push(`${DIA_CORTO[d]} ${ddmm(fechaDe(w,d))} · ${t.nombre} → ${lista[0].e.nombre}: ${txt}.`);
+        const lista = act.filter(e=>elegible(e,t) && disponible(e,d)).map(e=>({e, k:clave(cur,w,e,t,0)})).sort((a,b)=>cmpClave(a.k,b.k));
+        if (!lista.length){ avisos.push(`${DIA_LARGO[d]}: nadie disponible para ${t.nombre}.`); break; }
+        asignar(lista[0].e,t,d,porqueTarea(cur, lista, t));
         falta--;
       }
     }
   }
-  // 8. El resto hace su tarea base
+  // 8. el resto, tarea base
   for (const e of act) for (const d of SEM) if (!get(e,d)) set(e,d,{t:'base'});
-
-  // 9. Descansos: cada semana todos corren un turno, parejo por sector
+  // 9. descansos rotativos
   const slots = (state.config.descansos||[]).map(s=>s.trim()).filter(Boolean);
   const desc = {};
   for (const [eid,v] of Object.entries(sem.descansos||{})) if (v?.fijo) desc[eid] = v;
   if (slots.length){
     const wi = weekIndex(w);
     for (const g of state.grupos){
-      const miembros = act.filter(e=>e.grupo===g.id && e.descanso && !desc[e.id] && LAB.some(d=>trabaja(get(e,d))));
-      miembros.forEach((e,i)=>{ desc[e.id] = {txt:slots[(i+wi)%slots.length]}; });
+      act.filter(e=>e.grupo===g.id && e.descanso && !desc[e.id] && LAB.some(d=>trabaja(get(e,d))))
+        .forEach((e,i)=>{ desc[e.id] = {txt:slots[(i+wi)%slots.length]}; });
     }
   }
-  // conservar celdas de personas inactivas que ya estaban
   for (const [eid,cs] of Object.entries(sem.celdas||{})) if (!cel[eid]) cel[eid] = cs;
-  sem.celdas = cel; sem.descansos = desc; sem.motivos = motivos; sem.generada = true;
+  Object.assign(sem, {celdas:cel, descansos:desc, porque, avisos, generada:true});
   state.ejemplo = false;
   guardar();
+  return avisos;
 }
 
-/* ---------- presentación de celdas ---------- */
+/* ---------- faltas imprevistas ---------- */
+function avisarFalta(w, eid, d, motivo){
+  const sem = semana(w), e = emp(eid);
+  sem.celdas[eid] ||= {};
+  const prev = sem.celdas[eid][d];
+  sem.celdas[eid][d] = {t:'ausencia', txt:motivo, fijo:true, falta:true};
+  setPorque(sem, eid, d, `Avisó: ${motivo.toLowerCase()}.`);
+  const dl = DIA_LARGO[d];
+  if (prev?.t==='tarea'){
+    const t = tarea(prev.id);
+    if (t){
+      const cur = contadores(w, sem.celdas);
+      const lista = activos().filter(x=>x.id!==eid && elegible(x,t) && sem.celdas[x.id]?.[d]?.t==='base' && !sem.celdas[x.id][d].fijo && !notaEn(x.id, fechaDe(w,d)))
+        .map(x=>({e:x, k:clave(cur,w,x,t,0)})).sort((a,b)=>cmpClave(a.k,b.k));
+      if (!lista.length) return `${dl}: no hay nadie libre para cubrir ${t.nombre}. Asignalo a mano.`;
+      const r = lista[0].e;
+      sem.celdas[r.id][d] = {t:'tarea', id:t.id, fijo:true};
+      setPorque(sem, r.id, d, `Cubre ${t.nombre} porque faltó ${nombreCorto(e.nombre)}. ${porqueTarea(cur, lista, t)}`);
+      return `${dl}: ${t.nombre} pasa a ${nombreCorto(r.nombre)}.`;
+    }
+  }
+  if (d==='sab' && trabaja(prev)) return `${dl}: el sábado queda con una persona menos. Revisá si sigue correspondiendo su día libre.`;
+  return `${dl}: anotado.`;
+}
+
+/* ---------- celdas ---------- */
 function celdaVista(e,d,sem){
-  if (d==='dom') return {txt:'FREE', color:'', cls:'free'};
-  let c = sem?.celdas?.[e.id]?.[d];
-  let preview = false;
-  if (!c){ const l = licenciaEn(e.id, fechaDe(week,d)); if (l){ c = {t:'ausencia', txt:l.motivo}; preview = true; } else if (e.libreFijo===d){ c = {t:'libre'}; preview = true; } }
-  if (!c) return {txt:'·', color:'', cls:'empty'};
+  if (d==='dom') return {txt:'FREE', color:'', cls:'free static', nota:''};
+  const f = fechaDe(week,d);
+  const nota = notaEn(e.id,f);
+  let c = sem?.celdas?.[e.id]?.[d], preview = false;
+  if (!c){ const l = ausenciaEn(e.id, f); if (l){ c = {t:'ausencia', txt:l.motivo}; preview = true; } else if (e.libreFijo===d){ c = {t:'libre'}; preview = true; } }
+  if (!c) return {txt:'—', color:'', cls:'empty', nota:nota?.motivo||''};
   let txt = '', color = '';
   if (c.t==='base'){ txt = baseDe(e); color = grupo(e.grupo)?.color||''; }
   else if (c.t==='tarea'){ const t = tarea(c.id); txt = t ? t.nombre : '(puesto borrado)'; color = t?.color||''; }
-  else if (c.t==='libre'){ txt = 'FREE'; }
-  else if (c.t==='ausencia'){ txt = c.txt||'LICENCIA'; color = COLOR_LIC; }
+  else if (c.t==='libre') txt = 'FREE';
+  else if (c.t==='ausencia'){ txt = c.txt||'LICENCIA'; color = c.falta ? COLOR_FALTA : COLOR_LIC; }
   else { txt = c.txt||''; color = COLOR_TXT; }
-  return {txt, color, cls:(c.t==='libre'?'free ':'')+(c.fijo?'pin ':'')+(preview?'preview':'')};
+  return {txt, color, nota:nota?.motivo||'', cls:(c.t==='libre'?'free ':'')+(c.fijo?'pin ':'')+(c.falta?'falta ':'')+(preview?'preview':'')};
+}
+function chipHTML(e,d,sem){
+  if (d==='dom') return `<span class="chip free static">FREE</span>`;
+  const v = celdaVista(e,d,sem);
+  return `<button class="chip ${v.cls}" data-e="${e.id}" data-d="${d}" style="${v.color?`--c:${v.color}`:''}">${esc(v.txt)}${v.nota?`<small>${esc(v.nota)}</small>`:''}</button>`;
 }
 
-/* ---------- vista Semana ---------- */
+/* ---------- vista Planilla ---------- */
 function tituloMes(w){
   const a = parse(w), b = parse(addDays(w,6));
-  return a.getMonth()===b.getMonth() ? `${MESES[a.getMonth()]} ${a.getFullYear()}` : `${MESES[a.getMonth()]} / ${MESES[b.getMonth()]} ${b.getFullYear()}`;
+  return a.getMonth()===b.getMonth() ? `${MESES[a.getMonth()]} ${a.getFullYear()}` : `${MESES[a.getMonth()]} – ${MESES[b.getMonth()]} ${b.getFullYear()}`;
 }
-function renderSemana(){
+function renderPlanilla(){
   const sem = state.semanas[week];
-  const prev = state.semanas[addDays(week,-7)];
   const conf = !!sem?.confirmada, gen = !!sem?.generada;
-  const estado = conf ? '<span class="pill ok">Confirmada · cuenta para el reparto</span>' : gen ? '<span class="pill warn">Borrador · aún no cuenta</span>' : '<span class="pill muted">Sin generar</span>';
-  let avisos = '';
-  if (state.ejemplo) avisos += `<div class="notice info">Cargué como ejemplo a las personas, horarios y licencias de la planilla del 28/9. Revisalos en <b>Personal y licencias</b> y <b>Puestos y reglas</b> antes de usarla en serio. Todavía no hay historial: las primeras semanas el orden sale de un sorteo reproducible, y a medida que confirmás semanas el reparto se empareja solo.</div>`;
-  if (!conf && prev && prev.generada && !prev.confirmada) avisos += `<div class="notice">La semana anterior está en borrador. Confirmala primero, si no, no se tiene en cuenta al repartir esta.</div>`;
-  const dias = DIAS.map(d=>fechaDe(week,d));
-  let h = `<div class="toolbar">
-    <button class="btn" data-a="prev" aria-label="Semana anterior">←</button>
-    <span class="week">Semana del ${ddmm(dias[0])} al ${ddmm(dias[6])}</span>
-    <button class="btn" data-a="next" aria-label="Semana siguiente">→</button>
-    <button class="btn small" data-a="hoy">Esta semana</button>
-    ${estado}
-    <span class="spacer"></span>
-    <button class="btn ${gen?'':'primary'}" data-a="generar" ${conf?'disabled title="Reabrí la semana para volver a generarla"':''}>${gen?'Volver a generar':'Generar semana'}</button>
-    ${gen ? (conf ? '<button class="btn" data-a="reabrir">Reabrir</button>' : '<button class="btn primary" data-a="confirmar">Confirmar semana</button>') : ''}
-    <button class="btn" data-a="excel" ${gen?'':'disabled'}>Copiar para Excel</button>
-  </div>${avisos}`;
-  h += `<div class="gridwrap"><table class="plan"><thead>
-    <tr class="month"><th class="name"></th><th colspan="7">– ${tituloMes(week)} –</th><th colspan="3"></th></tr>
-    <tr class="days"><th class="name">Funcionario</th>${DIAS.map(d=>`<th>${DIA_LARGO[d]}</th>`).join('')}<th>Horario</th><th>Puesto</th><th>Descanso</th></tr>
-    <tr class="dates"><th class="name"></th>${dias.map(f=>`<th>${parse(f).getDate()}</th>`).join('')}<th></th><th></th><th></th></tr>
-  </thead><tbody>`;
-  for (const g of state.grupos){
-    const miembros = activos().filter(e=>e.grupo===g.id);
-    if (!miembros.length) continue;
-    h += `<tr class="grp"><th class="name">${esc(g.nombre)}</th><th colspan="10"></th></tr>`;
-    for (const e of miembros){
-      h += `<tr><td class="name">${esc(e.nombre)}</td>`;
-      for (const d of DIAS){
-        const v = celdaVista(e,d,sem);
-        if (d==='dom') h += `<td class="c free">FREE</td>`;
-        else h += `<td class="c ${v.cls}" tabindex="0" data-e="${e.id}" data-d="${d}" style="${v.color?`--c:${v.color}`:''}" title="Tocar para cambiar">${esc(v.txt)}</td>`;
+  const prev = state.semanas[addDays(week,-7)];
+  const a = parse(week), b = parse(addDays(week,6));
+  const rango = a.getMonth()===b.getMonth() ? `${a.getDate()} – ${b.getDate()} ${MES_C[b.getMonth()]}` : `${a.getDate()} ${MES_C[a.getMonth()]} – ${b.getDate()} ${MES_C[b.getMonth()]}`;
+  let h = `<div class="weekbar" id="weekNav">
+      <button class="iconbtn" data-a="prev" aria-label="Semana anterior">‹</button>
+      <div class="lbl"><div class="eyebrow">${tituloMes(week)}</div><div class="wk">${rango}</div></div>
+      <button class="iconbtn" data-a="next" aria-label="Semana siguiente">›</button>
+      ${week!==lunesDe(hoy())?'<button class="btn sm ghost" data-a="hoy">Hoy</button>':''}
+    </div>
+    <div class="toolbar">
+      <span class="status ${conf?'ok':gen?'draft':''}" id="estado"><i></i>${conf?'Confirmada':gen?'Borrador':'Sin armar'}</span>
+      <span class="seg" id="viewToggle"><button data-a="modo" data-m="semana" aria-pressed="${modo==='semana'}">Semana</button><button data-a="modo" data-m="dia" aria-pressed="${modo==='dia'}">Día</button></span>
+      <span class="spacer"></span>
+      <button class="btn" id="btnFalta" data-a="falta"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5v.5"/></svg>Avisar falta</button>
+      ${conf ? '' : `<button class="btn ${gen?'':'accent'}" id="btnGenerar" data-a="generar"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.7M20 4v5h-5"/></svg>${gen?'Rearmar':'Armar semana'}</button>`}
+      ${gen ? (conf ? '<button class="btn" id="btnConfirmar" data-a="reabrir">Reabrir</button>' : '<button class="btn primary" id="btnConfirmar" data-a="confirmar"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Confirmar</button>') : ''}
+      <button class="btn" data-a="excel" ${gen?'':'disabled'} title="Copiar para pegar en Excel"><svg viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></svg>Excel</button>
+    </div>`;
+  if (state.ejemplo) h += `<div class="banner"><b class="dot"></b><div>Cargué tu equipo y las licencias de la planilla del 28/9 como punto de partida. Revisá <b>Equipo</b> y <b>Puestos</b>, y después tocá <b>Armar semana</b>.</div></div>`;
+  if (!conf && prev?.generada && !prev.confirmada) h += `<div class="banner"><b class="dot"></b><div>La semana anterior quedó sin confirmar. Confirmala así la rotación sigue bien.</div></div>`;
+  if (gen && sem.avisos?.length) h += `<div class="banner"><b class="dot"></b><div>${sem.avisos.map(esc).join('<br>')}</div></div>`;
+  h += `<div id="planArea">`;
+  if (modo==='semana'){
+    const t = hoy();
+    h += `<div class="card planwrap"><table class="plan"><thead><tr><th class="name"></th>${DIAS.map(d=>{ const f = fechaDe(week,d); return `<th class="${f===t?'today':''}">${DIA_CORTO[d]}<span class="num">${parse(f).getDate()}</span></th>`; }).join('')}<th>Horario</th><th>Puesto</th><th>Descanso</th></tr></thead><tbody>`;
+    for (const g of state.grupos){
+      const ms = activos().filter(e=>e.grupo===g.id); if (!ms.length) continue;
+      h += `<tr class="grp"><td class="name"><span class="sector" style="--c:${esc(g.color)}"><i></i>${esc(g.nombre)}</span></td><td colspan="10"></td></tr>`;
+      for (const e of ms){
+        const ds = sem?.descansos?.[e.id];
+        h += `<tr><td class="name">${esc(e.nombre)}</td>${DIAS.map(d=>`<td>${chipHTML(e,d,sem)}</td>`).join('')}
+          <td class="meta">${esc(e.horario)}</td><td class="meta">${esc(e.puesto)}</td>
+          <td><button class="chip free ${ds?.fijo?'pin':''}" style="min-width:110px" data-e="${e.id}" data-d="desc">${esc(ds?.txt||'—')}</button></td></tr>`;
       }
-      const ds = sem?.descansos?.[e.id];
-      h += `<td class="meta">${esc(e.horario)}</td><td class="meta">${esc(e.puesto||(e.grupo==='g_ventas'?'——':''))}</td>
-        <td class="meta desc c ${ds?.fijo?'pin':''}" tabindex="0" data-e="${e.id}" data-d="desc" title="Tocar para cambiar">${esc(ds?.txt||'')}</td></tr>`;
     }
+    h += `</tbody></table></div>`;
+  } else {
+    h += `<div class="days">${LAB.map(d=>{ const f = fechaDe(week,d); return `<button data-a="dia" data-d="${d}" aria-pressed="${dia===d}"><span>${DIA_CORTO[d]}</span><b>${parse(f).getDate()}</b></button>`; }).join('')}</div><div class="daylist">`;
+    for (const g of state.grupos){
+      const ms = activos().filter(e=>e.grupo===g.id); if (!ms.length) continue;
+      h += `<div class="card"><div class="sector" style="--c:${esc(g.color)};margin-bottom:6px"><i></i>${esc(g.nombre)}</div>`;
+      for (const e of ms){
+        const ds = sem?.descansos?.[e.id];
+        const sub = [e.horario, trabaja(sem?.celdas?.[e.id]?.[dia]) && ds?.txt ? 'descanso '+ds.txt : ''].filter(Boolean).join(' · ');
+        h += `<div class="prow"><span class="avatar" style="--c:${esc(g.color)}">${esc(iniciales(e.nombre))}</span><div class="who"><div>${esc(nombreCorto(e.nombre))}</div><small>${esc(sub)}</small></div>${chipHTML(e,dia,sem)}</div>`;
+      }
+      h += `</div>`;
+    }
+    h += `</div>`;
   }
-  h += `</tbody></table></div>`;
+  h += `</div>`;
   const usados = new Map();
-  for (const g of state.grupos) if (g.color) usados.set(g.base, g.color);
+  for (const g of state.grupos) if (g.color && activos().some(e=>e.grupo===g.id)) usados.set(g.base, g.color);
   for (const t of state.tareas) usados.set(t.nombre, t.color);
-  usados.set('LICENCIA', COLOR_LIC);
-  h += `<div class="legend">${[...usados].map(([n,c])=>`<span><i style="--c:${c}"></i>${esc(n)}</span>`).join('')}<span><i style="--c:transparent"></i>FREE</span><span class="muted">Esquina marcada = fijado a mano (se respeta al regenerar)</span></div>`;
-  if (sem?.motivos?.length){
-    h += `<details class="why"><summary>Por qué quedó así (${sem.motivos.length} decisiones)</summary><ol>${sem.motivos.map(m=>`<li>${esc(m)}</li>`).join('')}</ol></details>`;
-  } else if (!gen){
-    h += `<p class="muted small" style="margin-top:12px">Antes de generar podés tocar cualquier celda para fijarla (por ejemplo, un pedido especial). Las licencias cargadas ya se ven en cursiva.</p>`;
-  }
-  document.getElementById('v-semana').innerHTML = h;
+  usados.set('LICENCIA', COLOR_LIC); usados.set('FALTA', COLOR_FALTA);
+  h += `<div class="legend">${[...usados].map(([n,c])=>`<span><i style="--c:${esc(c)}"></i>${esc(n)}</span>`).join('')}<span><i style="--c:transparent"></i>FREE</span><span>● cambiado a mano</span></div>`;
+  document.getElementById('v-planilla').innerHTML = h;
 }
 
-/* ---------- editor de celda ---------- */
-function abrirEditor(eid, d){
+/* ---------- hojas (modales) ---------- */
+const sheet = document.getElementById('sheet');
+function abrirHoja(html, data={}){
+  sheet.innerHTML = `<div class="sheet" role="dialog" aria-modal="true">${html}</div>`;
+  for (const k of Object.keys(sheet.dataset)) delete sheet.dataset[k];
+  Object.assign(sheet.dataset, data); sheet.hidden = false;
+  (sheet.querySelector('.opt[aria-pressed="true"]') || sheet.querySelector('input,select,button'))?.focus();
+}
+function cerrarHoja(){ sheet.hidden = true; sheet.innerHTML = ''; for (const k of Object.keys(sheet.dataset)) delete sheet.dataset[k]; }
+
+function abrirCelda(eid, d){
   const e = emp(eid); if (!e) return;
   const sem = semana(week);
-  const ov = document.getElementById('overlay');
-  let opts = [];
+  let opts = [], actual = 'auto', txtAct = '';
   if (d==='desc'){
     const cur = sem.descansos?.[eid];
-    opts.push({v:'auto', l:'Automático (rota al generar)', c:''});
-    for (const s of state.config.descansos||[]) if (s.trim()) opts.push({v:'d:'+s, l:s, c:''});
-    opts.push({v:'texto', l:'Otro horario…', c:''});
-    var actual = cur?.fijo ? (state.config.descansos.includes(cur.txt) ? 'd:'+cur.txt : 'texto') : 'auto';
-    var txtAct = cur?.fijo && !state.config.descansos.includes(cur.txt) ? cur.txt : '';
+    opts.push({v:'auto', l:'Que lo decida la app'});
+    for (const s of state.config.descansos||[]) if (s.trim()) opts.push({v:'d:'+s, l:s});
+    opts.push({v:'texto', l:'Otro horario'});
+    if (cur?.fijo){ actual = state.config.descansos.includes(cur.txt) ? 'd:'+cur.txt : 'texto'; if (actual==='texto') txtAct = cur.txt; }
   } else {
     const c = sem.celdas?.[eid]?.[d];
-    opts.push({v:'auto', l:'Automático (lo decide la app)', c:''});
-    opts.push({v:'base', l:`Tarea base: ${baseDe(e)}`, c:grupo(e.grupo)?.color||''});
-    opts.push({v:'libre', l:'FREE (libre)', c:''});
+    opts.push({v:'auto', l:'Que lo decida la app'});
+    opts.push({v:'base', l:baseDe(e), c:grupo(e.grupo)?.color});
+    opts.push({v:'libre', l:'FREE'});
     opts.push({v:'lic', l:'LICENCIA', c:COLOR_LIC});
     for (const t of state.tareas) opts.push({v:'t:'+t.id, l:t.nombre, c:t.color});
-    opts.push({v:'texto', l:'Otro (texto libre)…', c:COLOR_TXT});
-    var actual = !c?.fijo ? 'auto' : c.t==='base' ? 'base' : c.t==='libre' ? 'libre' : c.t==='ausencia' ? 'lic' : c.t==='tarea' ? 't:'+c.id : 'texto';
-    var txtAct = c?.fijo && c.t==='texto' ? c.txt : '';
+    opts.push({v:'texto', l:'Otro…', c:COLOR_TXT});
+    if (c?.fijo){ actual = c.t==='base'?'base':c.t==='libre'?'libre':c.t==='ausencia'&&!c.falta?'lic':c.t==='tarea'?'t:'+c.id:'texto'; if (actual==='texto') txtAct = c.txt||''; }
   }
-  const titulo = d==='desc' ? 'Descanso' : `${DIA_LARGO[d].toLowerCase()} ${ddmm(fechaDe(week,d))}`;
-  ov.innerHTML = `<div class="modal" role="dialog" aria-modal="true" aria-labelledby="edTit">
-    <h3 id="edTit">${esc(e.nombre)} · ${titulo}</h3>
-    <p class="muted small" style="margin:0">Lo que elijas queda fijado y se respeta al volver a generar.${sem.confirmada?' La semana está confirmada: el cambio cuenta en el historial.':''}</p>
-    <div class="opts">${opts.map((o,i)=>`<label><input type="radio" name="edOpt" id="edOpt${i}" value="${esc(o.v)}" ${o.v===actual?'checked':''}><i style="--c:${o.c||'transparent'}"></i>${esc(o.l)}</label>`).join('')}</div>
-    <input type="text" id="edTxt" placeholder="Texto, por ejemplo TELETRABAJO o PUERTA 9 a 13H" value="${esc(txtAct)}">
-    <div class="actions" style="margin-top:12px"><button class="btn" data-a="edCancel">Cancelar</button><button class="btn primary" data-a="edOk">Guardar</button></div>
-  </div>`;
-  ov.hidden = false;
-  ov.dataset.e = eid; ov.dataset.d = d;
-  ov.querySelector('input[name=edOpt]:checked')?.focus();
+  const cdat = d!=='desc' && sem.celdas?.[eid]?.[d];
+  const whyTxt = (d!=='desc' && sem.porque?.[eid]?.[d]) || (cdat?.t==='base' ? 'Hace su tarea de siempre.' : '');
+  abrirHoja(`<h3>${esc(nombreCorto(e.nombre))}</h3>
+    <p class="sub">${d==='desc' ? 'Horario de descanso esta semana' : `${DIA_LARGO[d]} ${ddmm(fechaDe(week,d))}`}</p>
+    ${whyTxt ? `<div class="why"><b>¿Por qué?</b><span>${esc(whyTxt)}</span></div>` : ''}
+    <div class="opts">${opts.map(o=>`<button class="opt ${o.v==='auto'?'auto':''}" data-a="opt" data-v="${esc(o.v)}" aria-pressed="${o.v===actual}">${o.v==='auto'?'':`<i style="--c:${o.c||'transparent'}"></i>`}${esc(o.l)}</button>`).join('')}</div>
+    <input class="in" type="text" id="edTxt" placeholder="Escribí, por ejemplo: TELETRABAJO" value="${esc(txtAct)}" ${actual==='texto'?'':'hidden'}>
+    <p class="muted sm" style="margin:10px 0 0">Lo que elijas queda fijo aunque vuelvas a armar la semana.</p>
+    <div class="actions">${d!=='desc'?'<button class="btn danger left" data-a="faltaCelda">Faltó este día</button>':''}<button class="btn ghost" data-a="cerrar">Cancelar</button><button class="btn primary" data-a="guardarCelda">Guardar</button></div>`,
+    {e:eid, d});
 }
-function guardarEditor(){
-  const ov = document.getElementById('overlay');
-  const eid = ov.dataset.e, d = ov.dataset.d;
-  const v = ov.querySelector('input[name=edOpt]:checked')?.value;
-  const txt = document.getElementById('edTxt').value.trim().toUpperCase();
+function guardarCelda(){
+  const eid = sheet.dataset.e, d = sheet.dataset.d;
+  const v = sheet.querySelector('.opt[aria-pressed="true"]')?.dataset.v || 'auto';
+  const raw = document.getElementById('edTxt').value.trim();
   const sem = semana(week);
   if (d==='desc'){
-    sem.descansos ||= {};
     if (v==='auto') delete sem.descansos[eid];
-    else if (v==='texto'){ if (!txt) return toast('Escribí el horario del descanso.'); sem.descansos[eid] = {txt:document.getElementById('edTxt').value.trim(), fijo:true}; }
+    else if (v==='texto'){ if (!raw) return toast('Escribí el horario.'); sem.descansos[eid] = {txt:raw, fijo:true}; }
     else sem.descansos[eid] = {txt:v.slice(2), fijo:true};
   } else {
     sem.celdas[eid] ||= {};
@@ -550,175 +675,274 @@ function guardarEditor(){
     if (v==='base') c = {t:'base'};
     else if (v==='libre') c = {t:'libre'};
     else if (v==='lic') c = {t:'ausencia', txt:'LICENCIA'};
-    else if (v?.startsWith('t:')) c = {t:'tarea', id:v.slice(2)};
-    else if (v==='texto'){ if (!txt) return toast('Escribí el texto para la celda.'); c = {t:'texto', txt}; }
-    if (c){ c.fijo = true; sem.celdas[eid][d] = c; }
-    else delete sem.celdas[eid][d];
+    else if (v.startsWith('t:')) c = {t:'tarea', id:v.slice(2)};
+    else if (v==='texto'){ if (!raw) return toast('Escribí qué hace ese día.'); c = {t:'texto', txt:raw.toUpperCase()}; }
+    if (c){ c.fijo = true; sem.celdas[eid][d] = c; setPorque(sem, eid, d, 'Cambiado a mano.'); }
+    else { delete sem.celdas[eid][d]; if (sem.porque[eid]) delete sem.porque[eid][d]; }
   }
-  cerrarEditor(); guardar(); render();
-  toast(v==='auto' ? 'Celda liberada. Se decide al volver a generar.' : 'Celda fijada.');
+  cerrarHoja(); guardar(); render();
+  toast(v==='auto' ? 'Listo. Se decide la próxima vez que armes la semana.' : 'Guardado.');
 }
-function cerrarEditor(){ const ov = document.getElementById('overlay'); ov.hidden = true; ov.innerHTML = ''; }
 
-/* ---------- vista Equidad ---------- */
-function renderEquidad(){
+function abrirFalta(eid, d){
+  const marcado = d || (week===lunesDe(hoy()) ? diaInicial() : dia);
+  abrirHoja(`<h3>Avisar una falta</h3>
+    <p class="sub">Si esa persona tenía un puesto que rota, la app busca quién la cubra.</p>
+    <div class="grid2" style="grid-template-columns:1fr">
+      <label class="field">Quién falta<select id="fEmp">${activos().map(e=>`<option value="${e.id}" ${e.id===eid?'selected':''}>${esc(e.nombre)}</option>`).join('')}</select></label>
+      <div class="field">Qué días<div class="toggles" id="fDias">${LAB.map(x=>`<button class="tog" data-a="tog" data-d="${x}" aria-pressed="${x===marcado}">${DIA_CORTO[x]} ${parse(fechaDe(week,x)).getDate()}</button>`).join('')}</div></div>
+      <label class="field">Motivo<select id="fMotivo"><option>FALTA</option><option>ENFERMEDAD</option><option>IMPREVISTO</option><option>DÍA DE ESTUDIO</option></select></label>
+    </div>
+    <div class="actions"><button class="btn ghost" data-a="cerrar">Cancelar</button><button class="btn primary" data-a="guardarFalta">Avisar</button></div>`);
+}
+function guardarFalta(){
+  const eid = document.getElementById('fEmp').value;
+  const dias = [...document.querySelectorAll('#fDias .tog[aria-pressed="true"]')].map(b=>b.dataset.d);
+  if (!dias.length) return toast('Elegí al menos un día.');
+  const motivo = document.getElementById('fMotivo').value;
+  const res = dias.map(d=>avisarFalta(week, eid, d, motivo));
+  guardar(); render();
+  sheet.querySelector('.sheet').innerHTML = `<h3>Listo</h3><p class="sub">${esc(nombreCorto(emp(eid).nombre))} · ${esc(motivo.toLowerCase())}</p><ul class="result">${res.map(r=>`<li>${esc(r)}</li>`).join('')}</ul><div class="actions"><button class="btn primary" data-a="cerrar">Entendido</button></div>`;
+}
+
+/* ---------- vista Equipo ---------- */
+function proximosSabados(){
+  // estimación del orden de rotación desde la semana visible
+  const res = {};
   const sem = state.semanas[week];
   const st = estadisticas(week, true);
-  const nConf = Object.entries(state.semanas).filter(([k,s])=>s.confirmada && k<=week && k>=addDays(week,-7*(+state.config.ventana||12))).length;
-  let h = `<h2>¿Está parejo?</h2>
-  <p class="lead">Cuenta las semanas confirmadas de las últimas ${esc(state.config.ventana)} (${nConf} confirmada${nConf===1?'':'s'})${sem?.generada && !sem.confirmada ? ', más el borrador de la semana del '+ddmm(week) : ''}. El porcentaje sin comisión se mide sobre los días trabajados, así nadie queda en desventaja por volver de licencia. La marca compara a cada persona con el promedio de su sector.</p>`;
-  let alguno = false;
   for (const g of state.grupos){
-    const miembros = state.empleados.filter(e=>e.activo && e.grupo===g.id);
-    const ts = state.tareas.filter(t=>miembros.some(e=>elegible(e,t)));
-    const rotaSab = +g.cupoSab>0 && miembros.some(e=>e.sabado==='rota');
-    if (!ts.length && !rotaSab) continue;
-    alguno = true;
-    const hayComision = ts.some(t=>t.sinComision);
-    const conDatos = miembros.filter(e=>st[e.id].pres>0);
-    const prom = conDatos.length ? conDatos.reduce((a,e)=>a+st[e.id].sinCom/st[e.id].pres,0)/conDatos.length : 0;
-    const promSab = conDatos.length ? conDatos.reduce((a,e)=>a+st[e.id].sab,0)/conDatos.length : 0;
-    h += `<h3>${esc(g.nombre)}</h3><div class="tablewrap"><table class="data"><thead><tr>
-      <th>Funcionario</th><th class="num">Días trab.</th>${rotaSab?'<th class="num">Sábados</th><th>Último sábado</th>':''}
-      ${hayComision?'<th>Días sin comisión</th><th>Comparado al promedio</th>':''}
-      ${ts.map(t=>`<th class="num" title="${esc(t.nombre)}">${esc(t.nombre.length>18?t.nombre.slice(0,17)+'…':t.nombre)}</th>`).join('')}
-    </tr></thead><tbody>`;
-    for (const e of miembros){
-      const s = st[e.id];
-      const p = s.pres ? s.sinCom/s.pres : 0;
-      const dif = (p - prom)*100;
-      const chip = !s.pres ? '<span class="muted small">sin datos</span>' : Math.abs(dif) <= 5 ? '<span class="chip ok">parejo</span>' : dif>0 ? `<span class="chip warn">+${dif.toFixed(0)} pts, le tocó más</span>` : `<span class="chip info">${dif.toFixed(0)} pts, le tocará</span>`;
-      h += `<tr><td>${esc(e.nombre)}</td><td class="num">${s.pres}</td>
-        ${rotaSab?`<td class="num">${e.sabado==='rota'?s.sab:'—'}</td><td>${e.sabado!=='rota'?'<span class="muted small">no rota</span>':s.ultSab?ddmm(s.ultSab):'—'}</td>`:''}
-        ${hayComision?`<td><span class="bar"><b style="width:${Math.min(100,p*100)}%"></b></span>${s.sinCom} (${pct(s.sinCom,s.pres)}%)</td><td>${chip}</td>`:''}
-        ${ts.map(t=>`<td class="num">${elegible(e,t)?(s.tareas[t.id]||0):'—'}</td>`).join('')}</tr>`;
+    const cupo = +g.cupoSab||0; if (cupo<=0) continue;
+    const ms = activos().filter(e=>e.grupo===g.id && e.sabado==='rota');
+    const sab = fechaDe(week,'sab');
+    const ya = ms.filter(e=>trabaja(sem?.celdas?.[e.id]?.sab));
+    for (const e of ya) res[e.id] = sab;
+    const resto = ms.filter(e=>!ya.includes(e)).sort((a,b)=>cmpClave([st[a.id].ultSab||'', hash(a.id)], [st[b.id].ultSab||'', hash(b.id)]));
+    const base = sem?.generada ? 1 : 0;
+    resto.forEach((e,i)=>{ res[e.id] = addDays(sab, 7*(base + Math.floor(i/cupo))); });
+  }
+  return res;
+}
+function renderEquipo(){
+  const prox = proximosSabados();
+  const st = estadisticas(week, true);
+  const sab = fechaDe(week,'sab');
+  let h = `<div class="headrow"><h2>Equipo</h2><span class="spacer"></span><button class="btn primary" data-a="nuevaPersona">+ Persona</button></div>
+    <p class="lead">Tocá a alguien para editar sus datos, su sector o si trabaja sábados.</p>`;
+  for (const g of state.grupos){
+    const ms = state.empleados.filter(e=>e.grupo===g.id); if (!ms.length) continue;
+    h += `<h3><span class="sector" style="--c:${esc(g.color)};font-size:13px"><i></i>${esc(g.nombre)}</span></h3><div class="people">`;
+    for (const e of ms){
+      const tags = [];
+      if (!e.activo) tags.push('<span class="tag">Inactivo</span>');
+      if (e.activo && prox[e.id]) tags.push(prox[e.id]===sab ? '<span class="tag hot">Sábado esta semana</span>' : `<span class="tag">Próx. sábado ≈ ${dmes(prox[e.id])}</span>`);
+      if (e.sabado==='fijo') tags.push('<span class="tag">Todos los sábados</span>');
+      for (const [id,n] of Object.entries(st[e.id].tareas).sort((a,b)=>b[1]-a[1]).slice(0,2)) if (tarea(id)) tags.push(`<span class="tag">${esc((n=>n.length>18?n.slice(0,17)+'…':n)(tarea(id).nombre.split('(')[0].trim().toLowerCase()))} ×${n}</span>`);
+      const f = hoy(); const aus = state.licencias.find(l=>l.emp===e.id && l.hasta>=f && l.desde<=addDays(f,7));
+      if (aus) tags.push(`<span class="tag">${esc(aus.motivo.toLowerCase())} ${aus.desde<=f?'hasta '+dmes(aus.hasta):'desde '+dmes(aus.desde)}</span>`);
+      h += `<button class="person ${e.activo?'':'off'}" data-a="persona" data-id="${e.id}"><span class="avatar" style="--c:${esc(g.color)}">${esc(iniciales(e.nombre))}</span><span class="who"><b>${esc(nombreCorto(e.nombre))}</b><small>${esc([baseDe(e), e.horario].filter(Boolean).join(' · '))}</small><span class="tags">${tags.join('')}</span></span></button>`;
     }
-    h += `<tr class="avg"><td>Promedio</td><td class="num"></td>${rotaSab?`<td class="num">${promSab.toFixed(1)}</td><td></td>`:''}${hayComision?`<td>${(prom*100).toFixed(1)}%</td><td></td>`:''}${ts.map(()=>'<td></td>').join('')}</tr>`;
-    h += `</tbody></table></div>`;
+    h += `</div>`;
   }
-  if (!alguno) h += `<p class="muted">No hay puestos rotativos configurados.</p>`;
-  document.getElementById('v-equidad').innerHTML = h;
+  const lic = [...state.licencias].filter(l=>l.hasta >= addDays(hoy(),-30)).sort((a,b)=>a.desde.localeCompare(b.desde));
+  h += `<div class="headrow" style="margin-top:28px"><h2>Licencias y cursos</h2><span class="spacer"></span><button class="btn primary" data-a="nuevaAus">+ Agregar</button></div>
+    <p class="lead">Licencias, teletrabajo o cursos que ya sabés de antemano. Se aplican solos a las semanas que correspondan.</p>
+    <div class="list">${lic.map(l=>{ const e = emp(l.emp); return `<div class="card item"><span class="avatar" style="--c:${esc(grupo(e?.grupo)?.color||'')}">${esc(iniciales(e?.nombre||'?'))}</span><div class="who"><b>${esc(e?nombreCorto(e.nombre):'(borrado)')}</b><br><small>${esc(l.motivo)} · ${l.desde===l.hasta?dmes(l.desde):dmes(l.desde)+' al '+dmes(l.hasta)}${l.parcial?' · parte del día':''}</small></div><button class="btn sm danger" data-a="delLic" data-id="${l.id}">Quitar</button></div>`; }).join('') || '<p class="muted">No hay nada cargado.</p>'}</div>`;
+  document.getElementById('v-equipo').innerHTML = h;
+}
+function abrirPersona(id){
+  const nuevo = !id;
+  const e = nuevo ? {id:'', nombre:'', grupo:state.grupos[0]?.id, base:'', horario:'10:00 – 17:15', puesto:'', sabado:'rota', libreFijo:'', descanso:true, activo:true} : emp(id);
+  const sel = (idx, opts, v) => `<select id="${idx}">${opts.map(([a,b])=>`<option value="${esc(a)}" ${a===v?'selected':''}>${esc(b)}</option>`).join('')}</select>`;
+  abrirHoja(`<h3>${nuevo?'Nueva persona':esc(nombreCorto(e.nombre))}</h3><p class="sub">${nuevo?'Después marcá en Puestos qué tareas puede hacer.':'Los cambios valen para las próximas semanas que armes.'}</p>
+    <div class="grid2">
+      <label class="field" style="grid-column:1/-1">Nombre<input type="text" id="pNombre" value="${esc(e.nombre)}" placeholder="Apellido, Nombre"></label>
+      <label class="field">Sector${sel('pGrupo', state.grupos.map(g=>[g.id,g.nombre]), e.grupo)}</label>
+      <label class="field">Tarea de siempre<input type="text" id="pBase" value="${esc(e.base)}" placeholder="${esc(grupo(e.grupo)?.base||'')}"></label>
+      <label class="field">Horario<input type="text" id="pHorario" value="${esc(e.horario)}"></label>
+      <label class="field">Puesto (número)<input type="text" id="pPuesto" value="${esc(e.puesto)}"></label>
+      <label class="field">Sábados${sel('pSabado', [['rota','Rota con su sector'],['fijo','Todos los sábados'],['nunca','No trabaja sábados']], e.sabado)}</label>
+      <label class="field">Libre fijo${sel('pLibre', [['','Ninguno'], ...SEM.map(d=>[d,DIA_LARGO[d]])], e.libreFijo)}</label>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-top:12px">
+      <label class="check"><input type="checkbox" id="pDesc" ${e.descanso?'checked':''}> Su horario de descanso rota cada semana</label>
+      <label class="check"><input type="checkbox" id="pActivo" ${e.activo?'checked':''}> Activo (si se va un tiempo, destildá y se guarda su historial)</label>
+    </div>
+    <div class="actions">${nuevo?'':`<button class="btn danger left" data-a="delPersona" data-id="${e.id}">Borrar</button>`}<button class="btn ghost" data-a="cerrar">Cancelar</button><button class="btn primary" data-a="guardarPersona">Guardar</button></div>`, {id:e.id});
+}
+function guardarPersona(){
+  const nombre = document.getElementById('pNombre').value.trim();
+  if (!nombre) return toast('Falta el nombre.');
+  const id = sheet.dataset.id;
+  const datos = {nombre, grupo:document.getElementById('pGrupo').value, base:document.getElementById('pBase').value.trim().toUpperCase(), horario:document.getElementById('pHorario').value.trim(), puesto:document.getElementById('pPuesto').value.trim(), sabado:document.getElementById('pSabado').value, libreFijo:document.getElementById('pLibre').value, descanso:document.getElementById('pDesc').checked, activo:document.getElementById('pActivo').checked};
+  if (id) Object.assign(emp(id), datos);
+  else state.empleados.push({id:uid('e_'), inicioSab:'', inicioSinCom:'', ...datos});
+  guardar(); cerrarHoja(); render(); toast(id ? 'Guardado.' : 'Agregada. Marcá sus puestos en Puestos.');
+}
+function abrirAusencia(){
+  abrirHoja(`<h3>Licencia, curso o ausencia</h3><p class="sub">Para algo que ya sabés de antemano. Para una falta de último momento usá “Avisar falta” en la planilla.</p>
+    <div class="grid2">
+      <label class="field" style="grid-column:1/-1">Quién<select id="aEmp">${activos().map(e=>`<option value="${e.id}">${esc(e.nombre)}</option>`).join('')}</select></label>
+      <label class="field">Desde<input type="date" id="aDesde" value="${week}"></label>
+      <label class="field">Hasta<input type="date" id="aHasta" value="${addDays(week,4)}"></label>
+      <label class="field" style="grid-column:1/-1">Qué es<select id="aTipo"><option value="LICENCIA">Licencia (no viene)</option><option value="TELETRABAJO">Teletrabajo (no viene)</option><option value="COMISIÓN C/VIÁTICO">Comisión con viático (no viene)</option><option value="curso">Curso (viene parte del día)</option><option value="otro">Otro</option></select></label>
+      <label class="field" id="aTxtWrap" style="grid-column:1/-1" hidden>Detalle<input type="text" id="aTxt" placeholder="Ej.: curso 10 a 12"></label>
+      <label class="check" id="aParcialWrap" style="grid-column:1/-1" hidden><input type="checkbox" id="aParcial"> Viene parte del día</label>
+    </div>
+    <p class="muted sm" id="aNota" hidden>Los días de curso hace su tarea de siempre y no se le asignan puestos que rotan.</p>
+    <div class="actions"><button class="btn ghost" data-a="cerrar">Cancelar</button><button class="btn primary" data-a="guardarAus">Agregar</button></div>`);
+}
+function guardarAusencia(){
+  const tipo = document.getElementById('aTipo').value, txt = document.getElementById('aTxt').value.trim();
+  const l = {id:uid('l_'), emp:document.getElementById('aEmp').value, desde:document.getElementById('aDesde').value, hasta:document.getElementById('aHasta').value, motivo:'', parcial:false};
+  if (tipo==='curso'){ l.motivo = txt || 'curso'; l.parcial = true; }
+  else if (tipo==='otro'){ if (!txt) return toast('Escribí el detalle.'); l.parcial = document.getElementById('aParcial').checked; l.motivo = l.parcial ? txt : txt.toUpperCase(); }
+  else l.motivo = tipo;
+  if (!l.emp || !l.desde || !l.hasta) return toast('Completá quién y las fechas.');
+  if (l.hasta < l.desde) return toast('La fecha “hasta” es anterior a “desde”.');
+  state.licencias.push(l); guardar(); cerrarHoja(); render();
+  const afecta = Object.entries(state.semanas).some(([k,s])=>s.generada && !s.confirmada && k<=l.hasta && addDays(k,6)>=l.desde);
+  toast(afecta ? 'Agregado. Rearmá la semana para que se aplique.' : 'Agregado.');
 }
 
-/* ---------- vista Personal ---------- */
-function opcionesGrupo(sel){ return state.grupos.map(g=>`<option value="${g.id}" ${g.id===sel?'selected':''}>${esc(g.nombre)}</option>`).join(''); }
-function renderPersonal(){
-  let h = `<h2>Personal</h2><p class="lead">Los cambios se guardan solos. <b>Sábados</b>: “Rota” entra en la rotación de su sector, “Todos” trabaja todos los sábados, “Nunca” no trabaja sábados. <b>Libre fijo</b> es para quien libra siempre el mismo día.</p>
-  <div class="tablewrap"><table class="data"><thead><tr><th>Activo</th><th>Nombre</th><th>Sector</th><th>Tarea base</th><th>Horario</th><th>Puesto</th><th>Sábados</th><th>Libre fijo</th><th>Descanso rota</th><th></th></tr></thead><tbody>`;
-  for (const e of state.empleados){
-    h += `<tr data-emp="${e.id}">
-      <td><input type="checkbox" id="ac_${e.id}" data-f="activo" ${e.activo?'checked':''} aria-label="Activo"></td>
-      <td><input type="text" id="no_${e.id}" data-f="nombre" value="${esc(e.nombre)}" size="20"></td>
-      <td><select id="gr_${e.id}" data-f="grupo">${opcionesGrupo(e.grupo)}</select></td>
-      <td><input type="text" id="ba_${e.id}" data-f="base" value="${esc(e.base)}" placeholder="${esc(grupo(e.grupo)?.base||'')}" size="14"></td>
-      <td><input type="text" id="ho_${e.id}" data-f="horario" value="${esc(e.horario)}" size="12"></td>
-      <td><input type="text" id="pu_${e.id}" data-f="puesto" value="${esc(e.puesto)}" size="3"></td>
-      <td><select id="sa_${e.id}" data-f="sabado">${[['rota','Rota'],['fijo','Todos'],['nunca','Nunca']].map(([v,l])=>`<option value="${v}" ${e.sabado===v?'selected':''}>${l}</option>`).join('')}</select></td>
-      <td><select id="lf_${e.id}" data-f="libreFijo"><option value="">—</option>${SEM.map(d=>`<option value="${d}" ${e.libreFijo===d?'selected':''}>${DIA_CORTO[d]}</option>`).join('')}</select></td>
-      <td><input type="checkbox" id="de_${e.id}" data-f="descanso" ${e.descanso?'checked':''} aria-label="Descanso rota"></td>
-      <td><button class="btn small danger" data-a="delEmp" data-id="${e.id}">Borrar</button></td></tr>`;
-  }
-  h += `</tbody></table></div>
-  <div class="form"><label>Nombre<input type="text" id="nuevoNombre" placeholder="Apellido, Nombre"></label>
-    <label>Sector<select id="nuevoGrupo">${opcionesGrupo(state.grupos[0]?.id)}</select></label>
-    <button class="btn primary" data-a="addEmp">Agregar funcionario</button></div>
-  <p class="muted small">Para quien se va por un tiempo, mejor destildar “Activo” que borrar: se conserva su historial.</p>
-  <h2 style="margin-top:28px">Licencias y ausencias</h2>
-  <p class="lead">Se aplican solas a cada semana que caiga en el rango. Quien está de licencia no entra en ningún reparto esos días.</p>
-  <div class="form">
-    <label>Funcionario<select id="licEmp">${state.empleados.filter(e=>e.activo).map(e=>`<option value="${e.id}">${esc(e.nombre)}</option>`).join('')}</select></label>
-    <label>Desde<input type="date" id="licDesde" value="${week}"></label>
-    <label>Hasta<input type="date" id="licHasta" value="${addDays(week,4)}"></label>
-    <label>Motivo<input type="text" id="licMotivo" value="LICENCIA" list="motivos" size="14"></label>
-    <datalist id="motivos"><option value="LICENCIA"><option value="LICENCIA PARQUE"><option value="TELETRABAJO"><option value="COMISIÓN C/VIÁTICO"><option value="CURSO"></datalist>
-    <button class="btn primary" data-a="addLic">Agregar</button>
-  </div>
-  <div class="tablewrap"><table class="data"><thead><tr><th>Funcionario</th><th>Desde</th><th>Hasta</th><th>Motivo</th><th></th></tr></thead><tbody>
-  ${[...state.licencias].sort((a,b)=>b.desde.localeCompare(a.desde)).map(l=>`<tr><td>${esc(emp(l.emp)?.nombre||'(borrado)')}</td><td>${ddmm(l.desde)}/${l.desde.slice(0,4)}</td><td>${ddmm(l.hasta)}/${l.hasta.slice(0,4)}</td><td>${esc(l.motivo)}</td><td><button class="btn small danger" data-a="delLic" data-id="${l.id}">Quitar</button></td></tr>`).join('') || '<tr><td colspan="5" class="muted">No hay licencias cargadas.</td></tr>'}
-  </tbody></table></div>
-  <p class="muted small">Si una licencia se carga después de generar la semana, tocá “Volver a generar” para que se aplique.</p>`;
-  document.getElementById('v-personal').innerHTML = h;
-}
-
-/* ---------- vista Puestos y reglas ---------- */
-function renderTareas(){
-  let h = `<h2>Puestos rotativos</h2><p class="lead">Cada puesto dice cuántas personas necesita por día y quiénes lo pueden hacer. “Toda la semana” le da el puesto a una sola persona de lunes a viernes; “Por día” lo reparte día a día. La preferencia solo desempata: nunca le da a alguien más turnos de los que le corresponden.</p><div class="cards">`;
+/* ---------- vista Puestos ---------- */
+const PCICLO = ['no','si','prefiere','evita'];
+function renderPuestos(){
+  let h = `<div class="headrow"><h2>Puestos que rotan</h2><span class="spacer"></span><button class="btn primary" data-a="addTarea">+ Puesto</button></div>
+    <p class="lead">Para cada puesto: cuántas personas necesita por día y quién lo puede hacer. Tocá un nombre para cambiarlo.</p>
+    <div class="keyrow"><span class="pchip">no lo hace</span><span class="pchip si">lo puede hacer</span><span class="pchip prefiere">le gusta</span><span class="pchip evita">prefiere no</span></div>
+    <div class="tasks">`;
   for (const t of state.tareas){
-    h += `<div class="card" data-t="${t.id}">
-      <div class="row"><label style="flex:1;min-width:180px">Nombre<input type="text" id="tn_${t.id}" data-tf="nombre" value="${esc(t.nombre)}"></label>
-        <label>Color<input type="color" id="tc_${t.id}" data-tf="color" value="${esc(t.color)}"></label>
-        <label>Reparto<select id="tm_${t.id}" data-tf="modo"><option value="diario" ${t.modo==='diario'?'selected':''}>Por día</option><option value="semanal" ${t.modo==='semanal'?'selected':''}>Toda la semana</option></select></label></div>
-      <div class="row"><label class="inline"><input type="checkbox" id="ts_${t.id}" data-tf="sinComision" ${t.sinComision?'checked':''}> No comisiona (se suma al total “sin comisión”)</label></div>
-      <div class="row cupos"><span class="muted small">Personas por día:</span>${LAB.map(d=>`<label class="inline">${DIA_CORTO[d]}<input type="number" min="0" max="9" id="tq_${t.id}_${d}" data-cupo="${d}" value="${+t.cupos[d]||0}"></label>`).join('')}</div>
-      <div class="eleg">`;
+    h += `<div class="card task" data-t="${t.id}">
+      <div class="top"><input type="color" class="swatch" id="tc_${t.id}" data-tf="color" value="${esc(t.color)}" aria-label="Color">
+        <label class="field" style="flex:1;min-width:180px"><input type="text" id="tn_${t.id}" data-tf="nombre" value="${esc(t.nombre)}" aria-label="Nombre del puesto"></label></div>
+      <div class="toolbar" style="margin-bottom:10px">
+        <span class="seg"><button data-a="tmodo" data-m="diario" aria-pressed="${t.modo==='diario'}">Cambia cada día</button><button data-a="tmodo" data-m="semanal" aria-pressed="${t.modo==='semanal'}">Toda la semana</button></span>
+        <label class="check"><input type="checkbox" id="ts_${t.id}" data-tf="sinComision" ${t.sinComision?'checked':''}> No comisiona</label>
+      </div>
+      <div class="eyebrow" style="margin-bottom:4px">Personas por día</div>
+      <div class="counter" style="margin-bottom:10px">${LAB.map(d=>`<label>${DIA_CORTO[d]}<input type="number" min="0" max="9" id="tq_${t.id}_${d}" data-cupo="${d}" value="${+t.cupos[d]||0}"></label>`).join('')}</div>
+      <div class="who-can">`;
     for (const g of state.grupos){
-      const ms = state.empleados.filter(e=>e.activo && e.grupo===g.id);
-      if (!ms.length) continue;
-      h += `<h4>${esc(g.nombre)} <button class="btn small" data-a="elegTodos" data-g="${g.id}">Todos</button><button class="btn small" data-a="elegNinguno" data-g="${g.id}">Ninguno</button></h4>`;
-      for (const e of ms){
-        const v = t.elegibles?.[e.id] || 'no';
-        h += `<div><span title="${esc(e.nombre)}">${esc(e.nombre)}</span><select id="te_${t.id}_${e.id}" data-eleg="${e.id}" aria-label="${esc(e.nombre)}">${[['no','No'],['si','Sí'],['prefiere','Sí, lo prefiere'],['evita','Sí, prefiere evitarlo']].map(([a,b])=>`<option value="${a}" ${v===a?'selected':''}>${b}</option>`).join('')}</select></div>`;
-      }
+      const ms = activos().filter(e=>e.grupo===g.id); if (!ms.length) continue;
+      if (!ms.some(e=>elegible(e,t))){ h += `<span class="grpname">${esc(g.nombre)} <button class="btn sm ghost" data-a="elegTodos" data-g="${g.id}">+ sumar</button></span>`; continue; }
+      h += `<span class="grpname">${esc(g.nombre)} <button class="btn sm ghost" data-a="elegTodos" data-g="${g.id}">todos</button><button class="btn sm ghost" data-a="elegNinguno" data-g="${g.id}">ninguno</button></span>`;
+      for (const e of ms){ const v = t.elegibles?.[e.id] || 'no'; h += `<button class="pchip ${v}" data-a="pchip" data-id="${e.id}" title="Tocá para cambiar">${esc(nombreCorto(e.nombre))}</button>`; }
     }
-    h += `</div><div class="row" style="margin-top:12px;margin-bottom:0"><button class="btn small danger" data-a="delTarea" data-id="${t.id}">Borrar puesto</button></div></div>`;
+    h += `</div><div class="actions"><button class="btn sm danger" data-a="delTarea" data-id="${t.id}">Borrar puesto</button></div></div>`;
   }
-  h += `</div><div class="form"><button class="btn primary" data-a="addTarea">Agregar puesto</button></div>
-  <h2 style="margin-top:28px">Sectores</h2>
-  <p class="lead">La tarea base es lo que hace cada persona cuando no le toca un puesto rotativo. “Sábado” es cuántas personas del sector trabajan cada sábado.</p>
-  <div class="tablewrap"><table class="data"><thead><tr><th>Sector</th><th>Tarea base</th><th>Color</th><th class="num">Personas el sábado</th><th></th></tr></thead><tbody>
-  ${state.grupos.map(g=>`<tr data-g="${g.id}"><td><input type="text" id="gn_${g.id}" data-gf="nombre" value="${esc(g.nombre)}" size="24"></td><td><input type="text" id="gb_${g.id}" data-gf="base" value="${esc(g.base)}" size="18"></td><td><input type="color" id="gc_${g.id}" data-gf="color" value="${esc(g.color||'#cccccc')}"></td><td class="num"><input type="number" min="0" max="20" id="gs_${g.id}" data-gf="cupoSab" value="${+g.cupoSab||0}"></td><td><button class="btn small danger" data-a="delGrupo" data-id="${g.id}">Borrar</button></td></tr>`).join('')}
-  </tbody></table></div>
-  <div class="form"><label>Nuevo sector<input type="text" id="nuevoGrupoNombre"></label><button class="btn" data-a="addGrupo">Agregar sector</button></div>
-  <h2 style="margin-top:28px">Reglas</h2>
-  <div class="card" style="max-width:720px">
-    <div class="row"><span class="small">Día libre por trabajar el sábado, preferentemente:</span>${SEM.map(d=>`<label class="inline"><input type="checkbox" id="comp_${d}" data-comp="${d}" ${(state.config.compensatorios||[]).includes(d)?'checked':''}>${DIA_CORTO[d]}</label>`).join('')}</div>
-    <p class="muted small" style="margin-top:-4px">Se elige el día con menos compañeros del sector libres. Si ninguno de estos días está disponible, usa otro de lunes a viernes.</p>
-    <div class="row"><label class="inline">Mirar el historial de las últimas <input type="number" min="2" max="52" id="cfgVentana" value="${esc(state.config.ventana)}"> semanas</label></div>
-    <label>Turnos de descanso (uno por línea; cada semana todos corren un turno)<textarea id="cfgDesc" style="min-height:80px">${esc((state.config.descansos||[]).join('\n'))}</textarea></label>
-  </div>`;
-  document.getElementById('v-tareas').innerHTML = h;
+  h += `</div>
+  <div class="headrow" style="margin-top:28px"><h2>Sectores</h2><span class="spacer"></span><button class="btn" data-a="addGrupo">+ Sector</button></div>
+  <p class="lead">“Tarea de siempre” es lo que hace cada uno cuando no le toca un puesto que rota. “Máx. libres” limita cuántos del sector pueden librar el mismo día (0 = sin límite).</p>
+  <div class="tasks">${state.grupos.map(g=>`<div class="card task" data-g="${g.id}">
+    <div class="top"><input type="color" class="swatch" id="gc_${g.id}" data-gf="color" value="${esc(g.color||'#cccccc')}" aria-label="Color"><label class="field" style="flex:1"><input type="text" id="gn_${g.id}" data-gf="nombre" value="${esc(g.nombre)}" aria-label="Nombre del sector"></label></div>
+    <div class="grid2">
+      <label class="field">Tarea de siempre<input type="text" id="gb_${g.id}" data-gf="base" value="${esc(g.base)}"></label>
+      <label class="field">Personas el sábado<input type="number" min="0" max="20" id="gs_${g.id}" data-gf="cupoSab" value="${+g.cupoSab||0}"></label>
+      <label class="field">Máx. libres el mismo día<input type="number" min="0" max="20" id="gm_${g.id}" data-gf="maxLibres" value="${+g.maxLibres||0}"></label>
+    </div>
+    <div class="actions"><button class="btn sm danger" data-a="delGrupo" data-id="${g.id}">Borrar sector</button></div></div>`).join('')}</div>`;
+  document.getElementById('v-puestos').innerHTML = h;
 }
 
-/* ---------- vista Respaldo ---------- */
-function renderDatos(){
-  const nSem = Object.values(state.semanas).filter(s=>s.generada).length;
-  const nConf = Object.values(state.semanas).filter(s=>s.confirmada).length;
-  document.getElementById('v-datos').innerHTML = `<h2>Respaldo</h2>
-  <p class="lead">Los datos se guardan solo en este navegador y en este dispositivo (${state.empleados.length} personas, ${nSem} semanas generadas, ${nConf} confirmadas). Si otra persona arma la planilla en otra computadora, pasale el respaldo. Guardá una copia de vez en cuando: si se borran los datos del navegador, se pierde el historial.</p>
-  <div class="toolbar"><button class="btn primary" data-a="descargar">Descargar respaldo (.json)</button><button class="btn" data-a="copiarJson">Copiar respaldo</button></div>
-  <h3>Restaurar</h3>
-  <div class="toolbar"><label class="btn" for="archivo">Elegir archivo de respaldo</label><input type="file" id="archivo" accept=".json,application/json" hidden></div>
-  <label class="small muted" for="pegado">O pegá acá el texto de un respaldo:</label>
-  <textarea id="pegado" placeholder='{"version":1, ...}'></textarea>
-  <div class="toolbar" style="margin-top:8px"><button class="btn" data-a="importarTexto">Restaurar desde el texto</button></div>
-  <h3>Empezar de nuevo</h3>
-  <div class="toolbar"><button class="btn danger" data-a="reset">Volver a los datos de ejemplo</button><span id="resetConf" hidden><span class="small">Se borra todo, historial incluido.</span> <button class="btn danger" data-a="resetOk">Sí, borrar todo</button></span></div>`;
+/* ---------- vista Ajustes ---------- */
+function renderAjustes(){
+  const rotan = activos().filter(e=>e.sabado==='rota' || state.tareas.some(t=>t.sinComision && elegible(e,t)));
+  const nSem = Object.values(state.semanas).filter(s=>s.generada).length, nConf = Object.values(state.semanas).filter(s=>s.confirmada).length;
+  document.getElementById('v-ajustes').innerHTML = `<h2>Ajustes</h2>
+  <h3>Reglas</h3>
+  <div class="card task" style="max-width:760px">
+    <div class="field">Si trabaja el sábado, libra preferentemente<div class="toggles">${SEM.map(d=>`<button class="tog" data-a="comp" data-d="${d}" aria-pressed="${(state.config.compensatorios||[]).includes(d)}">${DIA_LARGO[d]}</button>`).join('')}</div></div>
+    <div class="grid2" style="margin-top:12px">
+      <label class="field">Semanas que recuerda para rotar<input type="number" min="2" max="52" id="cfgVentana" value="${esc(state.config.ventana)}"></label>
+    </div>
+    <label class="field" style="margin-top:12px">Horarios de descanso (uno por línea)<textarea id="cfgDesc" style="min-height:84px;font-family:var(--font-ui);font-size:14px">${esc((state.config.descansos||[]).join('\n'))}</textarea></label>
+  </div>
+  <h3>Punto de partida</h3>
+  <p class="lead">Opcional. Si cargás cuándo fue el último sábado de cada uno y cuántos días estuvo en puestos sin comisión el último mes, la app arranca teniendo eso en cuenta en vez de empezar de cero.</p>
+  <div class="card" style="max-width:760px;overflow-x:auto"><table style="border-collapse:collapse;width:100%;font-size:14px">
+    <thead><tr><th style="text-align:left;padding:8px 12px" class="eyebrow">Persona</th><th class="eyebrow" style="padding:8px">Último sábado</th><th class="eyebrow" style="padding:8px">Días sin comisión (último mes)</th></tr></thead>
+    <tbody>${rotan.map(e=>`<tr data-ini="${e.id}" style="border-top:1px solid var(--line)"><td style="padding:6px 12px;white-space:nowrap">${esc(nombreCorto(e.nombre))}</td><td style="padding:6px"><input class="in" type="date" id="is_${e.id}" data-if="inicioSab" value="${esc(e.inicioSab)}"></td><td style="padding:6px"><input class="in" type="number" min="0" max="25" id="ic_${e.id}" data-if="inicioSinCom" value="${esc(e.inicioSinCom)}" style="width:90px"></td></tr>`).join('')}</tbody></table></div>
+  <h3>Respaldo</h3>
+  <p class="lead">Todo se guarda en este navegador (${state.empleados.length} personas, ${nSem} semanas armadas, ${nConf} confirmadas). Guardá una copia cada tanto, o pasala si otra persona arma la planilla en otra computadora.</p>
+  <div class="toolbar"><button class="btn primary" data-a="copiarJson">Copiar respaldo</button><button class="btn" data-a="descargar">Descargar archivo</button><label class="btn" for="archivo">Restaurar desde archivo</label><input type="file" id="archivo" accept=".json,application/json" hidden></div>
+  <textarea id="pegado" placeholder="O pegá acá un respaldo copiado y tocá Restaurar"></textarea>
+  <div class="toolbar" style="margin-top:8px"><button class="btn" data-a="importarTexto">Restaurar</button></div>
+  <h3>Ayuda</h3>
+  <div class="toolbar"><button class="btn" data-a="guia">Ver la guía otra vez</button><button class="btn danger" data-a="reset">Empezar de cero</button><span id="resetConf" hidden><button class="btn danger" data-a="resetOk">Sí, borrar todo (también el historial)</button></span></div>`;
 }
+
+/* ---------- guía paso a paso ---------- */
+const PASOS = [
+  {v:'planilla', t:'¡Hola!', x:'Te muestro en un minuto cómo armar la planilla. Podés volver a ver esta guía cuando quieras con el botón “?”.'},
+  {v:'planilla', s:'#weekNav', t:'Elegí la semana', x:'Con las flechas pasás a la semana anterior o a la siguiente.'},
+  {v:'planilla', s:'#btnGenerar', alt:'#estado', t:'Armá la semana', x:'Un toque y la app reparte puestos, sábados, días libres y descansos. Va rotando sola para que a todos les toque parecido.'},
+  {v:'planilla', s:'#planArea .chip[data-e]', alt:'#planArea', t:'Tocá una casilla', x:'Ves por qué le tocó eso a esa persona y lo podés cambiar. Lo que cambies a mano queda marcado con un punto y se respeta.'},
+  {v:'planilla', s:'#viewToggle', t:'Semana o día', x:'En el celular es más cómodo ver un día a la vez.'},
+  {v:'planilla', s:'#btnFalta', t:'¿Alguien faltó?', x:'Avisalo acá. Si tenía Entregas, Depósito u otro puesto que rota, la app busca a quién le corresponde cubrirlo.'},
+  {v:'planilla', s:'#btnConfirmar', alt:'#estado', t:'Confirmá', x:'Cuando la planilla esté lista, confirmala. Así la app sabe qué hizo cada uno y la semana siguiente sigue rotando bien.'},
+  {v:'equipo', s:'#tabs [data-v="equipo"]', t:'Equipo', x:'Las personas, sus horarios, si trabajan sábados, licencias y cursos.'},
+  {v:'puestos', s:'#tabs [data-v="puestos"]', t:'Puestos', x:'Qué puestos rotan, cuántas personas necesita cada uno por día y quién los puede hacer.'},
+  {v:'ajustes', s:'#tabs [data-v="ajustes"]', t:'Ajustes', x:'Los días libres preferidos, los horarios de descanso y el respaldo de tus datos.'},
+  {v:'planilla', s:'#btnAyuda', t:'¡Listo!', x:'Si te olvidás de algo, tocá “?” y la guía vuelve a aparecer.'},
+];
+let paso = -1;
+const objetivo = p => (p.s && document.querySelector(p.s)) || (p.alt && document.querySelector(p.alt)) || null;
+function guia(i){
+  paso = i;
+  const c = document.getElementById('coach');
+  if (i<0 || i>=PASOS.length){ paso = -1; c.hidden = true; c.innerHTML = ''; ls.set('guia','vista'); return; }
+  const p = PASOS[i];
+  if (vista!==p.v){ vista = p.v; render(); }
+  const el = objetivo(p);
+  if (el) el.scrollIntoView({block:'nearest', inline:'nearest'});
+  c.hidden = false;
+  c.innerHTML = `<div class="coach-block"></div><div class="coach-ring ${el?'':'center'}"></div>
+    <div class="coach" role="dialog" aria-live="polite"><div class="step">Paso ${i+1} de ${PASOS.length}</div><h4>${esc(p.t)}</h4><p>${esc(p.x)}</p>
+    <div class="dots">${PASOS.map((_,k)=>`<i class="${k===i?'on':''}"></i>`).join('')}</div>
+    <div class="actions"><button class="btn ghost sm left" data-a="guiaFin">Saltar</button>${i>0?'<button class="btn sm" data-a="guiaAnt">Atrás</button>':''}<button class="btn primary sm" data-a="guiaSig">${i===PASOS.length-1?'Empezar':'Siguiente'}</button></div></div>`;
+  ubicarGuia(el);
+  c.querySelector('[data-a="guiaSig"]').focus({preventScroll:true});
+}
+function ubicarGuia(el){
+  const ring = document.querySelector('.coach-ring'), box = document.querySelector('.coach');
+  if (!ring || !box) return;
+  const W = innerWidth, H = innerHeight, bw = box.offsetWidth, bh = box.offsetHeight;
+  if (!el){ box.style.left = (W-bw)/2+'px'; box.style.top = Math.max(16,(H-bh)/2)+'px'; return; }
+  const r = el.getBoundingClientRect(), pad = 6;
+  const top = Math.max(4, r.top-pad), bottom = Math.min(H-4, r.bottom+pad);
+  Object.assign(ring.style, {left:Math.max(4,r.left-pad)+'px', top:top+'px', width:Math.min(W-8,r.width+pad*2)+'px', height:Math.max(0,bottom-top)+'px'});
+  let y = bottom + 12;
+  if (y + bh > H - 12) y = top - bh - 12;
+  if (y < 12) y = Math.max(12, H - bh - 12);
+  const x = Math.min(Math.max(16, r.left + r.width/2 - bw/2), W - bw - 16);
+  box.style.left = x+'px'; box.style.top = y+'px';
+}
+addEventListener('resize', ()=>{ if (paso>=0) ubicarGuia(objetivo(PASOS[paso])); });
 
 /* ---------- render general ---------- */
 function render(){
   document.querySelectorAll('#tabs button').forEach(b=>b.setAttribute('aria-selected', String(b.dataset.v===vista)));
-  for (const v of ['semana','equidad','personal','tareas','datos']) document.getElementById('v-'+v).hidden = v!==vista;
-  ({semana:renderSemana, equidad:renderEquidad, personal:renderPersonal, tareas:renderTareas, datos:renderDatos})[vista]();
+  for (const v of ['planilla','equipo','puestos','ajustes']) document.getElementById('v-'+v).hidden = v!==vista;
+  ({planilla:renderPlanilla, equipo:renderEquipo, puestos:renderPuestos, ajustes:renderAjustes})[vista]();
   document.getElementById('storageWarn').hidden = storageOk;
 }
 let toastT;
-function toast(msg){ const t = document.getElementById('toast'); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(()=>t.hidden=true, 2800); }
+function toast(msg){ const t = document.getElementById('toast'); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(()=>t.hidden=true, 3000); }
 async function copiar(texto, ok){
   try { await navigator.clipboard.writeText(texto); toast(ok); }
   catch(e){
-    const ov = document.getElementById('overlay');
-    ov.innerHTML = `<div class="modal"><h3>Copiá este texto</h3><p class="muted small">El navegador no dejó copiar automáticamente. Seleccioná todo y copialo.</p><textarea id="copiaManual" readonly>${esc(texto)}</textarea><div class="actions" style="margin-top:10px"><button class="btn primary" data-a="edCancel">Listo</button></div></div>`;
-    ov.hidden = false; const ta = document.getElementById('copiaManual'); ta.focus(); ta.select();
+    abrirHoja(`<h3>Copiá este texto</h3><p class="sub">El navegador no dejó copiar solo. Seleccioná todo y copialo.</p><textarea id="copiaManual" readonly>${esc(texto)}</textarea><div class="actions"><button class="btn primary" data-a="cerrar">Listo</button></div>`);
+    const ta = document.getElementById('copiaManual'); ta.focus(); ta.select();
   }
 }
 function tsvSemana(){
-  const sem = state.semanas[week]; const dias = DIAS.map(d=>fechaDe(week,d));
-  const filas = [['Funcionario', ...DIAS.map((d,i)=>`${DIA_LARGO[d]} ${parse(dias[i]).getDate()}`), 'Horario', 'Puesto', 'Descanso']];
+  const sem = state.semanas[week];
+  const filas = [['Funcionario', ...DIAS.map(d=>`${DIA_LARGO[d].toUpperCase()} ${parse(fechaDe(week,d)).getDate()}`), 'Horario', 'Puesto', 'Descanso']];
   for (const g of state.grupos){
     const ms = activos().filter(e=>e.grupo===g.id); if (!ms.length) continue;
     filas.push([g.nombre.toUpperCase()]);
-    for (const e of ms) filas.push([e.nombre, ...DIAS.map(d=>celdaVista(e,d,sem).txt.replace('·','')), e.horario, e.puesto, sem?.descansos?.[e.id]?.txt||'']);
+    for (const e of ms) filas.push([e.nombre, ...DIAS.map(d=>{ const v = celdaVista(e,d,sem); return v.txt.replace('—','') + (v.nota?` (${v.nota})`:''); }), e.horario, e.puesto, sem?.descansos?.[e.id]?.txt||'']);
   }
   return filas.map(f=>f.join('\t')).join('\n');
 }
@@ -726,102 +950,103 @@ function importar(texto){
   try {
     const s = JSON.parse(texto);
     if (!s || !Array.isArray(s.empleados) || !Array.isArray(s.tareas) || !Array.isArray(s.grupos)) throw new Error('formato');
-    s.licencias ||= []; s.semanas ||= {}; s.config ||= ejemplo().config;
-    state = s; guardar(); vista = 'semana'; render(); toast('Respaldo restaurado.');
-  } catch(e){ toast('Ese texto no es un respaldo válido de Planilla Justa.'); }
+    state = migrar(s); guardar(); vista = 'planilla'; render(); toast('Datos restaurados.');
+  } catch(e){ toast('Eso no parece un respaldo de Planilla Justa.'); }
 }
 
 /* ---------- eventos ---------- */
 document.getElementById('tabs').addEventListener('click', ev=>{
-  const b = ev.target.closest('button[data-v]'); if (!b) return;
-  vista = b.dataset.v; try { localStorage.setItem(KEY+':vista', vista); } catch(e){}
-  render();
+  const b = ev.target.closest('button[data-v]'); if (!b || paso>=0) return;
+  vista = b.dataset.v; ls.set('vista', vista); render(); scrollTo(0,0);
 });
 document.addEventListener('click', ev=>{
-  const cell = ev.target.closest('td.c[data-e]');
-  if (cell){ abrirEditor(cell.dataset.e, cell.dataset.d); return; }
-  const b = ev.target.closest('[data-a]'); if (!b) return;
+  const b = ev.target.closest('[data-a],.chip[data-e]'); if (!b) return;
+  if (b.matches('.chip[data-e]')){ abrirCelda(b.dataset.e, b.dataset.d); return; }
   const a = b.dataset.a;
-  const sem = () => semana(week);
+  const card = b.closest('[data-t]');
   switch (a){
-    case 'prev': week = addDays(week,-7); render(); break;
-    case 'next': week = addDays(week,7); render(); break;
-    case 'hoy': week = lunesDe(iso(new Date())); render(); break;
-    case 'generar': if (sem().confirmada) return; generar(week); render(); toast('Semana generada. Revisala y confirmala.'); break;
-    case 'confirmar': sem().confirmada = true; guardar(); render(); toast('Confirmada. Ya cuenta para repartir las próximas semanas.'); break;
-    case 'reabrir': sem().confirmada = false; guardar(); render(); toast('Semana reabierta. Deja de contar hasta que la confirmes.'); break;
+    case 'guia': cerrarHoja(); guia(0); break;
+    case 'guiaSig': guia(paso+1); break;
+    case 'guiaAnt': guia(paso-1); break;
+    case 'guiaFin': guia(-1); break;
+    case 'prev': week = addDays(week,-7); dia = 'lun'; render(); break;
+    case 'next': week = addDays(week,7); dia = 'lun'; render(); break;
+    case 'hoy': week = lunesDe(hoy()); dia = diaInicial(); render(); break;
+    case 'modo': modo = b.dataset.m; ls.set('modo', modo); render(); break;
+    case 'dia': dia = b.dataset.d; render(); break;
+    case 'generar': { const av = generar(week); render(); toast(av.length ? 'Armada, con avisos. Mirá arriba.' : 'Semana armada. Revisala y confirmala.'); break; }
+    case 'confirmar': semana(week).confirmada = true; guardar(); render(); toast('¡Confirmada!'); break;
+    case 'reabrir': semana(week).confirmada = false; guardar(); render(); toast('Reabierta.'); break;
     case 'excel': copiar(tsvSemana(), 'Copiada. Pegala en Excel.'); break;
-    case 'edOk': guardarEditor(); break;
-    case 'edCancel': cerrarEditor(); break;
-    case 'addEmp': {
-      const n = document.getElementById('nuevoNombre').value.trim(); if (!n) return toast('Escribí el nombre.');
-      const g = document.getElementById('nuevoGrupo').value;
-      state.empleados.push({id:uid('e_'), nombre:n, grupo:g, base:'', horario:'10:00 – 17:15', puesto:'', sabado:+grupo(g)?.cupoSab>0?'rota':'nunca', libreFijo:'', descanso:false, activo:true});
-      guardar(); render(); toast('Agregado. Marcá en qué puestos rota desde “Puestos y reglas”.'); break; }
-    case 'delEmp': {
-      if (b.dataset.sure!=='1'){ b.dataset.sure='1'; b.textContent='¿Seguro?'; return; }
-      state.empleados = state.empleados.filter(e=>e.id!==b.dataset.id);
-      state.licencias = state.licencias.filter(l=>l.emp!==b.dataset.id);
-      for (const t of state.tareas) delete t.elegibles?.[b.dataset.id];
-      guardar(); render(); break; }
-    case 'addLic': {
-      const l = {id:uid('l_'), emp:document.getElementById('licEmp').value, desde:document.getElementById('licDesde').value, hasta:document.getElementById('licHasta').value, motivo:(document.getElementById('licMotivo').value.trim()||'LICENCIA').toUpperCase()};
-      if (!l.emp || !l.desde || !l.hasta) return toast('Completá funcionario y fechas.');
-      if (l.hasta < l.desde) return toast('La fecha “hasta” es anterior a “desde”.');
-      state.licencias.push(l); guardar(); render(); toast('Licencia agregada.'); break; }
+    case 'falta': abrirFalta(); break;
+    case 'faltaCelda': { const e = sheet.dataset.e, d = sheet.dataset.d; abrirFalta(e, d); break; }
+    case 'guardarFalta': guardarFalta(); break;
+    case 'tog': b.setAttribute('aria-pressed', String(b.getAttribute('aria-pressed')!=='true')); break;
+    case 'opt': sheet.querySelectorAll('.opt').forEach(o=>o.setAttribute('aria-pressed', String(o===b))); document.getElementById('edTxt').hidden = b.dataset.v!=='texto'; if (b.dataset.v==='texto') document.getElementById('edTxt').focus(); break;
+    case 'guardarCelda': guardarCelda(); break;
+    case 'cerrar': cerrarHoja(); break;
+    case 'persona': abrirPersona(b.dataset.id); break;
+    case 'nuevaPersona': abrirPersona(''); break;
+    case 'guardarPersona': guardarPersona(); break;
+    case 'delPersona': {
+      if (b.dataset.sure!=='1'){ b.dataset.sure='1'; b.textContent='¿Seguro? Se borra su historial'; return; }
+      const id = b.dataset.id;
+      state.empleados = state.empleados.filter(e=>e.id!==id); state.licencias = state.licencias.filter(l=>l.emp!==id);
+      for (const t of state.tareas) delete t.elegibles?.[id];
+      guardar(); cerrarHoja(); render(); break; }
+    case 'nuevaAus': abrirAusencia(); break;
+    case 'guardarAus': guardarAusencia(); break;
     case 'delLic': state.licencias = state.licencias.filter(l=>l.id!==b.dataset.id); guardar(); render(); break;
+    case 'pchip': {
+      const t = tarea(card.dataset.t); t.elegibles ||= {};
+      const v = PCICLO[(PCICLO.indexOf(t.elegibles[b.dataset.id]||'no')+1)%PCICLO.length];
+      if (v==='no') delete t.elegibles[b.dataset.id]; else t.elegibles[b.dataset.id] = v;
+      b.className = 'pchip '+v; guardar(); break; }
     case 'elegTodos': case 'elegNinguno': {
-      const t = tarea(b.closest('[data-t]').dataset.t); t.elegibles ||= {};
-      for (const e of state.empleados.filter(e=>e.grupo===b.dataset.g)){ if (a==='elegTodos') t.elegibles[e.id] = t.elegibles[e.id] && t.elegibles[e.id]!=='no' ? t.elegibles[e.id] : 'si'; else delete t.elegibles[e.id]; }
+      const t = tarea(card.dataset.t); t.elegibles ||= {};
+      for (const e of state.empleados.filter(e=>e.grupo===b.dataset.g)){ if (a==='elegTodos') t.elegibles[e.id] = t.elegibles[e.id] || 'si'; else delete t.elegibles[e.id]; }
       guardar(); render(); break; }
+    case 'tmodo': tarea(card.dataset.t).modo = b.dataset.m; guardar(); render(); break;
     case 'addTarea': state.tareas.push({id:uid('t_'), nombre:'NUEVO PUESTO', color:'#b7e1a1', modo:'diario', sinComision:true, cupos:{lun:1,mar:1,mie:1,jue:1,vie:1,sab:0}, elegibles:{}}); guardar(); render(); break;
-    case 'delTarea': {
-      if (b.dataset.sure!=='1'){ b.dataset.sure='1'; b.textContent='¿Seguro? Tocá de nuevo'; return; }
-      state.tareas = state.tareas.filter(t=>t.id!==b.dataset.id); guardar(); render(); break; }
-    case 'addGrupo': {
-      const n = document.getElementById('nuevoGrupoNombre').value.trim(); if (!n) return toast('Escribí el nombre del sector.');
-      state.grupos.push({id:uid('g_'), nombre:n, base:'LOCAL', color:'#f08a84', cupoSab:0}); guardar(); render(); break; }
-    case 'delGrupo': {
-      if (state.empleados.some(e=>e.grupo===b.dataset.id)) return toast('Ese sector tiene personas. Pasalas a otro sector primero.');
-      state.grupos = state.grupos.filter(g=>g.id!==b.dataset.id); guardar(); render(); break; }
-    case 'descargar': {
-      const blob = new Blob([JSON.stringify(state,null,1)], {type:'application/json'});
-      const url = URL.createObjectURL(blob); const link = document.createElement('a');
-      link.href = url; link.download = `planilla-justa-${iso(new Date())}.json`; document.body.appendChild(link); link.click(); link.remove();
-      setTimeout(()=>URL.revokeObjectURL(url), 2000);
-      toast('Si no se descargó, usá “Copiar respaldo”.'); break; }
+    case 'delTarea': if (b.dataset.sure!=='1'){ b.dataset.sure='1'; b.textContent='¿Seguro? Tocá de nuevo'; return; } state.tareas = state.tareas.filter(t=>t.id!==b.dataset.id); guardar(); render(); break;
+    case 'addGrupo': state.grupos.push({id:uid('g_'), nombre:'Nuevo sector', base:'LOCAL', color:'#9fb3ff', cupoSab:0, maxLibres:0}); guardar(); render(); break;
+    case 'delGrupo': if (state.empleados.some(e=>e.grupo===b.dataset.id)) return toast('Ese sector tiene personas. Pasalas a otro sector primero.'); state.grupos = state.grupos.filter(g=>g.id!==b.dataset.id); guardar(); render(); break;
+    case 'comp': { b.setAttribute('aria-pressed', String(b.getAttribute('aria-pressed')!=='true')); state.config.compensatorios = [...document.querySelectorAll('[data-a="comp"][aria-pressed="true"]')].map(x=>x.dataset.d); guardar(); break; }
     case 'copiarJson': copiar(JSON.stringify(state), 'Respaldo copiado. Guardalo en un lugar seguro.'); break;
+    case 'descargar': {
+      const url = URL.createObjectURL(new Blob([JSON.stringify(state,null,1)], {type:'application/json'}));
+      const link = document.createElement('a'); link.href = url; link.download = `planilla-justa-${hoy()}.json`; document.body.appendChild(link); link.click(); link.remove();
+      setTimeout(()=>URL.revokeObjectURL(url), 2000); toast('Si no se descargó, usá “Copiar respaldo”.'); break; }
     case 'importarTexto': importar(document.getElementById('pegado').value); break;
     case 'reset': document.getElementById('resetConf').hidden = false; break;
-    case 'resetOk': state = ejemplo(); guardar(); week = lunesDe(iso(new Date())); vista = 'semana'; render(); toast('Datos de ejemplo restaurados.'); break;
+    case 'resetOk': state = ejemplo(); guardar(); week = lunesDe(hoy()); vista = 'planilla'; render(); toast('Listo, empezaste de cero.'); break;
   }
 });
+sheet.addEventListener('click', ev=>{ if (ev.target===sheet) cerrarHoja(); });
 document.addEventListener('keydown', ev=>{
-  if (ev.key==='Escape' && !document.getElementById('overlay').hidden) cerrarEditor();
-  if ((ev.key==='Enter' || ev.key===' ') && ev.target.matches?.('td.c[data-e]')){ ev.preventDefault(); abrirEditor(ev.target.dataset.e, ev.target.dataset.d); }
+  if (ev.key!=='Escape') return;
+  if (paso>=0) guia(-1); else if (!sheet.hidden) cerrarHoja();
 });
-document.getElementById('overlay').addEventListener('click', ev=>{ if (ev.target.id==='overlay') cerrarEditor(); });
 document.addEventListener('change', ev=>{
-  const el = ev.target;
-  const val = el.type==='checkbox' ? el.checked : el.value;
-  const tr = el.closest('tr[data-emp]');
-  if (tr && el.dataset.f){ const e = emp(tr.dataset.emp); e[el.dataset.f] = el.dataset.f==='nombre' ? String(val).trim() : val; guardar(); if (el.dataset.f==='grupo') render(); return; }
+  const el = ev.target, val = el.type==='checkbox' ? el.checked : el.value;
+  if (el.id==='aTipo'){ document.getElementById('aTxtWrap').hidden = !['curso','otro'].includes(val); document.getElementById('aParcialWrap').hidden = val!=='otro'; document.getElementById('aNota').hidden = val!=='curso'; return; }
   const card = el.closest('[data-t]');
   if (card){
     const t = tarea(card.dataset.t);
     if (el.dataset.tf) t[el.dataset.tf] = el.dataset.tf==='nombre' ? String(val).trim().toUpperCase() : val;
     else if (el.dataset.cupo) t.cupos[el.dataset.cupo] = Math.max(0, +val||0);
-    else if (el.dataset.eleg){ t.elegibles ||= {}; if (val==='no') delete t.elegibles[el.dataset.eleg]; else t.elegibles[el.dataset.eleg] = val; }
     guardar(); return;
   }
-  const gr = el.closest('tr[data-g]');
-  if (gr && el.dataset.gf){ const g = grupo(gr.dataset.g); g[el.dataset.gf] = el.dataset.gf==='cupoSab' ? Math.max(0,+val||0) : el.dataset.gf==='base' ? String(val).trim().toUpperCase() : val; guardar(); return; }
-  if (el.dataset.comp){ const set = new Set(state.config.compensatorios||[]); val ? set.add(el.dataset.comp) : set.delete(el.dataset.comp); state.config.compensatorios = SEM.filter(d=>set.has(d)); guardar(); return; }
+  const gc = el.closest('[data-g]');
+  if (gc && el.dataset.gf){ const g = grupo(gc.dataset.g); g[el.dataset.gf] = ['cupoSab','maxLibres'].includes(el.dataset.gf) ? Math.max(0,+val||0) : el.dataset.gf==='base' ? String(val).trim().toUpperCase() : val; guardar(); return; }
+  const ini = el.closest('[data-ini]');
+  if (ini){ emp(ini.dataset.ini)[el.dataset.if] = val; if (!state.config.inicioFecha) state.config.inicioFecha = lunesDe(hoy()); guardar(); return; }
   if (el.id==='cfgVentana'){ state.config.ventana = Math.min(52, Math.max(2, +val||12)); guardar(); return; }
   if (el.id==='cfgDesc'){ state.config.descansos = String(val).split('\n').map(s=>s.trim()).filter(Boolean); guardar(); return; }
   if (el.id==='archivo' && el.files?.[0]){ const r = new FileReader(); r.onload = () => importar(String(r.result)); r.readAsText(el.files[0]); }
 });
 
 render();
+if (!ls.get('guia')) setTimeout(()=>guia(0), 400);
 </script>
 </body></html>

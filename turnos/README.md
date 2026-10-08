@@ -1,22 +1,31 @@
 # Planilla Justa
 
-App para armar la planilla semanal de funcionarios repartiendo de forma pareja los puestos
-rotativos (Entregas, Depósito, Puerta tarde…), los sábados y los horarios de descanso.
+App para armar la planilla semanal de funcionarios. Reparte los puestos que rotan
+(Entregas, Depósito, Puerta tarde…), los sábados, los días libres y los descansos.
 
 Es un solo archivo (`index.html`), sin servidor ni instalación: se abre en el navegador.
-Los datos quedan guardados en ese navegador; usar la pestaña **Respaldo** para pasarlos a otro equipo.
+Los datos quedan guardados en ese navegador; en **Ajustes → Respaldo** se copian para pasarlos a otro equipo.
 
-## Cómo reparte
+## Qué trae
+
+- **Guía paso a paso** la primera vez que se abre; se vuelve a ver con el botón “?”.
+- **Planilla** por semana (grilla) o por día (cómoda en el celular). Tocando una casilla se ve
+  por qué le tocó eso a esa persona y se puede cambiar; lo cambiado a mano queda fijo.
+- **Avisar falta**: marca la ausencia y, si la persona tenía un puesto que rota, busca a quién le corresponde cubrirlo.
+- **Equipo**: personas, próximo sábado estimado, licencias, teletrabajo y cursos (los días de curso no se asignan puestos que rotan).
+- **Puestos**: cuántas personas necesita cada puesto por día y quién lo puede hacer (o si le gusta / prefiere evitarlo).
+- **Sectores**: personas por sábado y máximo de libres el mismo día.
+- **Ajustes**: días preferidos para el libre compensatorio, horarios de descanso, punto de partida
+  (último sábado y días sin comisión del último mes) y respaldo.
+
+## Cómo reparte (internamente)
 
 1. Respeta lo fijado a mano, las licencias y los días libres fijos.
 2. **Sábados**: por sector, entra primero quien hace más tiempo que no trabaja uno.
-3. **Libre compensatorio**: a quien trabaja el sábado se le da un día (por defecto mar–jue),
-   el que tenga menos compañeros del sector libres.
-4. **Puestos rotativos**: gana quien tenga el menor porcentaje de días sin comisión
-   (sobre días trabajados, en las últimas N semanas confirmadas); después el menor porcentaje en ese puesto;
-   la preferencia declarada solo desempata; luego quien hace más tiempo que no lo hace; al final un sorteo
-   reproducible por semana (nunca el orden alfabético).
-5. Descansos: cada semana todos corren un turno.
+3. **Libre compensatorio**: el día preferido con menos compañeros libres, respetando el máximo por sector.
+4. **Puestos que rotan**: gana quien tenga el menor porcentaje de días sin comisión (sobre días trabajados,
+   en las últimas N semanas confirmadas); después el menor porcentaje en ese puesto; la preferencia solo desempata;
+   luego quien hace más tiempo que no lo hace; al final un sorteo reproducible por semana.
+5. **Descansos**: cada semana todos pasan al turno siguiente.
 
-Cada decisión queda explicada en “Por qué quedó así”, y la pestaña **Equidad** muestra los acumulados.
-Solo las semanas **confirmadas** cuentan para el historial.
+Solo las semanas **confirmadas** cuentan para la rotación.

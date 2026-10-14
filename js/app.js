@@ -2298,74 +2298,545 @@ DATA.academia = [
     n: 2, icon: '🐍', name: 'Python desde cero', lvl: 1, tag: 'BÁSICO',
     sub: 'Variables, decisiones, ciclos y funciones',
     missions: [
-      { t: 'Variables y tipos', xp: 25 }, { t: 'Pedir datos (input)', xp: 25 },
-      { t: 'Calculadora simple', xp: 35 }, { t: 'if / else', xp: 30 },
-      { t: 'Ciclos for y while', xp: 30 }, { t: 'Listas y diccionarios', xp: 35 },
-      { t: 'Funciones', xp: 35 }, { t: 'Reto: verificador de contraseñas', xp: 70, boss: true }
+      {
+        t: 'Variables y tipos', xp: 25,
+        desc: ['Una variable es como una caja con nombre donde guardas un dato. En Python no declaras el tipo: Python lo deduce solo.'],
+        points: [
+          '<b>Texto (str):</b> <code>nombre = "Ninja"</code>',
+          '<b>Número entero (int):</b> <code>edad = 25</code>',
+          '<b>Decimal (float):</b> <code>altura = 1.75</code>',
+          '<b>Booleano (bool):</b> <code>activo = True</code>'
+        ],
+        cmds: [{ label: 'Ver el tipo de una variable', cmd: 'print(type(edad))' }],
+        task: 'Crea un archivo <code>datos.py</code> con tu nombre, edad y estatura en variables, e imprímelas con <code>print()</code>.'
+      },
+      {
+        t: 'Pedir datos (input)', xp: 25,
+        desc: ['<code>input()</code> pausa el programa y espera a que el usuario escriba algo. OJO: siempre devuelve <b>texto</b>; si quieres un número, hay que convertirlo con <code>int()</code> o <code>float()</code>.'],
+        cmds: [
+          { label: 'Pedir texto', cmd: 'nombre = input("¿Cómo te llamas? ")' },
+          { label: 'Pedir un número', cmd: 'edad = int(input("Tu edad: "))' }
+        ],
+        task: 'Haz un programa que te pregunte tu nombre y te salude: "Hola, &lt;nombre&gt;, bienvenido ninja".'
+      },
+      {
+        t: 'Calculadora simple', xp: 35,
+        desc: ['Vamos a juntar variables, input y operaciones matemáticas (+, -, *, /).'],
+        steps: [
+          'Pide dos números con <code>input()</code> y conviértelos con <code>float()</code>.',
+          'Suma, resta, multiplica y divide.',
+          'Imprime cada resultado con <code>print()</code>.'
+        ],
+        cmds: [{ label: 'Ejemplo de operación', cmd: 'print("Suma:", a + b)' }],
+        task: 'Crea <code>calc.py</code> que pida 2 números y muestre su suma, resta, multiplicación y división.'
+      },
+      {
+        t: 'if / else (decisiones)', xp: 30,
+        desc: ['El programa toma decisiones: "SI pasa esto, haz aquello; SI NO, haz otra cosa". La <b>indentación</b> (espacios) es obligatoria en Python.'],
+        points: [
+          'Comparadores: <code>==</code> (igual), <code>!=</code> (distinto), <code>&gt;</code>, <code>&lt;</code>, <code>&gt;=</code>, <code>&lt;=</code>',
+          'Estructura: <code>if condición:</code> → <code>elif otra:</code> → <code>else:</code>'
+        ],
+        cmds: [{ label: 'Ejemplo', cmd: 'if edad >= 18:\n    print("Mayor de edad")\nelse:\n    print("Menor")' }],
+        task: 'Programa que pida tu edad y diga si eres mayor o menor de edad.'
+      },
+      {
+        t: 'Ciclos for y while', xp: 30,
+        desc: ['Los ciclos repiten código sin copiarlo mil veces. <b>for</b> repite una cantidad conocida; <b>while</b> repite mientras se cumpla una condición.'],
+        cmds: [
+          { label: 'for: contar del 1 al 5', cmd: 'for i in range(1, 6):\n    print(i)' },
+          { label: 'while: hasta que pare', cmd: 'n = 0\nwhile n < 3:\n    print(n)\n    n = n + 1' }
+        ],
+        task: 'Usa un <code>for</code> para imprimir la tabla del 5 (del 5x1 al 5x10).'
+      },
+      {
+        t: 'Listas y diccionarios', xp: 35,
+        desc: ['La <b>lista</b> guarda varios valores en orden. El <b>diccionario</b> guarda pares clave→valor, como una agenda.'],
+        cmds: [
+          { label: 'Lista', cmd: 'tools = ["nmap", "wireshark", "burp"]\nprint(tools[0])' },
+          { label: 'Diccionario', cmd: 'user = {"nombre": "ninja", "nivel": 1}\nprint(user["nombre"])' }
+        ],
+        task: 'Crea una lista con 3 herramientas de seguridad y recórrela con un <code>for</code> imprimiéndolas.'
+      },
+      {
+        t: 'Funciones', xp: 35,
+        desc: ['Una función es un bloque de código con nombre que puedes reutilizar. Recibe datos (parámetros) y puede devolver un resultado (<code>return</code>).'],
+        cmds: [{ label: 'Definir y usar', cmd: 'def saludar(nombre):\n    return "Hola " + nombre\n\nprint(saludar("Ninja"))' }],
+        task: 'Crea una función <code>area_rectangulo(base, altura)</code> que devuelva el área, y pruébala.'
+      },
+      {
+        t: 'Reto: verificador de contraseñas', xp: 70, gems: 5, boss: true,
+        desc: ['Tu primer programa de seguridad real: evalúa si una contraseña es fuerte revisando su longitud y si tiene números y símbolos.'],
+        steps: [
+          'Pide una contraseña con <code>input()</code>.',
+          'Revisa si tiene 8+ caracteres (<code>len(pw) >= 8</code>).',
+          'Revisa si contiene algún número (recorre con un <code>for</code> y usa <code>.isdigit()</code>).',
+          'Según lo que cumpla, imprime "Débil", "Media" o "Fuerte".'
+        ],
+        task: 'Logra que tu programa clasifique al menos 3 contraseñas distintas correctamente. ¡Eso te sube de rango!'
+      }
     ]
   },
   {
     n: 3, icon: '🌐', name: 'Redes y Linux', lvl: 1, tag: 'FUNDAMENTOS',
     sub: 'Cómo viaja la información y cómo moverte en Linux',
     missions: [
-      { t: 'IP, DNS y puertos', xp: 30 }, { t: 'TCP/IP y HTTP(S)', xp: 30 },
-      { t: 'Linux por terminal', xp: 35 }, { t: 'Permisos y usuarios', xp: 30 },
-      { t: 'Leer logs del sistema', xp: 35 }, { t: 'Reto: mapa de tu red', xp: 70, boss: true }
+      {
+        t: 'IP, DNS y puertos', xp: 30,
+        desc: ['Para que dos equipos hablen, cada uno necesita una <b>dirección IP</b> (como una dirección postal). El <b>DNS</b> traduce nombres (google.com) a IPs. Los <b>puertos</b> son las "puertas" por donde entra cada servicio.'],
+        points: [
+          '<b>IP privada:</b> tu equipo en la red local (ej. 192.168.1.10).',
+          '<b>IP pública:</b> cómo te ve internet (te la da tu proveedor).',
+          '<b>Puertos comunes:</b> 80 (web), 443 (web segura), 22 (SSH), 53 (DNS).'
+        ],
+        cmds: [
+          { label: 'Ver tu IP en Windows', cmd: 'ipconfig' },
+          { label: 'Ver a qué IP resuelve un dominio', cmd: 'nslookup google.com' }
+        ],
+        task: 'Averigua tu IP local con <code>ipconfig</code> y anótala en el Block de notas.'
+      },
+      {
+        t: 'TCP/IP y HTTP(S)', xp: 30,
+        desc: ['La información viaja partida en <b>paquetes</b>. TCP/IP es el conjunto de reglas que asegura que lleguen y se ordenen. HTTP es el idioma de la web; HTTPS es lo mismo pero cifrado (el candado 🔒).'],
+        points: [
+          '<b>TCP:</b> conexión fiable, confirma que todo llegó (web, correo).',
+          '<b>UDP:</b> rápido, sin confirmación (videollamadas, juegos).',
+          '<b>HTTPS:</b> cifra los datos para que nadie en medio los lea.'
+        ],
+        task: 'Entra a un sitio con <b>https://</b> y uno con <b>http://</b>. Observa el candado y la advertencia. Anota la diferencia.'
+      },
+      {
+        t: 'Linux por terminal', xp: 35,
+        desc: ['La mayoría de servidores y herramientas de seguridad viven en Linux. Moverte por su terminal es imprescindible. Puedes practicar en Termux (Android) o en una máquina virtual.'],
+        cmds: [
+          { label: 'Dónde estoy', cmd: 'pwd' },
+          { label: 'Listar archivos (con detalle)', cmd: 'ls -la' },
+          { label: 'Entrar/salir de carpetas', cmd: 'cd carpeta   # cd .. para subir' },
+          { label: 'Ver contenido de un archivo', cmd: 'cat archivo.txt' }
+        ],
+        task: 'En Termux o una VM, crea una carpeta con <code>mkdir labs</code>, entra con <code>cd labs</code> y confírmalo con <code>pwd</code>.'
+      },
+      {
+        t: 'Permisos y usuarios', xp: 30,
+        desc: ['En Linux cada archivo tiene dueño y permisos de lectura (r), escritura (w) y ejecución (x). El usuario <b>root</b> es el administrador total: con gran poder viene gran responsabilidad.'],
+        cmds: [
+          { label: 'Ver permisos', cmd: 'ls -l' },
+          { label: 'Dar permiso de ejecución', cmd: 'chmod +x script.sh' },
+          { label: 'Quién soy', cmd: 'whoami' }
+        ],
+        task: 'Crea un archivo, míralo con <code>ls -l</code> y aprende a leer los permisos (los primeros 10 caracteres).'
+      },
+      {
+        t: 'Leer logs del sistema', xp: 35,
+        desc: ['Los <b>logs</b> son el diario del sistema: registran qué pasó y cuándo. Para un defensor, son la primera pista de un intruso.'],
+        points: [
+          '<b>Windows:</b> "Visor de eventos" (Event Viewer).',
+          '<b>Linux:</b> carpeta <code>/var/log/</code> y el comando <code>journalctl</code>.'
+        ],
+        cmds: [
+          { label: 'Linux: últimos accesos', cmd: 'last' },
+          { label: 'Linux: ver un log en vivo', cmd: 'tail -f /var/log/syslog' }
+        ],
+        task: 'En Windows abre el "Visor de eventos" y busca la sección de Seguridad. Observa los inicios de sesión.'
+      },
+      {
+        t: 'Reto: mapa de tu red', xp: 70, gems: 5, boss: true,
+        desc: ['Descubre qué dispositivos están conectados a TU propia red WiFi. Esto es reconocimiento legítimo porque la red es tuya.'],
+        steps: [
+          'Averigua tu rango de red con <code>ipconfig</code> (ej. 192.168.1.x).',
+          'Con Nmap (en Termux o PC) escanea la red: <code>nmap -sn 192.168.1.0/24</code>.',
+          'Anota cuántos dispositivos aparecen e intenta identificarlos (router, tu celular, tu PC).'
+        ],
+        note: 'Hazlo SOLO en tu red. Escanear redes ajenas sin permiso es ilegal.',
+        task: 'Entrega: una lista de los dispositivos encontrados en tu red, guardada en el Block de notas.'
+      }
     ]
   },
   {
     n: 4, icon: '🛡️', name: 'Defensa personal', lvl: 2, tag: 'DEFENSA',
     sub: 'Protege tus cuentas, tu equipo y tu privacidad',
     missions: [
-      { t: 'Contraseñas y 2FA', xp: 30 }, { t: 'Copias de seguridad 3-2-1', xp: 30 },
-      { t: 'Endurecer tu sistema', xp: 35 }, { t: 'Phishing e ingeniería social', xp: 35 },
-      { t: 'Privacidad y rastreo', xp: 35 }, { t: 'Reto: auditoría personal', xp: 75, boss: true }
+      {
+        t: 'Contraseñas y 2FA', xp: 30,
+        desc: ['El 80% de los hackeos empiezan por una contraseña débil o robada. Dos reglas cambian todo: usar un <b>gestor de contraseñas</b> y activar la <b>verificación en dos pasos (2FA)</b>.'],
+        points: [
+          'Una contraseña distinta y larga por cada cuenta (el gestor las recuerda por ti).',
+          'Gestores gratis: Bitwarden, KeePass.',
+          '<b>2FA:</b> usa app (Google/Microsoft Authenticator) o llave física, <b>no</b> SMS (se puede interceptar).'
+        ],
+        task: 'Activa 2FA en tu cuenta más importante (correo) usando una app autenticadora. Es lo más valioso que harás hoy.'
+      },
+      {
+        t: 'Copias de seguridad 3-2-1', xp: 30,
+        desc: ['Si un ransomware o un robo te deja sin datos, solo te salva un respaldo. La regla <b>3-2-1</b> es el estándar.'],
+        points: [
+          '<b>3</b> copias de tus datos importantes.',
+          '<b>2</b> medios distintos (ej. disco externo + nube).',
+          '<b>1</b> copia fuera de casa (nube o un disco en otro lugar).'
+        ],
+        task: 'Identifica tus 3 archivos/carpetas más irremplazables y haz una copia en un segundo lugar (USB o nube) hoy.'
+      },
+      {
+        t: 'Endurecer tu sistema', xp: 35,
+        desc: ['"Endurecer" (hardening) es cerrar puertas que no usas para dar menos superficie de ataque.'],
+        points: [
+          'Mantén Windows/Android y las apps <b>actualizados</b> (los parches tapan agujeros).',
+          'Activa el <b>firewall</b> y el antivirus (Windows Defender ya es bueno).',
+          'Desinstala apps que no usas y revisa permisos de las apps del celular.',
+          'Cifra tu disco (BitLocker en Windows, cifrado nativo en Android).'
+        ],
+        task: 'Revisa y aplica las actualizaciones pendientes en tu PC y tu celular. Luego revisa qué apps tienen permiso de ubicación.'
+      },
+      {
+        t: 'Phishing e ingeniería social', xp: 35,
+        desc: ['El ataque más común no rompe la máquina: te engaña a <b>ti</b>. El phishing son mensajes falsos (correo, SMS, WhatsApp) que te urgen a hacer clic o dar datos.'],
+        points: [
+          'Señales: urgencia ("tu cuenta será bloqueada"), errores de ortografía, remitente raro, enlaces extraños.',
+          'Nunca des contraseñas ni códigos 2FA por mensaje o llamada.',
+          'Ante la duda, entra tú mismo al sitio oficial, no por el enlace del mensaje.'
+        ],
+        task: 'Busca en tu correo/spam un mensaje sospechoso y detecta 3 señales de phishing en él. Anótalas.'
+      },
+      {
+        t: 'Privacidad y rastreo', xp: 35,
+        desc: ['Cada día dejas rastros digitales. Reducirlos te hace un blanco más difícil.'],
+        points: [
+          'Usa un navegador con bloqueo de rastreadores (Firefox, Brave) y la extensión uBlock Origin.',
+          'Revisa la privacidad de tus redes sociales: ¿quién ve tu info?',
+          'Un <b>DNS</b> como el 1.1.1.1 o un Pi-hole bloquea rastreo en toda tu casa.'
+        ],
+        task: 'Busca tu nombre y usuario en Google (ego-OSINT): mira cuánta información tuya es pública y decide qué reducir.'
+      },
+      {
+        t: 'Reto: auditoría personal', xp: 75, gems: 5, boss: true,
+        desc: ['Pon en práctica todo el módulo: haz una revisión de seguridad de tu propia vida digital.'],
+        steps: [
+          'Lista tus 5 cuentas más importantes.',
+          'Verifica: ¿contraseña única? ¿2FA activo? ¿respaldo de sus datos?',
+          'Marca lo que falta y corrígelo.'
+        ],
+        task: 'Entrega una "checklist de seguridad personal" en el Block de notas con las 5 cuentas y su estado. ¡Acabas de hacer tu primera auditoría!'
+      }
     ]
   },
   {
     n: 5, icon: '🕵️', name: 'Detectar intrusos', lvl: 2, tag: 'BLUE TEAM',
     sub: 'Ver lo que no debería estar ahí',
     missions: [
-      { t: 'Procesos y conexiones', xp: 35 }, { t: 'Tráfico con Wireshark', xp: 40 },
-      { t: 'IDS: Suricata/Zeek', xp: 40 }, { t: 'SIEM casero (Wazuh)', xp: 45 },
-      { t: 'Responder a un incidente', xp: 40 }, { t: 'Reto: caza de intruso', xp: 80, boss: true }
+      {
+        t: 'Procesos y conexiones', xp: 35,
+        desc: ['Un intruso casi siempre deja rastro: un proceso raro corriendo o una conexión saliente a un servidor desconocido. Aprender a mirar eso es el ABC del "blue team" (defensa).'],
+        cmds: [
+          { label: 'Windows: conexiones activas', cmd: 'netstat -ano' },
+          { label: 'Windows: procesos', cmd: 'tasklist' },
+          { label: 'Linux: conexiones', cmd: 'ss -tunp' }
+        ],
+        task: 'Ejecuta <code>netstat -ano</code> en tu PC y revisa a qué direcciones te estás conectando. Investiga una que no reconozcas.'
+      },
+      {
+        t: 'Tráfico con Wireshark', xp: 40,
+        desc: ['Wireshark captura y muestra TODO el tráfico de red, paquete por paquete. Es como ver las cartas que entran y salen de tu casa. Imprescindible para entender qué pasa en tu red.'],
+        points: [
+          'Instálalo gratis desde wireshark.org (Windows/Mac/Linux).',
+          'Filtra para no ahogarte: <code>http</code>, <code>dns</code>, <code>ip.addr == 192.168.1.10</code>.',
+          'Verás cómo HTTP viaja en texto plano y HTTPS cifrado.'
+        ],
+        task: 'Captura tráfico 30 segundos mientras navegas, y filtra por <code>dns</code> para ver qué dominios consulta tu equipo.'
+      },
+      {
+        t: 'IDS: Suricata / Zeek', xp: 40,
+        desc: ['Un IDS (Sistema de Detección de Intrusos) vigila la red automáticamente y alerta cuando ve algo malicioso, usando reglas y patrones. Es como una alarma para tu red.'],
+        points: [
+          '<b>Suricata:</b> detecta ataques comparando el tráfico con miles de reglas.',
+          '<b>Zeek:</b> registra y analiza el comportamiento de la red en detalle.',
+          'Se suelen montar en una Raspberry Pi o una VM que vigila tu red.'
+        ],
+        task: 'Investiga qué es una "regla" de Suricata y anota con tus palabras qué detectaría una regla de ejemplo.'
+      },
+      {
+        t: 'SIEM casero (Wazuh)', xp: 45,
+        desc: ['Un SIEM junta los logs de todos tus equipos en un solo panel y los correlaciona para detectar ataques. Wazuh es gratuito y de los mejores para aprender.'],
+        points: [
+          'Centraliza logs de Windows, Linux y servidores.',
+          'Detecta cambios sospechosos en archivos, logins fallidos, malware.',
+          'Se practica en máquinas virtuales (Wazuh + un par de agentes).'
+        ],
+        task: 'Mira el vídeo/documentación de instalación de Wazuh y anota los 3 componentes principales (manager, agente, dashboard).'
+      },
+      {
+        t: 'Responder a un incidente', xp: 40,
+        desc: ['Detectar es la mitad; la otra mitad es reaccionar bien. La respuesta a incidentes sigue pasos ordenados para no empeorar las cosas.'],
+        points: [
+          '1. <b>Identificar</b>: ¿qué pasó y qué alcance tiene?',
+          '2. <b>Contener</b>: aísla el equipo (desconéctalo de la red).',
+          '3. <b>Erradicar</b>: elimina el malware/acceso del atacante.',
+          '4. <b>Recuperar</b>: restaura desde respaldos limpios.',
+          '5. <b>Aprender</b>: documenta para que no vuelva a pasar.'
+        ],
+        task: 'Escribe tu propio "plan de 5 pasos" para qué harías si tu PC fuera infectada hoy.'
+      },
+      {
+        t: 'Reto: caza de intruso', xp: 80, gems: 5, boss: true,
+        desc: ['Simula ser el defensor: revisa tu equipo buscando lo que no debería estar.'],
+        steps: [
+          'Lista los procesos y conexiones activas (<code>tasklist</code> / <code>netstat -ano</code>).',
+          'Revisa los programas que arrancan con el sistema (Administrador de tareas → Inicio).',
+          'Busca algo que no reconozcas y decide: ¿normal o sospechoso?'
+        ],
+        task: 'Entrega un breve "informe de caza": qué revisaste, qué encontraste y tu conclusión. Así piensa un analista SOC.'
+      }
     ]
   },
   {
     n: 6, icon: '⚔️', name: 'Hacking ético (lab)', lvl: 3, tag: 'OFENSIVA ÉTICA',
     sub: 'Ofensiva SOLO en laboratorio propio y legal',
     missions: [
-      { t: 'Reglas, ética y la ley', xp: 40 }, { t: 'Montar tu laboratorio (VMs)', xp: 45 },
-      { t: 'Reconocimiento con Nmap', xp: 45 }, { t: 'Web: OWASP Top 10 + Burp', xp: 50 },
-      { t: 'Escalada de privilegios', xp: 50 }, { t: 'Escribir un reporte', xp: 45 },
-      { t: 'Reto: CTF guiado', xp: 90, boss: true }
+      {
+        t: 'Reglas, ética y la ley', xp: 40,
+        desc: ['Antes de tocar una sola herramienta ofensiva: esto define si eres un profesional o un delincuente. La única diferencia entre un pentester y un criminal es la <b>autorización</b>.'],
+        points: [
+          'Atacar un sistema sin permiso <b>escrito</b> es delito, aunque "solo estés probando".',
+          'En México lo castiga el Código Penal Federal; en casi todo el mundo hay leyes similares.',
+          'Practica SOLO en: tus propias máquinas, laboratorios diseñados para ello (TryHackMe, Hack The Box) o con un contrato firmado.',
+          'Principio: primero no causar daño; reporta lo que encuentres, no lo abuses.'
+        ],
+        task: 'Escribe en el Block de notas tu propio "código de ética": 3 reglas que te comprometes a no romper nunca.'
+      },
+      {
+        t: 'Montar tu laboratorio (VMs)', xp: 45,
+        desc: ['Un laboratorio son máquinas virtuales (VMs) en tu propia PC: ahí puedes atacar y romper cosas sin afectar a nadie ni cometer delito. Es tu campo de entrenamiento legal.'],
+        points: [
+          'Instala VirtualBox (gratis) en tu Acer.',
+          '<b>Atacante:</b> Kali Linux (trae las herramientas listas).',
+          '<b>Víctimas de práctica:</b> Metasploitable, o máquinas vulnerables de VulnHub.',
+          'Configura la red en modo "solo-anfitrión" para que quede aislada.'
+        ],
+        task: 'Investiga los requisitos de VirtualBox + Kali y anota si tu Acer Nitro 5 los cumple (RAM, espacio).'
+      },
+      {
+        t: 'Reconocimiento con Nmap', xp: 45,
+        desc: ['El reconocimiento es la primera fase: averiguar qué hay en el objetivo (puertos abiertos, servicios, versiones). Practícalo contra tus VMs o contra <code>scanme.nmap.org</code>, que permite escaneos.'],
+        cmds: [
+          { label: 'Escaneo con detección de versiones', cmd: 'nmap -sV scanme.nmap.org' },
+          { label: 'Detectar sistema operativo', cmd: 'nmap -O <ip-de-tu-vm>' },
+          { label: 'Todos los puertos', cmd: 'nmap -p- <ip-de-tu-vm>' }
+        ],
+        note: 'scanme.nmap.org es un objetivo legal de práctica. Para todo lo demás: solo tus propias VMs o con permiso.',
+        task: 'Escanea <code>scanme.nmap.org</code> con <code>-sV</code> y anota qué puertos y servicios encontró.'
+      },
+      {
+        t: 'Web: OWASP Top 10 + Burp', xp: 50,
+        desc: ['La mayoría de los ataques hoy son a aplicaciones web. El <b>OWASP Top 10</b> es la lista de las 10 fallas web más críticas. Burp Suite es el proxy que te deja ver y modificar las peticiones.'],
+        points: [
+          'Fallas clave: inyección SQL, XSS (scripts en la web), control de acceso roto.',
+          'La <b>PortSwigger Web Security Academy</b> es gratis y la mejor para aprenderlo (con laboratorios legales).',
+          'Burp Community Edition es gratis para practicar.'
+        ],
+        task: 'Crea tu cuenta gratis en PortSwigger Web Security Academy y completa tu primer laboratorio de SQL injection.'
+      },
+      {
+        t: 'Escalada de privilegios', xp: 50,
+        desc: ['Entrar a un sistema como usuario normal es solo el principio; la escalada de privilegios es pasar de usuario limitado a administrador/root. Se practica en máquinas vulnerables de laboratorio.'],
+        points: [
+          'Se busca: configuraciones erróneas, permisos flojos, software desactualizado.',
+          'Herramientas de ayuda: LinPEAS (Linux), WinPEAS (Windows).',
+          'Entenderlo te enseña también a <b>defender</b>: cierras esos huecos.'
+        ],
+        task: 'Investiga qué es un permiso "SUID" en Linux y por qué puede permitir escalar privilegios. Resúmelo en 3 líneas.'
+      },
+      {
+        t: 'Escribir un reporte', xp: 45,
+        desc: ['Un pentester que no sabe reportar, no consigue trabajo. El reporte es el producto real: explica qué encontraste, qué tan grave es y cómo arreglarlo.'],
+        points: [
+          'Por cada hallazgo: descripción, riesgo (alto/medio/bajo), evidencia y recomendación.',
+          'Resumen ejecutivo para jefes + detalle técnico para el equipo.',
+          'Lenguaje claro: el que lee quizás no es técnico.'
+        ],
+        task: 'Escribe un mini-reporte de un hallazgo (real de tu lab o inventado de práctica) con: qué, riesgo y cómo solucionarlo.'
+      },
+      {
+        t: 'Reto: CTF guiado', xp: 90, gems: 5, boss: true,
+        desc: ['Un CTF (Capture The Flag) es un reto de hacking legal donde resuelves máquinas vulnerables para encontrar "banderas". Es la mejor forma de practicar de verdad.'],
+        steps: [
+          'Crea cuenta gratis en TryHackMe.',
+          'Empieza por la ruta "Pre Security" o "Complete Beginner".',
+          'Completa tu primera sala guiada de principio a fin.'
+        ],
+        task: 'Captura tu primera flag en una sala de TryHackMe. ¡Ahí empieza tu carrera ofensiva de verdad!'
+      }
     ]
   },
   {
     n: 7, icon: '🤖', name: 'Inteligencia artificial', lvl: 4, tag: 'AVANZADO',
     sub: 'ML, LLMs y seguridad de la IA',
     missions: [
-      { t: 'Mates mínimas para IA', xp: 40 }, { t: 'ML con scikit-learn', xp: 50 },
-      { t: 'Deep learning (PyTorch)', xp: 55 }, { t: 'Usar LLMs y agentes', xp: 50 },
-      { t: 'IA + seguridad (anomalías)', xp: 55 }, { t: 'Reto: detector con IA', xp: 95, boss: true }
+      {
+        t: 'Mates mínimas para IA', xp: 40,
+        desc: ['No necesitas ser matemático, pero sí entender las bases prácticas. La IA es, en el fondo, estadística y álgebra aplicadas a montañas de datos.'],
+        points: [
+          '<b>Estadística:</b> media, mediana, probabilidad (para entender los datos).',
+          '<b>Álgebra lineal:</b> vectores y matrices (cómo la IA representa la info).',
+          'Enfócate en la intuición primero; las fórmulas vienen después.'
+        ],
+        task: 'Repasa qué es la media y la probabilidad con un ejemplo propio (ej. probabilidad de que llueva). Anótalo.'
+      },
+      {
+        t: 'ML con scikit-learn', xp: 50,
+        desc: ['El Machine Learning "clásico" aprende patrones de datos para predecir o clasificar. scikit-learn es la librería de Python perfecta para empezar.'],
+        cmds: [
+          { label: 'Instalar', cmd: 'pip install scikit-learn pandas' },
+          { label: 'Importar', cmd: 'from sklearn.linear_model import LogisticRegression' }
+        ],
+        points: [
+          '<b>Supervisado:</b> le das ejemplos con respuesta (spam / no spam).',
+          '<b>No supervisado:</b> encuentra grupos solo (clustering).'
+        ],
+        task: 'Instala scikit-learn y busca el ejemplo "iris dataset". Entiende qué predice (el tipo de flor según medidas).'
+      },
+      {
+        t: 'Deep learning (PyTorch)', xp: 55,
+        desc: ['El deep learning usa redes neuronales (inspiradas en el cerebro) para tareas complejas: imágenes, voz, lenguaje. PyTorch es el framework más usado para aprender.'],
+        points: [
+          'Una red neuronal son capas de "neuronas" que ajustan pesos al entrenar.',
+          'Necesita muchos datos y, para ir rápido, una GPU (tu Nitro 5 tiene una).',
+          'Empieza con un clasificador de imágenes simple (dígitos MNIST).'
+        ],
+        task: 'Instala PyTorch (pytorch.org te da el comando según tu PC) y verifica que importa sin error: <code>import torch</code>.'
+      },
+      {
+        t: 'Usar LLMs y agentes', xp: 50,
+        desc: ['Los LLMs (como el que te responde ahora) entienden y generan lenguaje. Puedes usarlos vía API para construir tus propias herramientas y "agentes" que hacen tareas.'],
+        points: [
+          'Un <b>prompt</b> bien escrito vale oro: claro, con contexto y ejemplos.',
+          'Vía API puedes automatizar: resumir logs, clasificar alertas, generar reportes.',
+          'Un <b>agente</b> es un LLM + herramientas (puede buscar, ejecutar, decidir).'
+        ],
+        task: 'Escribe 3 prompts distintos para una misma tarea (ej. "resume este texto") y compara cuál da mejor resultado.'
+      },
+      {
+        t: 'IA + seguridad (anomalías)', xp: 55,
+        desc: ['Aquí se unen tus dos mundos. La IA detecta en segundos patrones raros en millones de logs que un humano jamás vería: es el futuro del blue team.'],
+        points: [
+          '<b>Detección de anomalías:</b> la IA aprende lo "normal" y alerta lo raro.',
+          'Clasificación de malware, filtrado de spam/phishing, análisis de tráfico.',
+          '<b>Seguridad DE la IA:</b> ataques como "prompt injection" y el OWASP Top 10 para LLMs.'
+        ],
+        task: 'Investiga qué es "prompt injection" y anota un ejemplo de cómo alguien intentaría engañar a un asistente de IA.'
+      },
+      {
+        t: 'Reto: detector con IA', xp: 95, gems: 5, boss: true,
+        desc: ['Une Python + ML para resolver un problema de seguridad real: un detector simple de spam o de contraseñas filtradas.'],
+        steps: [
+          'Consigue un dataset de ejemplo (spam, o lista de contraseñas comunes).',
+          'Entrena un modelo simple con scikit-learn.',
+          'Pruébalo con ejemplos nuevos y mide cuántos acierta.'
+        ],
+        task: 'Entrega: un script que clasifique al menos 5 ejemplos nuevos. ¡Tu primer proyecto de IA aplicada a seguridad!'
+      }
     ]
   },
   {
     n: 8, icon: '🚁', name: 'Drones', lvl: 4, tag: 'AVANZADO',
     sub: 'Vuelo legal, armado y autonomía con código',
     missions: [
-      { t: 'Lo legal primero (registro)', xp: 40 }, { t: 'Volar en simulador', xp: 45 },
-      { t: 'Armar: ArduPilot/PX4', xp: 55 }, { t: 'Programarlo (Python/MAVSDK)', xp: 55 },
-      { t: 'Visión por computadora', xp: 55 }, { t: 'Reto: misión autónoma', xp: 95, boss: true }
+      {
+        t: 'Lo legal primero (registro)', xp: 40,
+        desc: ['Antes de volar: los drones están regulados. Volar donde no debes o sin registro puede costarte multas serias e incluso el dron.'],
+        points: [
+          'En México el registro es ante la <b>AFAC</b>; cada país tiene su autoridad de aviación civil.',
+          'No vueles cerca de aeropuertos, sobre multitudes ni en zonas restringidas.',
+          'A partir de cierto peso (suele ser 250 g) el registro es obligatorio.'
+        ],
+        task: 'Busca la autoridad de drones de tu país y anota: ¿desde qué peso hay que registrar y dónde se hace?'
+      },
+      {
+        t: 'Volar en simulador', xp: 45,
+        desc: ['Estrellar un dron real cuesta dinero. Un simulador te deja aprender a controlarlo sin riesgo, hasta que tus dedos reaccionen solos.'],
+        points: [
+          'Simuladores: Liftoff, DRL Simulator, o el de DJI.',
+          'Aprende los 4 controles básicos (throttle, yaw, pitch, roll).',
+          'Con un control (mando) real conectado se siente casi idéntico.'
+        ],
+        task: 'Prueba un simulador de dron (gratis o demo) y practica despegar, mantener estable y aterrizar.'
+      },
+      {
+        t: 'Armar: ArduPilot / PX4', xp: 55,
+        desc: ['Un dron propio te da control total. El "cerebro" es la controladora de vuelo con firmware como ArduPilot o PX4, que estabiliza y ejecuta misiones.'],
+        points: [
+          'Partes: frame, motores, ESCs, hélices, batería LiPo, controladora, radio.',
+          '<b>Cuidado con las LiPo:</b> mal manejadas se incendian; cárgalas con balanceador y vigílalas.',
+          'ArduPilot y PX4 son gratuitos y de código abierto.'
+        ],
+        task: 'Investiga las partes mínimas de un dron y haz una lista con precios aproximados de un kit de iniciación.'
+      },
+      {
+        t: 'Programarlo (Python / MAVSDK)', xp: 55,
+        desc: ['Aquí vuelve Python: puedes darle órdenes al dron por código para que vuele solo. MAVSDK y DroneKit hablan el protocolo MAVLink de la controladora.'],
+        cmds: [
+          { label: 'Instalar MAVSDK', cmd: 'pip install mavsdk' }
+        ],
+        points: [
+          'Puedes probar TODO en un simulador (SITL) antes de volar de verdad.',
+          'Órdenes típicas: despegar, ir a coordenadas GPS, aterrizar.'
+        ],
+        task: 'Investiga qué es MAVLink y anota 3 órdenes que se le pueden enviar a un dron por código.'
+      },
+      {
+        t: 'Visión por computadora', xp: 55,
+        desc: ['Un dron con cámara + IA puede ver y entender su entorno: seguir un objeto, detectar personas, mapear un terreno. Aquí se unen drones + IA.'],
+        points: [
+          'OpenCV (Python) para procesar la imagen.',
+          'Modelos como YOLO para detectar objetos en tiempo real.',
+          'Usos buenos: búsqueda y rescate, agricultura, inspección.'
+        ],
+        task: 'Instala OpenCV (<code>pip install opencv-python</code>) y corre un ejemplo que detecte bordes en una foto tuya.'
+      },
+      {
+        t: 'Reto: misión autónoma', xp: 95, gems: 5, boss: true,
+        desc: ['El objetivo final: un dron que ejecute una misión solo, en simulador (seguro y legal).'],
+        steps: [
+          'Monta un simulador SITL de ArduPilot o PX4.',
+          'Escribe un script en Python que despegue, vaya a un punto y aterrice.',
+          'Ejecútalo contra el simulador y observa el vuelo.'
+        ],
+        task: 'Logra que tu dron simulado haga un vuelo autónomo completo (despegue → punto → aterrizaje) por código.'
+      }
     ]
   },
   {
     n: 9, icon: '📡', name: 'Resiliencia y comunicaciones', lvl: 3, tag: 'RESILIENCIA',
     sub: 'Seguir conectado y seguro si cae la infraestructura',
     missions: [
-      { t: 'Comunicación sin internet (radio, LoRa/Meshtastic)', xp: 45 },
-      { t: 'Redes mesh comunitarias', xp: 50 },
-      { t: 'Energía: solar y baterías', xp: 40 },
+      {
+        t: 'Comunicación sin internet (radio, LoRa/Meshtastic)', xp: 45,
+        desc: ['Si cae el internet o la red celular, la radio sigue funcionando. Hoy puedes mandar mensajes de texto a kilómetros con dispositivos baratos de bajo consumo.'],
+        points: [
+          '<b>Radio FM/walkie:</b> voz a corta distancia, sin infraestructura.',
+          '<b>LoRa / Meshtastic:</b> mensajería de texto por radio, decenas de km, con módulos de ~30 USD y tu celular.',
+          '<b>Radioafición (HAM):</b> mayor alcance, pero requiere licencia.'
+        ],
+        task: 'Investiga qué es Meshtastic y anota qué hardware mínimo necesitarías para probarlo con un amigo.'
+      },
+      {
+        t: 'Redes mesh comunitarias', xp: 50,
+        desc: ['Una red mesh conecta muchos dispositivos entre sí, sin depender de un operador: cada nodo reenvía los mensajes de los demás. Si un nodo cae, el resto sigue.'],
+        points: [
+          'No hay un punto central que apagar: es resistente por diseño.',
+          'Ejemplos: Meshtastic (texto por LoRa), redes WiFi comunitarias.',
+          'Útil en zonas sin cobertura o cuando la infraestructura falla.'
+        ],
+        task: 'Dibuja (o describe) cómo 4 casas de tu calle podrían conectarse en malla para avisarse entre sí sin internet.'
+      },
+      {
+        t: 'Energía: solar y baterías', xp: 40,
+        desc: ['Sin energía, ningún dispositivo sirve. Saber generar y almacenar electricidad te mantiene operativo.'],
+        points: [
+          'Un panel solar pequeño + una power bank grande mantienen celular y radios.',
+          'Entiende los vatios-hora (Wh): cuánta energía guarda tu batería.',
+          'Prioriza: comunicación y linterna primero.'
+        ],
+        task: 'Calcula cuántas veces podrías cargar tu celular con una power bank de 20.000 mAh (apunta el cálculo).'
+      },
       {
         t: 'Ver con radiofrecuencia (WiFi / RF sensing)', xp: 55, gems: 3,
         desc: [
@@ -2379,11 +2850,56 @@ DATA.academia = [
         task: 'Investiga qué es el <b>CSI</b> (Channel State Information) y anota en el Block de notas 2 usos buenos (domótica, salud) y 2 riesgos (vigilancia).',
         note: 'Realismo: es investigación avanzada. Necesita hardware específico (tarjetas con acceso a CSI, un SDR como HackRF, o sensores mmWave) y modelos de IA. NO es la "visión de rayos X" instantánea de las películas: da siluetas y patrones, no imágenes nítidas. Su lado útil es domótica, salud y seguridad; su lado oscuro es la vigilancia, y por eso también aprenderás a protegerte.'
       },
-      { t: 'OPSEC: privacidad extrema', xp: 50 },
-      { t: 'Cifrado y borrado seguro de datos', xp: 45 },
-      { t: 'OSINT y verificar información', xp: 45 },
-      { t: 'Mapas y GPS offline', xp: 35 },
-      { t: 'Reto: tu kit de resiliencia', xp: 90, boss: true }
+      {
+        t: 'OPSEC: privacidad extrema', xp: 50,
+        desc: ['OPSEC (seguridad operacional) es el arte de no dejar rastros que te expongan. Es pensar como quien te busca para no darle pistas.'],
+        points: [
+          'Separa identidades: lo personal no se mezcla con lo sensible.',
+          'Cuida los metadatos: una foto puede llevar tu ubicación GPS.',
+          'Menos es más: no publiques lo que no necesitas publicar.'
+        ],
+        task: 'Toma una foto con el celular y revisa sus metadatos (propiedades): ¿incluye ubicación? Aprende a quitarla.'
+      },
+      {
+        t: 'Cifrado y borrado seguro de datos', xp: 45,
+        desc: ['Cifrar convierte tus datos en algo ilegible sin la clave. Borrar de forma segura evita que alguien recupere lo que eliminaste.'],
+        points: [
+          'Cifra discos: BitLocker (Windows), cifrado nativo (Android/Linux).',
+          'Cifra archivos sueltos o carpetas con VeraCrypt (gratis).',
+          'Borrado seguro: sobrescribe los datos, no solo "mandar a la papelera".'
+        ],
+        task: 'Investiga VeraCrypt y anota cómo crearías un "contenedor" cifrado para tus documentos sensibles.'
+      },
+      {
+        t: 'OSINT y verificar información', xp: 45,
+        desc: ['En el caos, la desinformación es un arma. OSINT (inteligencia de fuentes abiertas) y la verificación te ayudan a distinguir lo real de lo falso.'],
+        points: [
+          'Cruza varias fuentes antes de creer (y antes de reenviar).',
+          'Verifica imágenes con búsqueda inversa (¿es foto vieja reusada?).',
+          'Desconfía de lo que apela solo a la emoción o la urgencia.'
+        ],
+        task: 'Toma una noticia que te hayan reenviado y verifícala: busca la fuente original y si otros medios la confirman.'
+      },
+      {
+        t: 'Mapas y GPS offline', xp: 35,
+        desc: ['El GPS de tu celular funciona SIN internet; lo que falta son los mapas. Descárgalos antes y podrás orientarte aunque todo se caiga.'],
+        points: [
+          'Apps: OsmAnd o Maps.me descargan mapas completos para usar offline.',
+          'Google Maps también permite descargar zonas offline.',
+          'El chip GPS ubica por satélite, sin datos móviles.'
+        ],
+        task: 'Descarga el mapa offline de tu ciudad en una app de mapas y pruébalo con el WiFi y datos apagados.'
+      },
+      {
+        t: 'Reto: tu kit de resiliencia', xp: 90, gems: 5, boss: true,
+        desc: ['Junta todo el módulo en un plan concreto y propio: tu kit para seguir comunicado, con energía e informado si algo falla.'],
+        steps: [
+          'Comunicación: ¿cómo avisarías a los tuyos sin internet?',
+          'Energía: ¿con qué mantienes tus equipos cargados?',
+          'Información: ¿qué tienes offline (mapas, contactos, documentos cifrados)?'
+        ],
+        task: 'Entrega tu "plan de resiliencia" en el Block de notas: comunicación + energía + información, con lo que ya tienes y lo que te falta.'
+      }
     ]
   }
 ];

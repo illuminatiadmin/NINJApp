@@ -3188,6 +3188,24 @@ Object.assign(App, {
     clearTimeout(this._acT); this._acT = setTimeout(() => t.classList.remove('show'), 1800);
   },
 
+  // Temas: ciclo entre varios con el botón 🎨. '' = Matrix (oscuro) por defecto.
+  THEMES: [
+    { id: '', name: 'Matrix (oscuro)' },
+    { id: 'light', name: 'Claro' },
+    { id: 'blue', name: 'Azul noche' },
+    { id: 'purple', name: 'Cyber' }
+  ],
+  cycleTheme() {
+    let cur = '';
+    try { cur = localStorage.getItem('ninjapp_theme') || ''; } catch (e) {}
+    const i = this.THEMES.findIndex(t => t.id === cur);
+    const next = this.THEMES[(i + 1) % this.THEMES.length];
+    if (next.id) document.documentElement.setAttribute('data-theme', next.id);
+    else document.documentElement.removeAttribute('data-theme');
+    try { localStorage.setItem('ninjapp_theme', next.id); } catch (e) {}
+    this.acToast('🎨 ' + next.name);
+  },
+
   // Botón "Actualizar": en la app Android usa el puente nativo (descarga
   // contenido nuevo y revisa si hay versión nueva de la app). En navegador/PWA
   // simplemente recarga.

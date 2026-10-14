@@ -740,3 +740,41 @@ html, body {
   font-weight: 700; font-size: 14px; padding: 11px 20px; border-radius: 12px; box-shadow: 0 0 22px rgba(0,255,65,.35); }
 .ac-toast.show { display: block; animation: acpop .35s ease; }
 @keyframes acpop { 0% { transform: translateX(-50%) scale(.7); opacity: 0; } 60% { transform: translateX(-50%) scale(1.08); } 100% { transform: translateX(-50%) scale(1); opacity: 1; } }
+
+/* =========================================================
+   TEMAS (se cambian con el botón 🎨). El :root por defecto
+   es "Matrix" (verde oscuro); estos lo sobreescriben.
+   ========================================================= */
+
+/* ☀️ Claro */
+:root[data-theme="light"] {
+  --bg-primary: #eef1f5; --bg-secondary: #ffffff;
+  --bg-card: #ffffff; --bg-card-hover: #e8edf2;
+  --accent-green: #0f9d6b; --accent-cyan: #0284c7; --accent-purple: #7c3aed;
+  --accent-red: #dc2626; --accent-yellow: #b45309;
+  --text-primary: #121b17; --text-secondary: #51615a; --text-muted: #8a978f;
+  --border-color: #dce1e6; --border-glow: rgba(15,157,107,0.18);
+  --shadow: 0 2px 10px rgba(16,24,40,0.08);
+}
+
+/* 🌊 Azul noche */
+:root[data-theme="blue"] {
+  --bg-primary: #0b1220; --bg-secondary: #111a2e;
+  --bg-card: #16223a; --bg-card-hover: #1d2c49;
+  --accent-green: #3b82f6; --accent-cyan: #22d3ee; --accent-purple: #a78bfa;
+  --accent-red: #f87171; --accent-yellow: #fbbf24;
+  --text-primary: #e8eefb; --text-secondary: #9fb0cc; --text-muted: #5f7093;
+  --border-color: #24314d; --border-glow: rgba(59,130,246,0.25);
+  --shadow: 0 6px 20px rgba(0,0,0,0.4);
+}
+
+/* 🟣 Cyber */
+:root[data-theme="purple"] {
+  --bg-primary: #120a1f; --bg-secondary: #1a1030;
+  --bg-card: #20153a; --bg-card-hover: #2a1c4a;
+  --accent-green: #d946ef; --accent-cyan: #22d3ee; --accent-purple: #a855f7;
+  --accent-red: #fb7185; --accent-yellow: #fde047;
+  --text-primary: #f3e8ff; --text-secondary: #c4b5d8; --text-muted: #7e6b99;
+  --border-color: #33244d; --border-glow: rgba(217,70,239,0.25);
+  --shadow: 0 6px 20px rgba(0,0,0,0.45);
+}

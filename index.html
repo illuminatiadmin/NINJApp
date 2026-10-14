@@ -14,7 +14,10 @@
   <link rel="icon" type="image/png" href="icons/icon-192.png">
   <title>NINJApp - Cybersecurity para Android</title>
   <link rel="stylesheet" href="css/style.css">
-  <script>document.documentElement.className=location.search.includes('embed')?'embed-mode':''</script>
+  <script>
+    document.documentElement.className=location.search.includes('embed')?'embed-mode':'';
+    try{var _t=localStorage.getItem('ninjapp_theme');if(_t)document.documentElement.setAttribute('data-theme',_t);}catch(e){}
+  </script>
 </head>
 <body>
   <!-- SPLASH SCREEN -->
@@ -67,7 +70,8 @@
     <header id="header">
       <div class="brand">NINJ<span>App</span></div>
       <div class="badge">v1.2 · Android</div>
-      <button id="header-update-btn" onclick="App.checkUpdate()" title="Buscar actualizaciones" style="background:none;border:1px solid var(--border-color);border-radius:4px;color:var(--accent-cyan);font-family:var(--font-mono);font-size:13px;padding:4px 9px;cursor:pointer;margin-left:auto;">⟳</button>
+      <button id="header-theme-btn" onclick="App.cycleTheme()" title="Cambiar tema" style="background:none;border:1px solid var(--border-color);border-radius:4px;color:var(--accent-purple);font-family:var(--font-mono);font-size:13px;padding:4px 9px;cursor:pointer;margin-left:auto;">🎨</button>
+      <button id="header-update-btn" onclick="App.checkUpdate()" title="Buscar actualizaciones" style="background:none;border:1px solid var(--border-color);border-radius:4px;color:var(--accent-cyan);font-family:var(--font-mono);font-size:13px;padding:4px 9px;cursor:pointer;">⟳</button>
       <button id="header-terminal-btn" onclick="App.openTerminal('')" style="background:none;border:1px solid var(--border-color);border-radius:4px;color:var(--accent-green);font-family:var(--font-mono);font-size:11px;padding:4px 8px;cursor:pointer;">>_</button>
     </header>
 

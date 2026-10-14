@@ -7,14 +7,15 @@
     android:weightSum="10"
     android:background="#0a0a0f">
 
-    <!-- Terminal Panel (Left) -->
+    <!-- Terminal Panel (Izquierda) — OCULTO por defecto, se abre con el botón ⌨ -->
     <LinearLayout
         android:id="@+id/terminal_panel"
         android:layout_width="0dp"
         android:layout_height="match_parent"
-        android:layout_weight="5"
+        android:layout_weight="0"
         android:orientation="vertical"
         android:background="#0d0d14"
+        android:visibility="gone"
         android:padding="0dp">
 
         <TextView
@@ -96,33 +97,57 @@
 
     </LinearLayout>
 
-    <!-- Draggable Divider -->
+    <!-- Divisor arrastrable — oculto mientras la terminal esté cerrada -->
     <View
         android:id="@+id/divider"
         android:layout_width="6dp"
         android:layout_height="match_parent"
         android:background="#00ff41"
+        android:visibility="gone"
         android:alpha="0.3" />
 
-    <!-- Guide Panel (Right) -->
+    <!-- Guide Panel (Derecha) — ocupa toda la pantalla por defecto -->
     <LinearLayout
         android:id="@+id/guide_panel"
         android:layout_width="0dp"
         android:layout_height="match_parent"
-        android:layout_weight="5"
+        android:layout_weight="10"
         android:orientation="vertical"
         android:background="#0a0a0f">
 
-        <TextView
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="28dp"
+            android:layout_height="40dp"
+            android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:paddingLeft="12dp"
-            android:text="📖 ASISTENTE NINJApp"
-            android:textColor="#00d4ff"
-            android:textSize="11sp"
-            android:fontFamily="monospace"
-            android:background="#111118" />
+            android:background="#111118">
+
+            <Button
+                android:id="@+id/terminal_toggle"
+                android:layout_width="wrap_content"
+                android:layout_height="34dp"
+                android:text="⌨ Terminal"
+                android:textColor="#00ff41"
+                android:textSize="12sp"
+                android:fontFamily="monospace"
+                android:background="#1a1a2a"
+                android:paddingLeft="12dp"
+                android:paddingRight="12dp"
+                android:layout_marginLeft="6dp"
+                android:gravity="center" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center_vertical|end"
+                android:paddingRight="14dp"
+                android:text="NINJApp"
+                android:textColor="#00d4ff"
+                android:textSize="11sp"
+                android:fontFamily="monospace" />
+
+        </LinearLayout>
 
         <WebView
             android:id="@+id/guide_webview"

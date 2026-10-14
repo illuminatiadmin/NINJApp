@@ -1,7 +1,7 @@
 {
-  "contentVersion": 3,
-  "appVersion": "1.2.0",
-  "appVersionCode": 3,
+  "contentVersion": 4,
+  "appVersion": "1.2.1",
+  "appVersionCode": 4,
   "files": [
     "index.html",
     "css/style.css",

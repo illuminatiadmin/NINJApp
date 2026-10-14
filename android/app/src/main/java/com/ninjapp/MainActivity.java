@@ -1,6 +1,5 @@
 package com.ninjapp;
 
-import android.content.res.Configuration;
 import android.os.Bundle;
 import android.text.Html;
 import android.text.method.ScrollingMovementMethod;
@@ -62,15 +61,42 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        if (getResources().getConfiguration().orientation != Configuration.ORIENTATION_LANDSCAPE) {
-            Toast.makeText(this, "Pon el dispositivo en horizontal (landscape)", Toast.LENGTH_LONG).show();
-        }
-
         ensureWebContent();
         setupViews();
         startShell();
         setupGuideWebView();
         setupDivider();
+        setupTerminalToggle();
+    }
+
+    // ── Terminal desplegable ─────────────────────────────────────────────────
+
+    private boolean terminalOpen = false;
+
+    private void setupTerminalToggle() {
+        Button toggle = findViewById(R.id.terminal_toggle);
+        if (toggle != null) toggle.setOnClickListener(v -> showTerminal(!terminalOpen));
+    }
+
+    /** Muestra u oculta el panel de la terminal, dando el ancho restante a la
+     *  Academia. La terminal arranca cerrada para no ocupar espacio. */
+    private void showTerminal(boolean open) {
+        terminalOpen = open;
+        View terminalPanel = findViewById(R.id.terminal_panel);
+        View guidePanel = findViewById(R.id.guide_panel);
+        View div = findViewById(R.id.divider);
+        Button toggle = findViewById(R.id.terminal_toggle);
+
+        LinearLayout.LayoutParams tp = (LinearLayout.LayoutParams) terminalPanel.getLayoutParams();
+        LinearLayout.LayoutParams gp = (LinearLayout.LayoutParams) guidePanel.getLayoutParams();
+        tp.weight = open ? 5f : 0f;
+        gp.weight = open ? 5f : 10f;
+        terminalPanel.setLayoutParams(tp);
+        guidePanel.setLayoutParams(gp);
+        terminalPanel.setVisibility(open ? View.VISIBLE : View.GONE);
+        if (div != null) div.setVisibility(open ? View.VISIBLE : View.GONE);
+        if (toggle != null) toggle.setText(open ? "✕ Cerrar" : "⌨ Terminal");
+        if (open) terminalInput.requestFocus();
     }
 
     // ── Contenido web (offline + actualizable) ───────────────────────────────
@@ -188,6 +214,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void sendCommand(String command) {
         if (command == null || command.isEmpty()) return;
+        if (!terminalOpen) showTerminal(true); // abre la terminal para ver la salida
         appendOutput("└──╼ " + command + "\n");
         writeToShell(command + "\n");
         terminalInput.setText("");
@@ -265,9 +292,10 @@ public class MainActivity extends AppCompatActivity {
             }
         }, "TermuxBridge");
 
-        // Carga el contenido desde almacenamiento interno (copiado del APK la
-        // primera vez, o actualizado por el botón "Actualizar") → sin internet
-        guideWebView.loadUrl(android.net.Uri.fromFile(new File(webDir, "index.html")) + "?embed");
+        // Carga la app COMPLETA desde almacenamiento interno (copiada del APK la
+        // primera vez, o actualizada por el botón "Actualizar") → sin internet.
+        // Sin ?embed: así aparece el menú inferior y todas las secciones.
+        guideWebView.loadUrl(android.net.Uri.fromFile(new File(webDir, "index.html")).toString());
     }
 
     // ── Draggable divider ──────────────────────────────────────────────────

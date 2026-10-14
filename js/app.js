@@ -2082,7 +2082,7 @@ const App = {
         document.getElementById(`defense-${tab.dataset.dtab}`).style.display = 'block';
       });
     });
-  }
+  },
   // ===== NOTEBOOK =====
 
   loadNotebook() {
@@ -2200,5 +2200,480 @@ const App = {
     return d.innerHTML;
   }
 };
+
+/* =========================================================
+   MODO ACADEMIA — ruta gamificada + rangos + catálogo HW
+   ========================================================= */
+
+DATA.ranks = [
+  { ic: '🌱', nm: 'Novato', lv: 1 },
+  { ic: '🧭', nm: 'Aprendiz', lv: 3 },
+  { ic: '🛠️', nm: 'Operador', lv: 5 },
+  { ic: '🔎', nm: 'Analista', lv: 8 },
+  { ic: '🧠', nm: 'Especialista', lv: 12 },
+  { ic: '⚡', nm: 'Hacker', lv: 16 },
+  { ic: '👑', nm: 'Elite', lv: 20 }
+];
+
+DATA.academia = [
+  {
+    n: 1, icon: '🖥️', name: 'Primeros pasos', lvl: 0, tag: 'BÁSICO',
+    sub: 'La computadora, la terminal y tu primer programa',
+    missions: [
+      {
+        t: '¿Qué es un sistema operativo?', xp: 20, gems: 1,
+        desc: [
+          'El sistema operativo (SO) es el programa que controla todo tu equipo: <b>Windows</b> en tu Acer, <b>Android</b> en tu celular. Gestiona los archivos, los programas abiertos (procesos) y quién puede hacer qué (permisos).',
+          'Entenderlo es la base de la ciberseguridad: casi todo ataque y toda defensa ocurren a este nivel.'
+        ],
+        points: [
+          '<b>Archivos y carpetas:</b> todo se guarda como archivos organizados en carpetas.',
+          '<b>Procesos:</b> cada programa abierto es un proceso con un número (PID).',
+          '<b>Permisos:</b> el SO decide qué puede tocar cada usuario. Por eso existe el "administrador".'
+        ],
+        task: 'Crea una carpeta llamada <b>ninja</b> dentro de tu carpeta de usuario (en Windows: C:\\Usuarios\\TuNombre). Ahí guardarás todo tu aprendizaje.'
+      },
+      {
+        t: 'Abrir la terminal sin miedo', xp: 25, gems: 1,
+        desc: [
+          'La terminal es una ventana donde escribes <b>comandos</b> en vez de hacer clic. Es la herramienta número uno de cualquier hacker: es rápida y precisa.'
+        ],
+        cmds: [
+          { label: 'Abrir terminal en Windows', cmd: 'Tecla Windows + R → escribe cmd → Enter' },
+          { label: 'Ver tu usuario', cmd: 'whoami' },
+          { label: 'Listar archivos de la carpeta', cmd: 'dir' },
+          { label: 'Entrar a una carpeta', cmd: 'cd Desktop' }
+        ],
+        task: 'Abre cmd, escribe <code>whoami</code> y lee el resultado. Luego escribe <code>dir</code> para ver tus archivos.'
+      },
+      {
+        t: 'Instalar Python', xp: 30, gems: 2,
+        desc: [
+          'Python es el lenguaje con el que empezarás a programar. Sirve para automatizar tareas, analizar datos y crear tus propias herramientas de seguridad.'
+        ],
+        steps: [
+          'Comprueba si ya lo tienes: abre cmd y escribe <code>python --version</code>.',
+          'Si dice "no se reconoce", ve a <b>python.org/downloads</b> y descarga la última versión.',
+          'MUY IMPORTANTE: en el instalador marca la casilla <b>"Add Python to PATH"</b> antes de instalar.',
+          'Cierra y vuelve a abrir cmd, y verifica otra vez.'
+        ],
+        cmds: [
+          { label: 'Verificar Python', cmd: 'python --version' },
+          { label: 'Verificar pip (gestor de paquetes)', cmd: 'pip --version' }
+        ],
+        task: 'Logra que <code>python --version</code> te muestre un número de versión (por ejemplo 3.12.x).'
+      },
+      {
+        t: 'Tu primer programa', xp: 35, gems: 2,
+        desc: [
+          'Un programa es un archivo de texto con instrucciones. Vamos a crear el clásico "Hola mundo".'
+        ],
+        steps: [
+          'Abre el Bloc de notas (o VS Code si ya lo tienes).',
+          'Escribe exactamente: <code>print("Hola, soy un ninja")</code>',
+          'Guárdalo como <b>hola.py</b> dentro de tu carpeta ninja (en el Bloc de notas elige "Todos los archivos", no .txt).',
+          'En cmd, entra a la carpeta con <code>cd</code> y ejecútalo.'
+        ],
+        cmds: [
+          { label: 'Ejecutar tu programa', cmd: 'python hola.py' }
+        ],
+        task: 'Haz que el programa imprima <b>tu nombre</b> en lugar de "soy un ninja".'
+      },
+      {
+        t: 'Reto: tu primer flujo completo', xp: 60, gems: 5, boss: true,
+        desc: [
+          'Junta todo lo aprendido en una sola seguidilla, sin ayuda. Esto confirma que ya dominas lo básico.'
+        ],
+        steps: [
+          'Crea una carpeta nueva llamada <b>reto1</b>.',
+          'Entra a ella desde la terminal con <code>cd</code>.',
+          'Crea un archivo <b>mision.py</b> que imprima "Misión 1 completada".',
+          'Ejecútalo con <code>python mision.py</code>.'
+        ],
+        task: 'Si ves <b>"Misión 1 completada"</b> en la terminal, venciste el reto y subes a rango <b>Aprendiz</b>.'
+      }
+    ]
+  },
+  {
+    n: 2, icon: '🐍', name: 'Python desde cero', lvl: 1, tag: 'BÁSICO',
+    sub: 'Variables, decisiones, ciclos y funciones',
+    missions: [
+      { t: 'Variables y tipos', xp: 25 }, { t: 'Pedir datos (input)', xp: 25 },
+      { t: 'Calculadora simple', xp: 35 }, { t: 'if / else', xp: 30 },
+      { t: 'Ciclos for y while', xp: 30 }, { t: 'Listas y diccionarios', xp: 35 },
+      { t: 'Funciones', xp: 35 }, { t: 'Reto: verificador de contraseñas', xp: 70, boss: true }
+    ]
+  },
+  {
+    n: 3, icon: '🌐', name: 'Redes y Linux', lvl: 1, tag: 'FUNDAMENTOS',
+    sub: 'Cómo viaja la información y cómo moverte en Linux',
+    missions: [
+      { t: 'IP, DNS y puertos', xp: 30 }, { t: 'TCP/IP y HTTP(S)', xp: 30 },
+      { t: 'Linux por terminal', xp: 35 }, { t: 'Permisos y usuarios', xp: 30 },
+      { t: 'Leer logs del sistema', xp: 35 }, { t: 'Reto: mapa de tu red', xp: 70, boss: true }
+    ]
+  },
+  {
+    n: 4, icon: '🛡️', name: 'Defensa personal', lvl: 2, tag: 'DEFENSA',
+    sub: 'Protege tus cuentas, tu equipo y tu privacidad',
+    missions: [
+      { t: 'Contraseñas y 2FA', xp: 30 }, { t: 'Copias de seguridad 3-2-1', xp: 30 },
+      { t: 'Endurecer tu sistema', xp: 35 }, { t: 'Phishing e ingeniería social', xp: 35 },
+      { t: 'Privacidad y rastreo', xp: 35 }, { t: 'Reto: auditoría personal', xp: 75, boss: true }
+    ]
+  },
+  {
+    n: 5, icon: '🕵️', name: 'Detectar intrusos', lvl: 2, tag: 'BLUE TEAM',
+    sub: 'Ver lo que no debería estar ahí',
+    missions: [
+      { t: 'Procesos y conexiones', xp: 35 }, { t: 'Tráfico con Wireshark', xp: 40 },
+      { t: 'IDS: Suricata/Zeek', xp: 40 }, { t: 'SIEM casero (Wazuh)', xp: 45 },
+      { t: 'Responder a un incidente', xp: 40 }, { t: 'Reto: caza de intruso', xp: 80, boss: true }
+    ]
+  },
+  {
+    n: 6, icon: '⚔️', name: 'Hacking ético (lab)', lvl: 3, tag: 'OFENSIVA ÉTICA',
+    sub: 'Ofensiva SOLO en laboratorio propio y legal',
+    missions: [
+      { t: 'Reglas, ética y la ley', xp: 40 }, { t: 'Montar tu laboratorio (VMs)', xp: 45 },
+      { t: 'Reconocimiento con Nmap', xp: 45 }, { t: 'Web: OWASP Top 10 + Burp', xp: 50 },
+      { t: 'Escalada de privilegios', xp: 50 }, { t: 'Escribir un reporte', xp: 45 },
+      { t: 'Reto: CTF guiado', xp: 90, boss: true }
+    ]
+  },
+  {
+    n: 7, icon: '🤖', name: 'Inteligencia artificial', lvl: 4, tag: 'AVANZADO',
+    sub: 'ML, LLMs y seguridad de la IA',
+    missions: [
+      { t: 'Mates mínimas para IA', xp: 40 }, { t: 'ML con scikit-learn', xp: 50 },
+      { t: 'Deep learning (PyTorch)', xp: 55 }, { t: 'Usar LLMs y agentes', xp: 50 },
+      { t: 'IA + seguridad (anomalías)', xp: 55 }, { t: 'Reto: detector con IA', xp: 95, boss: true }
+    ]
+  },
+  {
+    n: 8, icon: '🚁', name: 'Drones', lvl: 4, tag: 'AVANZADO',
+    sub: 'Vuelo legal, armado y autonomía con código',
+    missions: [
+      { t: 'Lo legal primero (registro)', xp: 40 }, { t: 'Volar en simulador', xp: 45 },
+      { t: 'Armar: ArduPilot/PX4', xp: 55 }, { t: 'Programarlo (Python/MAVSDK)', xp: 55 },
+      { t: 'Visión por computadora', xp: 55 }, { t: 'Reto: misión autónoma', xp: 95, boss: true }
+    ]
+  },
+  {
+    n: 9, icon: '📡', name: 'Resiliencia y comunicaciones', lvl: 3, tag: 'RESILIENCIA',
+    sub: 'Seguir conectado y seguro si cae la infraestructura',
+    missions: [
+      { t: 'Comunicación sin internet (radio, LoRa/Meshtastic)', xp: 45 },
+      { t: 'Redes mesh comunitarias', xp: 50 },
+      { t: 'Energía: solar y baterías', xp: 40 },
+      {
+        t: 'Ver con radiofrecuencia (WiFi / RF sensing)', xp: 55, gems: 3,
+        desc: [
+          'Una tecnología emergente permite "ver" movimiento y presencia <b>a través de paredes</b> analizando cómo las señales WiFi y de radio rebotan en los cuerpos. Combinada con IA, puede detectar personas, gestos o incluso la respiración sin usar cámaras.'
+        ],
+        points: [
+          '<b>WiFi sensing (CSI):</b> usa las variaciones finas de la señal WiFi para detectar movimiento en una habitación.',
+          '<b>Radar de onda (mmWave / UWB):</b> sensores de radio que miden distancia y movimiento con gran precisión.',
+          '<b>IA:</b> un modelo de machine learning interpreta esos patrones y los convierte en "presencia", "gesto" o "silueta".'
+        ],
+        task: 'Investiga qué es el <b>CSI</b> (Channel State Information) y anota en el Block de notas 2 usos buenos (domótica, salud) y 2 riesgos (vigilancia).',
+        note: 'Realismo: es investigación avanzada. Necesita hardware específico (tarjetas con acceso a CSI, un SDR como HackRF, o sensores mmWave) y modelos de IA. NO es la "visión de rayos X" instantánea de las películas: da siluetas y patrones, no imágenes nítidas. Su lado útil es domótica, salud y seguridad; su lado oscuro es la vigilancia, y por eso también aprenderás a protegerte.'
+      },
+      { t: 'OPSEC: privacidad extrema', xp: 50 },
+      { t: 'Cifrado y borrado seguro de datos', xp: 45 },
+      { t: 'OSINT y verificar información', xp: 45 },
+      { t: 'Mapas y GPS offline', xp: 35 },
+      { t: 'Reto: tu kit de resiliencia', xp: 90, boss: true }
+    ]
+  }
+];
+
+DATA.gearLegal = {
+  'legal': { t: 'Legal', c: 'var(--accent-green)' },
+  'legal-auth': { t: 'Legal · solo con autorización', c: 'var(--accent-yellow)' },
+  'legal-tx': { t: 'Recibir libre · transmitir regulado', c: 'var(--accent-yellow)' },
+  'legal-mixed': { t: 'Restringido en algunos países', c: 'var(--accent-red)' }
+};
+
+DATA.gear = [
+  { id: 'flipper', ic: '🐬', name: 'Flipper Zero', cat: 'Multiherramienta', price: '≈ 169 USD', legal: 'legal-mixed',
+    desc: 'Multiherramienta de bolsillo para investigar radio y protocolos: sub-GHz, RFID/NFC, infrarrojos, GPIO y modo BadUSB.',
+    uses: ['Probar tus propios mandos (garaje, TV, aire) y tarjetas de acceso.', 'Aprender cómo funcionan RFID, NFC e infrarrojos.', 'Prototipar con sus pines GPIO.'],
+    note: 'Legal de poseer en la mayoría de países. Restringido o incautado en algunos (p. ej. Brasil, revisiones en Canadá). Clonar o abrir accesos ajenos es delito.' },
+  { id: 'ducky', ic: '🦆', name: 'USB Rubber Ducky', cat: 'Inyección de teclado', price: '≈ 80 USD', legal: 'legal-auth',
+    desc: 'Parece una memoria USB, pero el equipo la detecta como teclado y "teclea" comandos programados a gran velocidad.',
+    uses: ['Pruebas de concienciación: demostrar por qué no conectar USB desconocidos.', 'Automatizar tareas en tus propios equipos.', 'Pentest con autorización escrita.'],
+    note: 'Comprarla es legal. Usarla en un equipo ajeno sin permiso es un delito informático.' },
+  { id: 'omg', ic: '🔌', name: 'O.MG Cable', cat: 'Cable implante', price: '≈ 120–180 USD', legal: 'legal-auth',
+    desc: 'Un cable de carga normal a la vista, con un wifi oculto que permite enviar comandos. Herramienta de red team.',
+    uses: ['Demostrar el riesgo de usar cables de origen desconocido.', 'Ejercicios de concienciación en empresas (autorizados).'],
+    note: 'Solo para demostraciones y pentest autorizado. Usarlo contra terceros es ilegal.' },
+  { id: 'pineapple', ic: '🍍', name: 'Wi-Fi Pineapple', cat: 'Auditoría WiFi', price: '≈ 120–250 USD', legal: 'legal-auth',
+    desc: 'Plataforma de auditoría de redes inalámbricas: puntos de acceso de prueba, análisis y escenarios MITM controlados.',
+    uses: ['Auditar la seguridad de TU propia red WiFi.', 'Demostrar los peligros de conectarse a wifis abiertas.'],
+    note: 'Interceptar tráfico ajeno sin consentimiento es ilegal. Úsalo en tu red o con permiso.' },
+  { id: 'hackrf', ic: '📻', name: 'HackRF One', cat: 'Radio (SDR)', price: '≈ 150–320 USD', legal: 'legal-tx',
+    desc: 'Radio definida por software (SDR) que recibe y transmite entre 1 MHz y 6 GHz. La base para aprender el espectro radioeléctrico y para experimentos de RF sensing.',
+    uses: ['Escuchar señales de radio, ADS-B de aviones, meteorología.', 'Aprender modulación y RF.', 'Investigación de "ver con radiofrecuencia" en tu propio equipo.'],
+    note: 'Recibir suele ser libre. TRANSMITIR está regulado y puede requerir licencia; emitir sin permiso es ilegal.' },
+  { id: 'proxmark', ic: '💳', name: 'Proxmark3', cat: 'RFID / NFC', price: '≈ 70–300 USD', legal: 'legal-auth',
+    desc: 'La herramienta de referencia para investigar tarjetas RFID/NFC (125 kHz y 13.56 MHz): leer, analizar y emular.',
+    uses: ['Auditar tus propias tarjetas de acceso o de hotel.', 'Investigar la seguridad de sistemas de control de acceso (con permiso).'],
+    note: 'Clonar tarjetas ajenas o burlar accesos sin autorización es delito.' },
+  { id: 'ubertooth', ic: '🦷', name: 'Ubertooth One', cat: 'Bluetooth', price: '≈ 120 USD', legal: 'legal-auth',
+    desc: 'Plataforma abierta para monitorear y analizar tráfico Bluetooth, difícil de capturar con hardware común.',
+    uses: ['Investigar y aprender sobre seguridad Bluetooth.', 'Analizar tus propios dispositivos BLE.'],
+    note: 'Capturar comunicaciones ajenas sin consentimiento es ilegal.' },
+  { id: 'alfa', ic: '📶', name: 'Adaptador Alfa WiFi', cat: 'WiFi', price: '≈ 30–50 USD', legal: 'legal',
+    desc: 'Adaptador WiFi USB con buena antena y soporte para modo monitor e inyección. El primer accesorio de casi todo aprendiz.',
+    uses: ['Aprender a capturar tráfico en TU red.', 'Mejorar el alcance WiFi.', 'Prácticas de laboratorio.'],
+    note: 'Capturar o inyectar en redes ajenas sin permiso es ilegal; en tu propia red es ideal para aprender.' },
+  { id: 'esp32', ic: '🔧', name: 'ESP32 / M5Stack', cat: 'DIY económico', price: '≈ 10–60 USD', legal: 'legal',
+    desc: 'Placas microcontroladoras baratísimas (con firmwares como Marauder) para experimentar con WiFi, BLE e IoT.',
+    uses: ['Aprender electrónica y programación embebida.', 'Proyectos IoT caseros.', 'Experimentos de RF en tu laboratorio.'],
+    note: 'Muy educativas y económicas. Las mismas reglas: solo tus dispositivos o con permiso.' },
+  { id: 'rpi', ic: '🍓', name: 'Raspberry Pi', cat: 'Plataforma / Lab', price: '≈ 35–80 USD', legal: 'legal',
+    desc: 'Mini-computadora versátil. Más que una herramienta de ataque, es la base para montar tu laboratorio y tus defensas.',
+    uses: ['Pi-hole: bloquear anuncios y rastreo en toda tu casa.', 'Montar un honeypot o servidor de prácticas.', 'Correr herramientas de blue team 24/7.'],
+    note: 'Totalmente legal y uno de los mejores primeros compras para aprender.' }
+];
+
+Object.assign(App, {
+  ACADEMIA_KEY: 'ninjapp_academia',
+  XP_PER_LEVEL: 100,
+
+  loadAcademia() {
+    let s = { done: {}, xp: 0, gems: 0, streak: 1, open: 1, view: 'route' };
+    try { const r = localStorage.getItem(this.ACADEMIA_KEY); if (r) s = Object.assign(s, JSON.parse(r)); } catch (e) {}
+    return s;
+  },
+  saveAcademia() {
+    try { localStorage.setItem(this.ACADEMIA_KEY, JSON.stringify(this.ac)); } catch (e) {}
+  },
+  acLevel() { return Math.floor(this.ac.xp / this.XP_PER_LEVEL) + 1; },
+  acMid(w, i) { return 'w' + w + 'm' + i; },
+  acRankFor(lv) { let r = DATA.ranks[0]; DATA.ranks.forEach(x => { if (lv >= x.lv) r = x; }); return r; },
+  acNextRank(lv) { return DATA.ranks.find(x => x.lv > lv) || null; },
+
+  renderAcademia() {
+    if (!this.ac) this.ac = this.loadAcademia();
+    const c = document.getElementById('learn-content');
+    if (!c) return;
+    const lv = this.acLevel();
+    const into = this.ac.xp % this.XP_PER_LEVEL;
+    const rank = this.acRankFor(lv);
+    const nx = this.acNextRank(lv);
+
+    const ranksHtml = DATA.ranks.map(r => {
+      let cls = 'ac-rank';
+      if (r.nm === rank.nm) cls += ' cur';
+      else if (r.lv < rank.lv) cls += ' passed';
+      if (r.nm === 'Elite') cls += ' elite';
+      return `<div class="${cls}"><div class="ac-rank-ic">${r.ic}</div><div class="ac-rank-nm">${r.nm}</div><div class="ac-rank-lv">Nivel ${r.lv}+</div></div>`;
+    }).join('');
+
+    c.innerHTML = `
+      <div class="ac-hud">
+        <div class="ac-hud-row">
+          <div class="ac-ring" style="--p:${into}">
+            <div class="ac-ring-lvl">${lv}</div>
+          </div>
+          <div class="ac-hud-main">
+            <div class="ac-rank-line"><b>${rank.nm}</b><span>${nx ? '· ' + nx.nm + ' en nivel ' + nx.lv : '· rango máximo'}</span></div>
+            <div class="ac-xpbar"><i style="width:${into}%"></i></div>
+            <div class="ac-xp-lbl">${into} / ${this.XP_PER_LEVEL} XP</div>
+          </div>
+          <div class="ac-pills">
+            <div class="ac-pill">🔥 ${this.ac.streak}</div>
+            <div class="ac-pill">◆ ${this.ac.gems}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ac-ranks">${ranksHtml}</div>
+
+      <div class="ac-seg">
+        <button class="ac-seg-btn ${this.ac.view === 'route' ? 'active' : ''}" data-view="route">🗺️ Ruta</button>
+        <button class="ac-seg-btn ${this.ac.view === 'catalog' ? 'active' : ''}" data-view="catalog">🛠️ Catálogo</button>
+      </div>
+
+      <div id="ac-route" ${this.ac.view === 'route' ? '' : 'style="display:none"'}></div>
+      <div id="ac-catalog" ${this.ac.view === 'catalog' ? '' : 'style="display:none"'}></div>
+    `;
+
+    this.renderAcRoute();
+    this.renderAcCatalog();
+
+    c.querySelectorAll('.ac-seg-btn').forEach(b => b.addEventListener('click', () => {
+      this.ac.view = b.dataset.view; this.saveAcademia(); this.renderAcademia();
+    }));
+    this.ensureAcSheet();
+  },
+
+  renderAcRoute() {
+    const box = document.getElementById('ac-route');
+    if (!box) return;
+    box.innerHTML = DATA.academia.map(W => {
+      const total = W.missions.length;
+      const dn = W.missions.filter((_, i) => this.ac.done[this.acMid(W.n, i)]).length;
+      const open = this.ac.open === W.n;
+      const rows = W.missions.map((m, i) => {
+        const done = !!this.ac.done[this.acMid(W.n, i)];
+        return `<div class="ac-mrow${done ? ' done' : ''}${m.boss ? ' boss' : ''}" data-w="${W.n}" data-i="${i}">
+          <div class="ac-mcheck">${done ? '✓' : (m.boss ? '★' : (i + 1))}</div>
+          <div class="ac-mrow-t">${m.t}</div><div class="ac-mrow-xp">+${m.xp}</div></div>`;
+      }).join('');
+      return `<div class="ac-module${open ? ' open' : ''}">
+        <div class="ac-mod-head" data-world="${W.n}">
+          <div class="ac-mod-ic">${W.icon}</div>
+          <div class="ac-mod-info">
+            <div class="ac-mod-name">Módulo ${W.n} · ${W.name}</div>
+            <div class="ac-mod-sub">${W.sub}</div>
+            <span class="ac-tag ac-lvl-${W.lvl}">${W.tag}</span>
+          </div>
+          <div class="ac-mod-right">
+            <div class="ac-mod-prog">${dn}/${total}<span class="ac-chev">▶</span></div>
+            <div class="ac-minibar"><i style="width:${total ? Math.round(dn / total * 100) : 0}%"></i></div>
+          </div>
+        </div>
+        <div class="ac-missions"><div class="ac-mlist">${rows}</div></div>
+      </div>`;
+    }).join('');
+
+    box.querySelectorAll('.ac-mod-head').forEach(h => h.addEventListener('click', () => {
+      const w = +h.dataset.world; this.ac.open = (this.ac.open === w ? 0 : w); this.saveAcademia(); this.renderAcRoute();
+    }));
+    box.querySelectorAll('.ac-mrow').forEach(r => r.addEventListener('click', () => this.openMission(+r.dataset.w, +r.dataset.i)));
+  },
+
+  renderAcCatalog() {
+    const box = document.getElementById('ac-catalog');
+    if (!box) return;
+    const cards = DATA.gear.map(g => {
+      const L = DATA.gearLegal[g.legal];
+      return `<div class="ac-gear" data-id="${g.id}">
+        <div class="ac-gear-top"><div class="ac-gear-ic">${g.ic}</div>
+          <div style="min-width:0"><div class="ac-gear-nm">${g.name}</div><div class="ac-gear-cat">${g.cat}</div></div></div>
+        <div class="ac-gear-desc">${g.desc}</div>
+        <div class="ac-gear-foot"><span class="ac-gear-price">${g.price}</span>
+          <span class="ac-legal" style="color:${L.c}">${L.t}</span></div>
+      </div>`;
+    }).join('');
+    box.innerHTML = `
+      <div class="ac-warn"><span>⚠️</span><p><b>Regla de oro:</b> estos equipos son para usar <b>solo en tus propios dispositivos o con permiso escrito</b>. Poseerlos suele ser legal; usarlos contra terceros sin autorización es delito. Los precios son aproximados y cambian.</p></div>
+      <div class="ac-gear-grid">${cards}</div>`;
+    box.querySelectorAll('.ac-gear').forEach(el => el.addEventListener('click', () => this.openGear(el.dataset.id)));
+  },
+
+  ensureAcSheet() {
+    if (document.getElementById('ac-sheet')) return;
+    const wrap = document.createElement('div');
+    wrap.innerHTML = `
+      <div class="ac-sheet-bg" id="ac-sheet-bg"></div>
+      <div class="ac-sheet" id="ac-sheet">
+        <div class="ac-grab"></div>
+        <div class="ac-sheet-tag" id="ac-s-tag"></div>
+        <h3 class="ac-sheet-title" id="ac-s-title"></h3>
+        <div class="ac-reward" id="ac-s-reward"></div>
+        <div class="ac-sheet-body" id="ac-s-body"></div>
+        <button class="ac-cta" id="ac-s-cta">Completar misión</button>
+        <button class="ac-cta ghost" id="ac-s-close">Cerrar</button>
+      </div>`;
+    document.body.appendChild(wrap);
+    document.getElementById('ac-s-close').addEventListener('click', () => this.closeAcSheet());
+    document.getElementById('ac-sheet-bg').addEventListener('click', () => this.closeAcSheet());
+    document.getElementById('ac-s-cta').addEventListener('click', () => this.completeMission());
+  },
+  openAcSheet() {
+    document.getElementById('ac-sheet-bg').classList.add('open');
+    requestAnimationFrame(() => document.getElementById('ac-sheet').classList.add('open'));
+  },
+  closeAcSheet() {
+    document.getElementById('ac-sheet').classList.remove('open');
+    document.getElementById('ac-sheet-bg').classList.remove('open');
+  },
+
+  openMission(w, i) {
+    const W = DATA.academia[w - 1]; const m = W.missions[i];
+    this.acCur = { w, i };
+    document.getElementById('ac-s-tag').textContent = `MÓDULO ${w} · MISIÓN ${i + 1}`;
+    document.getElementById('ac-s-title').textContent = (m.boss ? '★ ' : '') + m.t;
+    document.getElementById('ac-s-reward').innerHTML =
+      `<span>+${m.xp} XP</span>` + (m.gems ? `<span>◆ +${m.gems}</span>` : '') +
+      (m.boss ? `<span style="color:var(--accent-yellow)">RETO DE MÓDULO</span>` : '');
+
+    let body = '';
+    if (m.desc) body += m.desc.map(p => `<p>${p}</p>`).join('');
+    if (m.points) body += `<div class="ac-block"><b>Lo clave</b><ul>${m.points.map(p => `<li>${p}</li>`).join('')}</ul></div>`;
+    if (m.steps) body += `<div class="ac-block"><b>Pasos</b><ol>${m.steps.map(p => `<li>${p}</li>`).join('')}</ol></div>`;
+    if (m.cmds) body += `<div class="ac-block"><b>Comandos (toca para copiar)</b>${m.cmds.map(cm =>
+      `<div class="ac-cmd" data-cmd="${this.escapeHtml(cm.cmd)}"><div class="ac-cmd-lbl">${cm.label}</div><div class="ac-cmd-code">${cm.cmd}</div></div>`).join('')}</div>`;
+    if (m.task) body += `<div class="ac-task"><b>🎯 Mini-tarea</b><p>${m.task}</p></div>`;
+    if (m.note) body += `<div class="ac-note"><b>Realismo:</b> ${m.note}</div>`;
+    if (!m.desc && !m.points && !m.steps && !m.task) body += `<p style="color:var(--text-muted)">Esta misión se desbloqueará con contenido completo cuando construyamos este módulo. Por ahora puedes marcarla para registrar tu avance.</p>`;
+    document.getElementById('ac-s-body').innerHTML = body;
+
+    document.getElementById('ac-s-body').querySelectorAll('.ac-cmd').forEach(el =>
+      el.addEventListener('click', () => this.acCopy(el.dataset.cmd, el)));
+
+    const cta = document.getElementById('ac-s-cta');
+    cta.hidden = false;
+    if (this.ac.done[this.acMid(w, i)]) { cta.textContent = '✓ Completada'; cta.disabled = true; }
+    else { cta.textContent = 'Completar misión'; cta.disabled = false; }
+    this.openAcSheet();
+  },
+
+  openGear(id) {
+    const g = DATA.gear.find(x => x.id === id); if (!g) return;
+    this.acCur = null;
+    const L = DATA.gearLegal[g.legal];
+    document.getElementById('ac-s-tag').textContent = 'CATÁLOGO · ' + g.cat.toUpperCase();
+    document.getElementById('ac-s-title').textContent = g.ic + ' ' + g.name;
+    document.getElementById('ac-s-reward').innerHTML = `<span>${g.price}</span><span style="color:${L.c}">${L.t}</span>`;
+    document.getElementById('ac-s-body').innerHTML =
+      `<p>${g.desc}</p>` +
+      `<div class="ac-block"><b>Usos legítimos</b><ul>${g.uses.map(u => `<li>${u}</li>`).join('')}</ul></div>` +
+      `<div class="ac-note"><b style="color:${L.c}">Legalidad:</b> ${g.note}</div>`;
+    document.getElementById('ac-s-cta').hidden = true;
+    this.openAcSheet();
+  },
+
+  completeMission() {
+    if (!this.acCur) return;
+    const { w, i } = this.acCur; const m = DATA.academia[w - 1].missions[i];
+    const key = this.acMid(w, i);
+    if (this.ac.done[key]) return;
+    const before = this.acLevel();
+    this.ac.done[key] = true;
+    this.ac.xp += m.xp;
+    this.ac.gems += (m.gems || (m.boss ? 5 : 1));
+    this.saveAcademia();
+    const after = this.acLevel();
+    const bR = this.acRankFor(before), aR = this.acRankFor(after);
+    let msg = `+${m.xp} XP`;
+    if (aR.nm !== bR.nm) msg = `${aR.ic} ¡Rango ${aR.nm}!`;
+    else if (after > before) msg = `¡Nivel ${after}! ⬆`;
+    else if (m.boss) msg = '★ ¡Reto superado!';
+    this.closeAcSheet();
+    this.acToast(msg);
+    this.renderAcademia();
+  },
+
+  acCopy(text, el) {
+    const done = () => { const o = el.querySelector('.ac-cmd-code').textContent; el.querySelector('.ac-cmd-code').textContent = '✓ Copiado'; setTimeout(() => { el.querySelector('.ac-cmd-code').textContent = o; }, 1200); };
+    if (navigator.clipboard) navigator.clipboard.writeText(text).then(done).catch(() => {});
+    else done();
+  },
+
+  acToast(msg) {
+    let t = document.getElementById('ac-toast');
+    if (!t) { t = document.createElement('div'); t.id = 'ac-toast'; t.className = 'ac-toast'; document.body.appendChild(t); }
+    t.textContent = msg; t.classList.add('show');
+    clearTimeout(this._acT); this._acT = setTimeout(() => t.classList.remove('show'), 1800);
+  }
+});
+
+// La Academia reemplaza a la antigua sección "Aprender"
+App.renderLearning = App.renderAcademia;
 
 document.addEventListener('DOMContentLoaded', () => App.init());

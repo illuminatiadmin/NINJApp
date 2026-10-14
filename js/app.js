@@ -2670,6 +2670,19 @@ Object.assign(App, {
     if (!t) { t = document.createElement('div'); t.id = 'ac-toast'; t.className = 'ac-toast'; document.body.appendChild(t); }
     t.textContent = msg; t.classList.add('show');
     clearTimeout(this._acT); this._acT = setTimeout(() => t.classList.remove('show'), 1800);
+  },
+
+  // Botón "Actualizar": en la app Android usa el puente nativo (descarga
+  // contenido nuevo y revisa si hay versión nueva de la app). En navegador/PWA
+  // simplemente recarga.
+  checkUpdate() {
+    if (window.TermuxBridge && typeof TermuxBridge.updateContent === 'function') {
+      try { TermuxBridge.updateContent(); }
+      catch (e) { this.acToast('No se pudo buscar actualización'); }
+    } else {
+      this.acToast('Buscando...');
+      try { location.reload(); } catch (e) {}
+    }
   }
 });
 

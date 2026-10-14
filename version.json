@@ -1,0 +1,14 @@
+{
+  "contentVersion": 3,
+  "appVersion": "1.2.0",
+  "appVersionCode": 3,
+  "files": [
+    "index.html",
+    "css/style.css",
+    "js/app.js",
+    "manifest.json",
+    "sw.js",
+    "version.json"
+  ],
+  "apkUrl": "https://github.com/illuminatiadmin/NINJApp/releases/latest"
+}

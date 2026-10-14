@@ -21,9 +21,18 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -41,6 +50,11 @@ public class MainActivity extends AppCompatActivity {
     private Thread shellReaderThread;
     private boolean shellRunning = false;
 
+    private File webDir; // copia de la web en almacenamiento interno (actualizable)
+    private static final String RAW_BASE =
+        "https://raw.githubusercontent.com/illuminatiadmin/NINJApp/main/";
+    private static final String PREFS = "ninjapp_prefs";
+
     // ── Lifecycle ──────────────────────────────────────────────────────────
 
     @Override
@@ -52,10 +66,39 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this, "Pon el dispositivo en horizontal (landscape)", Toast.LENGTH_LONG).show();
         }
 
+        ensureWebContent();
         setupViews();
         startShell();
         setupGuideWebView();
         setupDivider();
+    }
+
+    // ── Contenido web (offline + actualizable) ───────────────────────────────
+
+    /** Copia la web empaquetada a almacenamiento interno la primera vez. Así
+     *  siempre se carga desde la misma ruta (origen estable para localStorage)
+     *  y el botón "Actualizar" puede reemplazar los archivos sin reinstalar. */
+    private void ensureWebContent() {
+        webDir = new File(getFilesDir(), "web");
+        File index = new File(webDir, "index.html");
+        if (!index.exists()) {
+            copyAssetDir("web", webDir);
+            // Guarda la versión de contenido empaquetada como versión local base
+            try {
+                File vf = new File(webDir, "version.json");
+                if (vf.exists()) {
+                    JSONObject v = new JSONObject(readFile(vf));
+                    saveContentVersion(v.optInt("contentVersion", 0));
+                }
+            } catch (Exception ignored) {}
+        }
+    }
+
+    private int localContentVersion() {
+        return getSharedPreferences(PREFS, MODE_PRIVATE).getInt("contentVersion", 0);
+    }
+    private void saveContentVersion(int v) {
+        getSharedPreferences(PREFS, MODE_PRIVATE).edit().putInt("contentVersion", v).apply();
     }
 
     // ── Views ──────────────────────────────────────────────────────────────
@@ -215,10 +258,16 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
             }
+
+            @android.webkit.JavascriptInterface
+            public void updateContent() {
+                checkForUpdates();
+            }
         }, "TermuxBridge");
 
-        // Carga el contenido empaquetado en el APK (assets/web) → sin internet
-        guideWebView.loadUrl("file:///android_asset/web/index.html?embed");
+        // Carga el contenido desde almacenamiento interno (copiado del APK la
+        // primera vez, o actualizado por el botón "Actualizar") → sin internet
+        guideWebView.loadUrl(android.net.Uri.fromFile(new File(webDir, "index.html")) + "?embed");
     }
 
     // ── Draggable divider ──────────────────────────────────────────────────
@@ -268,6 +317,156 @@ public class MainActivity extends AppCompatActivity {
             }
             return false;
         });
+    }
+
+    // ── Actualización de contenido + aviso de nueva app ──────────────────────
+
+    private void checkForUpdates() {
+        runOnUiThread(() -> Toast.makeText(this, "Buscando actualización…", Toast.LENGTH_SHORT).show());
+        new Thread(() -> {
+            try {
+                JSONObject remote = new JSONObject(httpGet(RAW_BASE + "version.json"));
+                int remoteContent = remote.optInt("contentVersion", 0);
+
+                // 1) Contenido: solo si el remoto es MÁS NUEVO (nunca degrada)
+                if (remoteContent > localContentVersion()) {
+                    JSONArray files = remote.getJSONArray("files");
+                    File staging = new File(getFilesDir(), "web_new");
+                    deleteRecursive(staging);
+                    staging.mkdirs();
+                    for (int i = 0; i < files.length(); i++) {
+                        String rel = files.getString(i);
+                        byte[] data = httpGetBytes(RAW_BASE + rel);
+                        File out = new File(staging, rel);
+                        if (out.getParentFile() != null) out.getParentFile().mkdirs();
+                        writeBytes(out, data);
+                    }
+                    // Descarga completa OK → fusiona sobre webDir (conserva iconos)
+                    copyMerge(staging, webDir);
+                    deleteRecursive(staging);
+                    saveContentVersion(remoteContent);
+                    runOnUiThread(() -> {
+                        Toast.makeText(this, "✓ Contenido actualizado", Toast.LENGTH_LONG).show();
+                        guideWebView.loadUrl(android.net.Uri.fromFile(new File(webDir, "index.html")) + "?embed");
+                    });
+                } else {
+                    runOnUiThread(() -> Toast.makeText(this, "Ya tienes el contenido más reciente", Toast.LENGTH_SHORT).show());
+                }
+
+                // 2) App (APK): avisar si hay una versión nueva del programa
+                checkAppVersion(remote);
+
+            } catch (Exception e) {
+                runOnUiThread(() -> Toast.makeText(this,
+                    "No se pudo actualizar (revisa tu conexión)", Toast.LENGTH_LONG).show());
+            }
+        }).start();
+    }
+
+    private void checkAppVersion(JSONObject remote) {
+        try {
+            int remoteCode = remote.optInt("appVersionCode", 0);
+            String apkUrl = remote.optString("apkUrl", "");
+            int localCode = getPackageManager().getPackageInfo(getPackageName(), 0).versionCode;
+            if (remoteCode > localCode && !apkUrl.isEmpty()) {
+                runOnUiThread(() -> new androidx.appcompat.app.AlertDialog.Builder(this)
+                    .setTitle("Nueva versión de la app")
+                    .setMessage("Hay una versión nueva de NINJApp. Se abrirá la página de descarga; confirma la instalación cuando Android lo pida.")
+                    .setPositiveButton("Descargar", (d, w) -> {
+                        try {
+                            startActivity(new android.content.Intent(
+                                android.content.Intent.ACTION_VIEW, android.net.Uri.parse(apkUrl)));
+                        } catch (Exception ignored) {}
+                    })
+                    .setNegativeButton("Ahora no", null)
+                    .show());
+            }
+        } catch (Exception ignored) {}
+    }
+
+    // ── Helpers de red y archivos ────────────────────────────────────────────
+
+    private String httpGet(String urlStr) throws Exception {
+        return new String(httpGetBytes(urlStr), StandardCharsets.UTF_8);
+    }
+
+    private byte[] httpGetBytes(String urlStr) throws Exception {
+        HttpURLConnection c = (HttpURLConnection) new URL(urlStr).openConnection();
+        c.setConnectTimeout(10000);
+        c.setReadTimeout(20000);
+        c.setRequestProperty("User-Agent", "NINJApp");
+        c.connect();
+        int code = c.getResponseCode();
+        if (code != 200) { c.disconnect(); throw new Exception("HTTP " + code); }
+        try (InputStream in = c.getInputStream(); ByteArrayOutputStream bo = new ByteArrayOutputStream()) {
+            byte[] buf = new byte[8192]; int n;
+            while ((n = in.read(buf)) != -1) bo.write(buf, 0, n);
+            return bo.toByteArray();
+        } finally { c.disconnect(); }
+    }
+
+    private void copyAssetDir(String assetPath, File destDir) {
+        try {
+            String[] items = getAssets().list(assetPath);
+            if (items == null || items.length == 0) { // es archivo
+                copyAssetFile(assetPath, destDir);
+                return;
+            }
+            if (!destDir.exists()) destDir.mkdirs();
+            for (String item : items) {
+                String child = assetPath + "/" + item;
+                String[] sub = getAssets().list(child);
+                if (sub != null && sub.length > 0) copyAssetDir(child, new File(destDir, item));
+                else copyAssetFile(child, new File(destDir, item));
+            }
+        } catch (Exception ignored) {}
+    }
+
+    private void copyAssetFile(String assetPath, File destFile) {
+        try {
+            if (destFile.getParentFile() != null) destFile.getParentFile().mkdirs();
+            try (InputStream in = getAssets().open(assetPath); OutputStream out = new FileOutputStream(destFile)) {
+                byte[] buf = new byte[8192]; int n;
+                while ((n = in.read(buf)) != -1) out.write(buf, 0, n);
+            }
+        } catch (Exception ignored) {}
+    }
+
+    private void copyMerge(File fromDir, File toDir) {
+        File[] kids = fromDir.listFiles();
+        if (kids == null) return;
+        if (!toDir.exists()) toDir.mkdirs();
+        for (File k : kids) {
+            File dest = new File(toDir, k.getName());
+            if (k.isDirectory()) copyMerge(k, dest);
+            else {
+                try (InputStream in = new java.io.FileInputStream(k); OutputStream out = new FileOutputStream(dest)) {
+                    byte[] buf = new byte[8192]; int n;
+                    while ((n = in.read(buf)) != -1) out.write(buf, 0, n);
+                } catch (Exception ignored) {}
+            }
+        }
+    }
+
+    private void writeBytes(File f, byte[] data) throws Exception {
+        try (OutputStream out = new FileOutputStream(f)) { out.write(data); }
+    }
+
+    private String readFile(File f) throws Exception {
+        try (InputStream in = new java.io.FileInputStream(f); ByteArrayOutputStream bo = new ByteArrayOutputStream()) {
+            byte[] buf = new byte[8192]; int n;
+            while ((n = in.read(buf)) != -1) bo.write(buf, 0, n);
+            return new String(bo.toByteArray(), StandardCharsets.UTF_8);
+        }
+    }
+
+    private void deleteRecursive(File f) {
+        if (f == null || !f.exists()) return;
+        if (f.isDirectory()) {
+            File[] kids = f.listFiles();
+            if (kids != null) for (File k : kids) deleteRecursive(k);
+        }
+        f.delete();
     }
 
     // ── Cleanup ────────────────────────────────────────────────────────────

@@ -209,6 +209,12 @@
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js').catch(() => {});
     }
+    // Seguro anti-"pantalla de carga pegada": si algo falla en el arranque,
+    // oculta el splash igualmente a los 4s para no dejar la app en blanco.
+    setTimeout(function () {
+      var s = document.getElementById('splash');
+      if (s) s.classList.add('hidden');
+    }, 4000);
   </script>
 </body>
 </html>

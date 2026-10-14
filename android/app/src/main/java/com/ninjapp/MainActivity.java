@@ -173,11 +173,25 @@ public class MainActivity extends AppCompatActivity {
         settings.setUseWideViewPort(true);
         settings.setBuiltInZoomControls(true);
         settings.setDisplayZoomControls(false);
-        settings.setCacheMode(WebSettings.LOAD_NO_CACHE);
+        settings.setCacheMode(WebSettings.LOAD_DEFAULT);
+        // Contenido empaquetado dentro del APK: funciona sin internet
+        settings.setAllowFileAccess(true);
+        settings.setAllowContentAccess(true);
 
         guideWebView.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                // Enlaces externos (http/https) -> navegador del sistema.
+                // Contenido local (file://) -> se queda en la app.
+                if (url != null && (url.startsWith("http://") || url.startsWith("https://"))) {
+                    try {
+                        startActivity(new android.content.Intent(
+                            android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url)));
+                        return true;
+                    } catch (Exception e) {
+                        return true;
+                    }
+                }
                 view.loadUrl(url);
                 return true;
             }
@@ -203,7 +217,8 @@ public class MainActivity extends AppCompatActivity {
             }
         }, "TermuxBridge");
 
-        guideWebView.loadUrl("https://illuminatiadmin.github.io/NINJApp/?embed");
+        // Carga el contenido empaquetado en el APK (assets/web) → sin internet
+        guideWebView.loadUrl("file:///android_asset/web/index.html?embed");
     }
 
     // ── Draggable divider ──────────────────────────────────────────────────

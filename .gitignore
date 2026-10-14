@@ -1,0 +1,14 @@
+# Android build
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/.idea/
+*.iml
+
+# Web empaquetada dentro del APK (se genera en cada build con copyWebAssets)
+android/app/src/main/assets/web/
+
+# Varios
+.DS_Store
+node_modules/

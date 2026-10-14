@@ -5,6 +5,12 @@ on:
     branches: [ main ]
     paths:
       - 'android/**'
+      - 'index.html'
+      - 'manifest.json'
+      - 'sw.js'
+      - 'css/**'
+      - 'js/**'
+      - 'icons/**'
       - '.github/workflows/build-apk.yml'
   workflow_dispatch:
 
@@ -38,13 +44,10 @@ jobs:
           name: NINJApp-Debug-APK
           path: android/app/build/outputs/apk/debug/*.apk
 
-      - name: Build Release APK (unsigned)
-        if: startsWith(github.ref, 'refs/tags/')
-        working-directory: ./android
-        run: gradle assembleRelease --no-daemon
-
       - name: Create Release
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: android/app/build/outputs/apk/release/*.apk
+          # APK debug: viene firmado con la clave de debug, así que SE PUEDE
+          # instalar directo en el teléfono (el release sin firmar no se instala).
+          files: android/app/build/outputs/apk/debug/*.apk

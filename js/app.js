@@ -2901,6 +2901,74 @@ DATA.academia = [
         task: 'Entrega tu "plan de resiliencia" en el Block de notas: comunicación + energía + información, con lo que ya tienes y lo que te falta.'
       }
     ]
+  },
+  {
+    n: 10, icon: '⛓️', name: 'Blockchain y cripto', lvl: 3, tag: 'DESCENTRALIZADO',
+    sub: 'Qué es, cómo protegerte y seguridad de contratos',
+    missions: [
+      {
+        t: '¿Qué es una blockchain?', xp: 35,
+        desc: ['Una blockchain es un libro de cuentas <b>compartido</b> entre miles de computadoras, donde cada bloque de datos se enlaza con el anterior con criptografía. Nadie lo controla solo y, una vez escrito, no se puede alterar sin que todos lo noten.'],
+        points: [
+          '<b>Descentralizada:</b> no hay un banco o empresa dueña; la copia la tienen miles de nodos.',
+          '<b>Inmutable:</b> cambiar un bloque rompería la cadena y la red lo rechaza.',
+          '<b>Transparente:</b> cualquiera puede verificar las transacciones.'
+        ],
+        task: 'Entra a un explorador como blockchain.com o etherscan.io y observa una transacción real: fíjate en el remitente, el destino y el monto.'
+      },
+      {
+        t: 'Criptografía detrás (hash y claves)', xp: 40,
+        desc: ['La blockchain se sostiene en dos ideas que ya tocan tu mundo de seguridad: las <b>funciones hash</b> y las <b>claves pública/privada</b>.'],
+        points: [
+          '<b>Hash:</b> convierte cualquier dato en una huella única (SHA-256). Si cambias una coma, la huella cambia por completo.',
+          '<b>Clave privada:</b> tu secreto, firma tus transacciones. Quien la tenga, controla tus fondos.',
+          '<b>Clave pública / dirección:</b> la compartes para recibir; no revela la privada.'
+        ],
+        cmds: [{ label: 'Ver un hash SHA-256 (Linux/Termux)', cmd: 'echo "hola ninja" | sha256sum' }],
+        task: 'Genera el hash de una frase con <code>sha256sum</code>, cambia una letra y vuelve a generarlo. Observa cómo cambia TODO.'
+      },
+      {
+        t: 'Wallets: custodia y frase semilla', xp: 45,
+        desc: ['Una wallet (billetera) guarda tus claves, no "las monedas". La regla de oro: <b>el que controla la clave privada, controla el dinero.</b>'],
+        points: [
+          '<b>Custodial:</b> un exchange (Binance, etc.) guarda tus claves por ti. Cómodo, pero dependes de ellos ("not your keys, not your coins").',
+          '<b>No custodial:</b> tú guardas la clave (MetaMask, hardware wallet como Ledger). Más control, más responsabilidad.',
+          '<b>Frase semilla (12-24 palabras):</b> es la llave maestra. Quien la vea, se lleva todo.'
+        ],
+        task: 'Anota la regla: la frase semilla NUNCA se escribe en el teléfono, ni foto, ni nube, ni se le da a nadie. Solo en papel, offline.'
+      },
+      {
+        t: 'Estafas cripto (y cómo evitarlas)', xp: 45,
+        desc: ['Aquí es donde más gente pierde dinero. El cripto no tiene "deshacer" ni banco que te devuelva: una transferencia es definitiva. Por eso las estafas son brutales.'],
+        points: [
+          '<b>Phishing:</b> webs falsas de wallets/exchanges que roban tu frase semilla.',
+          '<b>"Regalos" y dobladores:</b> "manda 1 y te devuelvo 2" = siempre estafa.',
+          '<b>Rug pull:</b> crean una moneda, la inflan y desaparecen con el dinero.',
+          '<b>Soporte falso:</b> nadie legítimo te pide tu frase semilla, JAMÁS.'
+        ],
+        task: 'Busca un caso real de "rug pull" o estafa cripto y anota qué señal de alerta habría ayudado a evitarla.'
+      },
+      {
+        t: 'Contratos inteligentes y seguridad', xp: 55,
+        desc: ['Un contrato inteligente es un programa que vive en la blockchain y se ejecuta solo (ej. en Ethereum, escrito en Solidity). Si tiene un bug, no se puede "parchear" fácil y pueden robar millones. Auditarlos es una especialidad muy bien pagada.'],
+        points: [
+          'Fallas típicas: reentrancy, desbordamientos, control de acceso flojo.',
+          'Herramientas de análisis: Slither, Mythril (en laboratorio propio).',
+          'Practica legal: Ethernaut y Damn Vulnerable DeFi son juegos para aprender a romper contratos éticamente.'
+        ],
+        task: 'Investiga qué fue el hack de "The DAO" (2016) y anota en una línea qué tipo de fallo lo causó.'
+      },
+      {
+        t: 'Reto: auditoría de seguridad cripto', xp: 90, gems: 5, boss: true,
+        desc: ['Aplica todo: evalúa la seguridad de una situación cripto como lo haría un profesional.'],
+        steps: [
+          'Elige un escenario: una wallet nueva o un token que te "recomendaron".',
+          'Revisa señales: ¿custodia de claves? ¿la frase semilla está segura? ¿el proyecto es verificable?',
+          'Lista los riesgos y cómo los mitigarías.'
+        ],
+        task: 'Entrega una mini-auditoría en el Block de notas: 3 riesgos detectados y 3 medidas para protegerte. ¡Eso vale oro en este mundo!'
+      }
+    ]
   }
 ];
 

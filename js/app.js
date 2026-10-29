@@ -2969,6 +2969,20 @@ DATA.academia = [
         task: 'Entrega una mini-auditoría en el Block de notas: 3 riesgos detectados y 3 medidas para protegerte. ¡Eso vale oro en este mundo!'
       }
     ]
+  },
+  {
+    n: 11, icon: '🤖', name: 'Robótica', lvl: 4, tag: '🔜 PRÓXIMAMENTE', soon: true,
+    sub: 'Próximamente — Arduino, sensores, motores, Raspberry Pi e IA',
+    missions: [
+      { t: 'Electrónica básica (voltaje, corriente, GPIO)', xp: 40 },
+      { t: 'Arduino: tu primer circuito', xp: 45 },
+      { t: 'Sensores y actuadores', xp: 45 },
+      { t: 'Motores y movimiento', xp: 50 },
+      { t: 'Raspberry Pi + Python', xp: 50 },
+      { t: 'ROS 2: el cerebro del robot', xp: 55 },
+      { t: 'Robot con visión e IA', xp: 60 },
+      { t: 'Reto: tu primer robot', xp: 100, boss: true }
+    ]
   }
 ];
 

@@ -1,7 +1,7 @@
 {
-  "contentVersion": 8,
-  "appVersion": "1.4.0",
-  "appVersionCode": 8,
+  "contentVersion": 9,
+  "appVersion": "1.4.1",
+  "appVersionCode": 9,
   "files": [
     "index.html",
     "css/style.css",
